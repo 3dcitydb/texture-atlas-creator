@@ -13,7 +13,20 @@ public class TexturePropertiesInAtlas {
 	private double width;
 	private double height;
 	private String ImagePath;
+	private String atlasPath;
 	
+	/**
+	 * @return the atlasPath
+	 */
+	public String getAtlasPath() {
+		return atlasPath;
+	}
+	/**
+	 * @param atlasPath the atlasPath to set
+	 */
+	public void setAtlasPath(String atlasPath) {
+		this.atlasPath = atlasPath;
+	}
 	/**
 	 * @return the imagePath
 	 */
@@ -78,6 +91,11 @@ public class TexturePropertiesInAtlas {
 	public String toString(){
 
 		return ImagePath+"|"+woffset+"|"+hoffset+"|"+width+"|"+height;
+	}
+	
+	public void release(){
+		ImagePath=null;
+		atlasPath=null;
 	}
 }
 

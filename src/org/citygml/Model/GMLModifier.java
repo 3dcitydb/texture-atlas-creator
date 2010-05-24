@@ -114,23 +114,30 @@ public class GMLModifier {
 			String atlasURI;
 			
 			System.out.println("   Amount of buildings in this file: "+buildingsSurfaceData.size());
-//			
+			int bc=1; 
 			while(buildingsIterator.hasNext()){
 				buildingSurfaces = buildingsIterator.next();
 				if (buildingSurfaces==null||buildingSurfaces.size()==0)
 					continue;
+				// without .xxx
 				atlasURI= getSuitableAtlasName(((SimpleSurfaceDataMember)buildingSurfaces.get(0)).getImageURI());// atlas texture path( its name is as same as the first texture's name)			
 				texturePacker.set(generatePicturesPath(buildingSurfaces),// textures' path
 						atlasURI,
 						getDirectory(inputGML),// prefix
 						atlasTextureOutputFormat);
 				Hashtable<String, TexturePropertiesInAtlas> newTextureProperties= texturePacker.run();
-				modifyCoordinates(buildingSurfaces,newTextureProperties,atlasURI);
+				modifyCoordinates(buildingSurfaces,newTextureProperties);
+				newTextureProperties.clear();
+				newTextureProperties=null;
+				atlasURI=null;
+				System.out.println(bc);
+				bc++;
 			}
 			// write new result based for each building
 			FeatureChanger myFeatureWalker = new FeatureChanger();
 			myFeatureWalker.set(buildingsSurfaceData,citygml);
 			cityModel.visit(myFeatureWalker);
+			myFeatureWalker=null;
 			writeGMLFile(cityModel, outputGML);
 			
 		} catch (Exception e) {
@@ -285,7 +292,9 @@ public class GMLModifier {
 	public String getSuitableAtlasName(String firstTextureAddress){
 		String directory =getDirectory(outputGML);
 		String path = directory+(directory==null||directory.length()==0?"":"/")+firstTextureAddress.replace('\\', '/');
-		path= path.substring(0,path.lastIndexOf('.'))+ (atlasTextureOutputFormat==GMLModifier.JPG?".jpg":".png");
+//		path= path.substring(0,path.lastIndexOf('.'))+ (atlasTextureOutputFormat==GMLModifier.JPG?".jpg":".png");
+//		return path;
+		path= path.substring(0,path.lastIndexOf('.'));
 		return path;
 		
 	}
@@ -295,12 +304,16 @@ public class GMLModifier {
 	 * @param buildingSurfaces
 	 * @param newTextureProperties
 	 */
-	private void modifyCoordinates(ArrayList<SimpleSurfaceDataMember> buildingSurfaces,Hashtable<String, TexturePropertiesInAtlas> newTextureProperties,String atlasURI){
+	private void modifyCoordinates(ArrayList<SimpleSurfaceDataMember> buildingSurfaces,Hashtable<String, TexturePropertiesInAtlas> newTextureProperties){
 		TexturePropertiesInAtlas ip;
 		double[] coordinates;
 		SimpleSurfaceDataMember simpleSDM;
 		
 		Iterator<SimpleSurfaceDataMember> building = buildingSurfaces.iterator();
+		/**
+		 * !!!!!!!!!!!!!!!!@todo
+		 * modify with more than one atlas for a building!
+		 */
 		while(building.hasNext()){
 			simpleSDM = (SimpleSurfaceDataMember) building.next();
 
@@ -325,11 +338,14 @@ public class GMLModifier {
 			}
 			simpleSDM.setCoordinates(coordinates);
 			
-			simpleSDM.setImageURI(atlasURI.replaceFirst(getDirectory(outputGML),""));
+			simpleSDM.setImageURI(ip.getAtlasPath().replaceFirst(getDirectory(outputGML),""));
 			
 			// !!!!!!!!!!!!!!!!!!!problem! in Auto
 			simpleSDM.setImageMIMEType(atlasTextureOutputFormat==GMLModifier.JPG?"image/jpeg":"image/png");
+//			ip.release();
+			ip=null;
 		}
+		coordinates=null;
 	}
 	
 	
