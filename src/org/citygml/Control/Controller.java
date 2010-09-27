@@ -39,16 +39,16 @@ public class Controller {
 		inputPath=inputPath.toLowerCase().replace('\\','/');
 		outputPath=outputPath.toLowerCase().replace('\\','/');
 		
-		if(atlasOptions.equals("-atlaspng"))
-			gmlModifier.setAtlasTextureOutputFormat(GMLModifier.PNG);
-		else
-			if(atlasOptions.equals("-atlasjpg"))
-				gmlModifier.setAtlasTextureOutputFormat(GMLModifier.JPG);
-			else	
-				if(atlasOptions.equals("-atlasauto"))
-					gmlModifier.setAtlasTextureOutputFormat(GMLModifier.AUTO);
-				else
-					return false; // or maybe just set the default value!
+//		if(atlasOptions.equals("-atlaspng"))
+//			gmlModifier.setAtlasTextureOutputFormat(GMLModifier.PNG);
+//		else
+//			if(atlasOptions.equals("-atlasjpg"))
+//				gmlModifier.setAtlasTextureOutputFormat(GMLModifier.JPG);
+//			else	
+//				if(atlasOptions.equals("-atlasauto"))
+//					gmlModifier.setAtlasTextureOutputFormat(GMLModifier.AUTO);
+//				else
+//					return false; // or maybe just set the default value!
 		
 		
 		// validate input file/folder
@@ -70,7 +70,7 @@ public class Controller {
 		if (input.isDirectory()){ // input is a directory
 			multiGMLFiles(input);
 		}else{// input is a file
-			gmlModifier.setProperties(inputPath, outputPath,atlasCreationToolPath);
+			gmlModifier.setProperties(inputPath, outputPath);
 			gmlModifier.modify();
 		}			
 		System.out.println("Complete!");
@@ -114,7 +114,7 @@ public class Controller {
 				counter++;
 				System.out.println(counter+".Modifing "+path);
 				String t =path.replaceFirst(inputPath, outputPath);
-				gmlModifier.setProperties(path, t,atlasCreationToolPath);
+				gmlModifier.setProperties(path, t);
 				gmlModifier.modify();
 				System.out.println("   ..................... OK");
 			}

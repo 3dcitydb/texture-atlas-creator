@@ -10,7 +10,7 @@ import java.util.Hashtable;
 import javax.imageio.ImageIO;
 import org.citygml.Model.DataStructures.TexturePropertiesInAtlas;
 
-public class TexturePacker_1 extends AbstractTexturePacker {
+public class TexturePacker extends AbstractTexturePacker {
 	public  static int ImageMaxWidth=2048;
 	public  static int ImageMaxHeight=1024;
 	
@@ -19,8 +19,9 @@ public class TexturePacker_1 extends AbstractTexturePacker {
 	Graphics g;
 	int fileCounter=0;
 	String completeAtlasPath;
+	boolean overBorder=false;
 	
-	public TexturePacker_1(){
+	public TexturePacker(){
 		setTexturePackerType(AbstractTexturePacker.TEXTUREPACKER_1);
 		// Just JPEG is supported
 		bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
@@ -51,39 +52,63 @@ public class TexturePacker_1 extends AbstractTexturePacker {
 				e.printStackTrace();
 				imgs[i]= new BufferedImage(0, 0, BufferedImage.TYPE_INT_RGB);
 			}			
+			if (imgsPath[i].indexOf("tex4047653.jpeg")>0)
+				System.out.println("here!");
             widths[i] = imgs[i].getWidth();
             heights[i] = imgs[i].getHeight();
-            totalWidth+=widths[i];
-            if (heights[i]>maxHeigth)
-                maxHeigth = (int)heights[i];
+            if (heights[i]<ImageMaxHeight){
+            	totalWidth+=widths[i];
+            	if (heights[i]>maxHeigth)
+                    maxHeigth = (int)heights[i];
+            }else
+            	System.out.println("OVEEEEEEEEEEER  "+imgsPath[i]);
+            	
+           
+            
             if (imgs[i].isAlphaPremultiplied())
             	isAnyTransparent=true;
+            // just for test
         }
 		int[] order= getImagesBestOrder(widths, heights);
 		completeAtlasPath=getAtlasPath()+"_"+fileCounter+"."+getAtlasFormat(isAnyTransparent);
-
-		if (maxHeigth>ImageMaxHeight){
-			
-			System.out.println("Problem with Heigth!! "+ maxHeigth);
-//			ImageMaxWidth=totalWidth;
-//			ImageMaxHeight= maxHeigth;
-//			g.dispose();
-//			g.finalize();
-//			bi.flush();
-//			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
-//			g = bi.getGraphics();
-		}
 		
 		int w = 0;
-		
-		
 		Hashtable<String, TexturePropertiesInAtlas> ht= new Hashtable<String, TexturePropertiesInAtlas>();
 		TexturePropertiesInAtlas ip;
 		for (int i = 0; i < imgs.length; i++) {
+			if (i==92)
+				System.out.print(i);
 			if (ImageMaxWidth<widths[order[i]]+w){
 				writeImage(isAnyTransparent,ImageMaxWidth,maxHeigth);
 				totalWidth-=w;
 				w=0;
+				
+			}
+			if (heights[order[i]]>ImageMaxHeight){
+			// at first write image in a new position
+				overBorder= true;
+				File file = new File(getAtlasPath()+"_"+(fileCounter+1)+"."+getAtlasFormat(isAnyTransparent));
+				if (!file.exists() &&file.getParent()!=null)
+					file.getParentFile().mkdirs();
+				try {
+					ImageIO.write(imgs[order[i]],getAtlasFormat(isAnyTransparent), file);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			// fill the object.
+				ip= new TexturePropertiesInAtlas();
+				ip.setImagePath(imgsPath[order[i]]);
+				ip.setHorizontalOffset(0);
+				ip.setVerticalOffset(0);
+				ip.setWidth(1);
+				ip.setHeight(1);
+				ip.setAtlasPath(getAtlasPath()+"_"+(fileCounter+1)+"."+getAtlasFormat(isAnyTransparent));
+				String st = imgsPath[order[i]].replaceFirst(getPrefixAddress()+"/", "");		
+				imgs[order[i]].flush();
+				ht.put(st, ip);
+//				totalWidth-=widths[order[i]];
+				continue;
 				
 			}
 			// draw image
@@ -109,7 +134,7 @@ public class TexturePacker_1 extends AbstractTexturePacker {
 	
 	private void writeImage(boolean isAnyTransparent,int w, int h){
 		try{
-		File file = new File(getAtlasPath()+"_"+fileCounter+"."+getAtlasFormat(isAnyTransparent));
+		File file = new File(completeAtlasPath);
 		if (!file.exists() &&file.getParent()!=null)
 			file.getParentFile().mkdirs();
 		tmp=bi.getSubimage(0, 0, w, h);
@@ -118,8 +143,11 @@ public class TexturePacker_1 extends AbstractTexturePacker {
 		tmp.flush();
 		completeAtlasPath=null;
 		fileCounter++;
+		if (overBorder)
+			fileCounter++;
 		completeAtlasPath= getAtlasPath()+"_"+fileCounter+"."+getAtlasFormat(isAnyTransparent);
 		g.clearRect(0, 0, ImageMaxWidth, ImageMaxHeight);
+		overBorder=false;
 		}catch(Exception e){
 			e.printStackTrace();
 		}

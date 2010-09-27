@@ -53,6 +53,7 @@ public class FeatureChanger extends FeatureWalker {
 	public void accept(ParameterizedTexture parameterizedTexture) {
 		
 		if (pcc == 0) {
+			
 			appearance.unsetSurfaceDataMember();
 			parameterizedTexture.unsetTarget();
 			

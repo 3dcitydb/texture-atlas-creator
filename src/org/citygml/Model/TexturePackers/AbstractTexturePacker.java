@@ -86,14 +86,14 @@ public abstract class AbstractTexturePacker {
 	public String getAtlasFormat(boolean alphaEnable){
 		if (alphaEnable)
 			return "PNG";
-		switch(atlasFormat){
-		case GMLModifier.JPG:
-			return "jpg";
-		case GMLModifier.PNG:
-			return "PNG";
-		case GMLModifier.AUTO:
-			return "jpg";
-		}
+//		switch(atlasFormat){
+//		case GMLModifier.JPG:
+//			return "jpg";
+//		case GMLModifier.PNG:
+//			return "PNG";
+//		case GMLModifier.AUTO:
+//			return "jpg";
+//		}
 		return "jpg";
 	}
 }
