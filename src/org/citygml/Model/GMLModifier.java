@@ -1,11 +1,17 @@
 package org.citygml.Model;
 
+import java.awt.Image;
 import java.io.File;
+import java.io.IOException;
 
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
+
+import javax.imageio.ImageIO;
 
 
 import org.citygml.Model.DataStructures.TexturePropertiesInAtlas;
@@ -94,20 +100,39 @@ public class GMLModifier {
 			// Load a cityGML file
 			CityModel cityModel = readGMLFile(inputGML);
 			// scan the cityModel object to obtain all surface data of each building separately.
-			Hashtable<String, ArrayList<SimpleSurfaceDataMember>> buildingsSurfaceData = scanCityModel(cityModel);
-			newCityModelScaner(cityModel);
-			Iterator<ArrayList<SimpleSurfaceDataMember>> buildingsIterator= buildingsSurfaceData.values().iterator();
-			// for each building merge textures and modify the coordinates and other properties.
-			ArrayList<SimpleSurfaceDataMember> buildingSurfaces;
-			String atlasURI;
+//			Hashtable<String, ArrayList<SimpleSurfaceDataMember>> buildingsSurfaceData = scanCityModel(cityModel);
+			Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings=newCityModelScaner(cityModel);
+			System.out.println(buildings.size());
 			
-			System.out.println("   Amount of buildings in this file: "+buildingsSurfaceData.size());
+			
+//			Iterator<ArrayList<SimpleSurfaceDataMember>> buildingsIterator= buildingsSurfaceData.values().iterator();
+			Iterator<Hashtable<Integer,TexImageInfo4GMLFile>> buildingsIter =buildings.values().iterator();
+			// for each building merge textures and modify the coordinates and other properties.
+//			ArrayList<SimpleSurfaceDataMember> buildingSurfaces;
+//			String atlasURI;
+//			
+//			System.out.println("   Amount of buildings in this file: "+buildingsSurfaceData.size());
 			// building counter
-			int bc=1; 
-			while(buildingsIterator.hasNext()){
-				buildingSurfaces = buildingsIterator.next();
-				if (buildingSurfaces==null||buildingSurfaces.size()==0)
-					continue;
+			
+			Hashtable<Integer,TexImageInfo4GMLFile> building;
+			TexImageInfo4GMLFile texGroup;
+			Integer tmpKey;
+			while(buildingsIter.hasNext()){
+				building=buildingsIter.next();
+				Enumeration<Integer> texGroupIDS= building.keys();
+				while(texGroupIDS.hasMoreElements()){
+					tmpKey= texGroupIDS.nextElement();
+					texGroup = building.get(tmpKey);
+					texGroup= atlasGenerator.convertor4GMLF(texGroup);
+					building.put(tmpKey, texGroup);
+				}
+			
+			}
+//			int bc=1; 
+//			while(buildingsIterator.hasNext()){
+//				buildingSurfaces = buildingsIterator.next();
+//				if (buildingSurfaces==null||buildingSurfaces.size()==0)
+//					continue;
 				// without .xxx
 ////				atlasURI= getSuitableAtlasName(((SimpleSurfaceDataMember)buildingSurfaces.get(0)).getImageURI());// atlas texture path( its name is as same as the first texture's name)			
 ////				texturePacker.set(generatePicturesPath(buildingSurfaces),// textures' path
@@ -121,10 +146,10 @@ public class GMLModifier {
 //				atlasURI=null;
 //				System.out.println(bc);
 //				bc++;
-			}
+//			}
 			// write new result based for each building
 			FeatureChanger myFeatureWalker = new FeatureChanger();
-			myFeatureWalker.set(buildingsSurfaceData,citygml);
+//			myFeatureWalker.set(buildingsSurfaceData,citygml);
 			cityModel.visit(myFeatureWalker);
 			myFeatureWalker=null;
 			writeGMLFile(cityModel, outputGML);
@@ -156,49 +181,108 @@ public class GMLModifier {
 	 * @param citymodel
 	 * @return
 	 */
-	public Hashtable<String,STexImageInfo> newCityModelScaner(CityModel citymodel){
-		
-		// Each element refer to data of a building in this file.
-		final Hashtable<String, STexImageInfo> buildings = new Hashtable<String, STexImageInfo>();
-//		
+	public Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> newCityModelScaner(
+			CityModel citymodel) {
+
+		// Each element refer to a group of ParametrizedTexture in a building which share all of the features
+		// instead of imageURI and coordinates.
+		final Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings = new Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>>();
+		// imagine all text have a same properties.
 		FeatureWalker loader = new FeatureWalker() {
-			STexImageInfo building= null;
-			
-			public void accept(ParameterizedTexture parameterizedTexture) {	
-//				Long ID= new Long(parameterizedTexture.getId());
-				Long ID= new Long(10);
-				building.addTexImageURI(ID, parameterizedTexture.getImageURI());
-				
-				Iterator<TextureAssociation> targets= parameterizedTexture.getTarget().iterator();
-				while(targets.hasNext()){
-					TextureAssociation ta= targets.next();
-					// maybe it is TexCoordGen !?!?!? or not?
-					Iterator<TextureCoordinates>  tcs=((TexCoordList) (ta.getTextureParameterization())).getTextureCoordinates().iterator();
-					while(tcs.hasNext()){
-						TextureCoordinates tc=tcs.next();
-						System.out.println(tc.getRing());
-						
+			Hashtable<Integer,TexImageInfo4GMLFile> building;
+			TexImageInfo4GMLFile texGroup = null;
+			String target_ring;
+			int counter =0;
+			TexGeneralProperties genProp = null;
+			public void accept(ParameterizedTexture parameterizedTexture) {
+				if (genProp==null){
+					genProp = new TexGeneralProperties(parameterizedTexture
+							.getTextureType(), parameterizedTexture
+							.getWrapMode(), parameterizedTexture
+							.getBorderColor(), parameterizedTexture
+							.getIsFront());
+					texGroup.setGeneralProp(genProp);
+				}else if(!genProp.compareItTo(parameterizedTexture
+						.getTextureType(), parameterizedTexture
+						.getWrapMode(), parameterizedTexture
+						.getBorderColor(), parameterizedTexture
+						.getIsFront())){
+					// find corresponding texGroup
+					texGroup = findTextGroupInBuilding(new TexGeneralProperties(parameterizedTexture
+						.getTextureType(), parameterizedTexture
+						.getWrapMode(), parameterizedTexture
+						.getBorderColor(), parameterizedTexture
+						.getIsFront()));
+					if (texGroup!=null){
+						// it is found.
+						genProp= texGroup.getGeneralProp();
+					}else{
+						// there is not any similar texture in this building.
+						genProp = new TexGeneralProperties(parameterizedTexture
+								.getTextureType(), parameterizedTexture
+								.getWrapMode(), parameterizedTexture
+								.getBorderColor(), parameterizedTexture
+								.getIsFront());
+						counter++;
+						texGroup = new TexImageInfo4GMLFile();
+						texGroup.setGeneralProp(genProp);
+						building.put(new Integer(counter), texGroup);
 					}
-					TextureCoordinates tc= ((TexCoordList) (ta.getTextureParameterization())).getTextureCoordinates().get(0);
-					// save data!
-//					SimpleSurfaceDataMember simpleSurfaceMember= new SimpleSurfaceDataMember(parameterizedTexture.getImageURI(), tc.getValue(),ta.getUri(), tc.getRing());
-//					building.add(simpleSurfaceMember);
+					
 				}
-				building.addParametrizedTexture(parameterizedTexture.getId(), parameterizedTexture);
+				texGroup.addTexImages(parameterizedTexture.getImageURI(), getCompliteImagePath(parameterizedTexture.getImageURI()));
+				
+				Iterator<TextureAssociation> targets = parameterizedTexture
+						.getTarget().iterator();
+				while (targets.hasNext()) {
+					TextureAssociation ta = targets.next();
+					// maybe it is TexCoordGen !?!?!? or not?
+					Iterator<TextureCoordinates> tcs = ((TexCoordList) (ta
+							.getTextureParameterization()))
+							.getTextureCoordinates().iterator();
+					while (tcs.hasNext()) {
+						TextureCoordinates tc = tcs.next();
+						texGroup.addAll(parameterizedTexture.getId(), ta
+								.getUri(), tc.getRing(), parameterizedTexture
+								.getImageURI(), double2String(tc.getValue()));
+					}
+				}
 				super.accept(parameterizedTexture);
 			}
-			public void accept(AbstractBuilding abstractBuilding){
-					building = new STexImageInfo();
-					buildings.put(abstractBuilding.getId(), building);
+
+			public void accept(AbstractBuilding abstractBuilding) {
+				building = new Hashtable<Integer,TexImageInfo4GMLFile>();
+				texGroup = new TexImageInfo4GMLFile();
+				counter=0;
+				building.put(new Integer(counter), texGroup);
+				genProp = null;
+				
+				buildings.put(abstractBuilding.getId(), building);
 				super.accept(abstractBuilding);
+			}
+			
+			private TexImageInfo4GMLFile findTextGroupInBuilding(TexGeneralProperties genP){
+				Enumeration<TexImageInfo4GMLFile> e= building.elements();
+				TexImageInfo4GMLFile tmp;
+				while(e.hasMoreElements()){
+					tmp = e.nextElement();
+					if (TexGeneralProperties.Compare(genP, tmp.getGeneralProp())){
+						e=null;
+						return tmp;
+					}
+				}
+				e=null;
+				genP=null;
+				tmp=null;
+				return null;
 			}
 
 		};
-		
+
 		// pars to get information is a structured data format.
 		citymodel.visit(loader);
 		return buildings;
-		
+
 	}
 	/**
 	 * !!!OK
@@ -295,5 +379,24 @@ public class GMLModifier {
 	
 		writer.write(cityModel);
 		writer.close();
+	}
+	public String getCompliteImagePath(String path){
+		String prefixAddress= getDirectory(inputGML);
+		String fullpath=prefixAddress+(prefixAddress==null||prefixAddress.length()==0?"":"/")+path;
+		prefixAddress=null;
+		return fullpath.replace('\\', '/');
+	}
+	
+	public String double2String(List<Double> coordinates){
+		if (coordinates==null)
+			return null;
+		StringBuffer sb= new StringBuffer(coordinates.size()*20);
+		Iterator<Double> coord =coordinates.iterator();
+		while(coord.hasNext()){
+			sb.append(coord.next());
+		}
+		coord=null;
+		coordinates=null;
+		return sb.toString();
 	}
 }

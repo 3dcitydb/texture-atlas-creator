@@ -31,7 +31,7 @@ public class MyStPacker  {
 //		return items.add(new MyItem(id, width, height));
 //	}
 
-	public boolean addItem(String id, int width, int height, Long surfaceID, double[] coordinates) {
+	public boolean addItem(String id, int width, int height, Object surfaceID, double[] coordinates) {
 		return items.add(new MyItem(id, width, height,surfaceID,coordinates));
 	}
 	public void reset(){

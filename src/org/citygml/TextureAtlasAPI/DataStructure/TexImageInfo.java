@@ -16,15 +16,16 @@ import java.util.HashMap;
  */
 public class TexImageInfo {
 	/**
-	 * texImgeURIs contains the surface-geometry id (Long) and corresponding imageURI(String)
+	 * texImgeURIs contains  a key (the surface-geometry id (Long) in DB usage and TargetURI+' '+Ring(String) in GML loader)
+	 * and corresponding imageURI(String)
 	 */
-	protected HashMap<Long, String> texImageURIs ;
+	protected HashMap<Object, String> texImageURIs ;
 	
 	/**
-	 * texCoordingates contains the surface-geometry id (long) and corresponding texture coordinates
-	 * in the same format as in the database (string tokenizable via whitespace)  
+	 * texCoordingates contains a key (the surface-geometry id (Long) in DB usage and TargetURI+' '+Ring(String) in GML loader)
+	 *  and corresponding texture coordinates in the same format as in the database (string tokenizable via whitespace)  
 	 */
-	protected HashMap<Long, String> texCoordinates;
+	protected HashMap<Object, String> texCoordinates;
 	
 	/**
 	 * textImages contains an imageURI(String) and the corresponding Image object which is a texture
@@ -37,32 +38,47 @@ public class TexImageInfo {
 	 * for corresponding surface-geometry, which recognized by its id(Long), will be reported.
 	 */
 	private HashMap<Long, ErrorTypes> LOG;
+	
+	/**
+	 * check if the images are ready.
+	 * IN DB mode: whenever all the images are converted to Java Image object it will be true.
+	 * In StandAlone: whenever all images are loaded in a java Image format, it will be true.
+	 */
+	private boolean ImagesReady=false;
+
+	public boolean isImagesReady() {
+		return ImagesReady;
+	}
+
+	public void setImagesReady(boolean imagesReady) {
+		ImagesReady = imagesReady;
+	}
 
 	/**
 	 * @return the texImageURIs
 	 */
-	public HashMap<Long, String> getTexImageURIs() {
+	public HashMap<Object, String> getTexImageURIs() {
 		return texImageURIs;
 	}
 
 	/**
 	 * @param texImageURIs the texImageURIs to set
 	 */
-	public void setTexImageURIs(HashMap<Long, String> texImageURIs) {
+	public void setTexImageURIs(HashMap<Object, String> texImageURIs) {
 		this.texImageURIs = texImageURIs;
 	}
 
 	/**
 	 * @return the texCoordinates
 	 */
-	public HashMap<Long, String> getTexCoordinates() {
+	public HashMap<Object, String> getTexCoordinates() {
 		return texCoordinates;
 	}
 
 	/**
 	 * @param texCoordinates the texCoordinates to set
 	 */
-	public void setTexCoordinates(HashMap<Long, String> texCoordinates) {
+	public void setTexCoordinates(HashMap<Object, String> texCoordinates) {
 		this.texCoordinates = texCoordinates;
 	}
 

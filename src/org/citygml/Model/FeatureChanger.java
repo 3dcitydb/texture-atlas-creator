@@ -45,6 +45,7 @@ public class FeatureChanger extends FeatureWalker {
 	@Override
 	public void accept(Appearance arg0) {
 		this.appearance = arg0;
+		
 		super.accept(arg0);
 	}
 

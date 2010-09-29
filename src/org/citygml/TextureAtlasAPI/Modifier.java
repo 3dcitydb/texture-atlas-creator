@@ -53,9 +53,9 @@ public class Modifier {
 		AtlasName=null;
 		g.clearRect(0, 0, ImageMaxWidth, ImageMaxHeight);
 
-		HashMap<Long, String> coordinatesHashMap =ti.getTexCoordinates();
+		HashMap<Object, String> coordinatesHashMap =ti.getTexCoordinates();
 		HashMap<String, Image> textImage= ti.getTexImages();
-		HashMap<Long, String> textUri= ti.getTexImageURIs();
+		HashMap<Object, String> textUri= ti.getTexImageURIs();
 		
 		
 		Image[] imgs = new Image[textImage.size()];
@@ -64,29 +64,29 @@ public class Modifier {
 		//!?!?! should I make it again?
 		MyStPacker myPack = new MyStPacker();
 		// target URI: surface ID
-		Iterator<Long> surfacesID= coordinatesHashMap.keySet().iterator();
+		Iterator<Object> surfacesID= coordinatesHashMap.keySet().iterator();
 		int counter =0;
-		Long ID;
+		Object key;
 		Image tmp;
 		int width, height;
 		
 		double[] coordinate;
 		while(surfacesID.hasNext()){
-			ID = surfacesID.next();
+			key = surfacesID.next();
 			if (AtlasName==null){
-				AtlasName= textUri.get(ID);
+				AtlasName= textUri.get(key);
 				tmp = textImage.get(AtlasName);
 				AtlasName= AtlasName.substring(0,AtlasName.lastIndexOf('.'));
 				System.out.println("Atlas NAme:"+AtlasName);
 			}else
-				tmp = textImage.get(textUri.get(ID));
+				tmp = textImage.get(textUri.get(key));
 //			surfacs_ID[counter]=ID;
 			if (tmp==null)
 				continue;
 			imgs[counter]=tmp;
 			width= tmp.getWidth(null);
 	        height= tmp.getHeight(null);
-	        coordinate= formatCoordinates(coordinatesHashMap.get(ID));
+	        coordinate= formatCoordinates(coordinatesHashMap.get(key));
 	        //LOG if coordinates have any problem, do not touch it! (like n. available or wrapping textures)
 	        if (coordinate==null)
 	        	continue;
@@ -96,7 +96,7 @@ public class Modifier {
 	        if (width>maxw)
 	        	maxw=width;	
             totalWidth+=width;
-            myPack.addItem(""+counter, width, height,ID,coordinate);
+            myPack.addItem(""+counter, width, height,key,coordinate);
 //            ID=null;//??
 //            coordinate=null;
 //            tmp.flush();//???
@@ -217,7 +217,7 @@ public class Modifier {
 		}
 	}
 	
-	private void modifyNewCorrdinates(Vector items, HashMap<Long, String> coordinatesHashMap, int atlasWidth, int atlasHeigth){
+	private void modifyNewCorrdinates(Vector items, HashMap<Object, String> coordinatesHashMap, int atlasWidth, int atlasHeigth){
 		Iterator<MyItem> itr= items.iterator();
 		MyItem mit;
 		while(itr.hasNext()){

@@ -18,7 +18,7 @@ public class MyItem implements Comparable<MyItem>{
     /**
      * by babak
      */
-    private Long surfaceID;
+    private Object surfaceID;
     private double[] coordinates;
     
     public void clear(){
@@ -31,7 +31,7 @@ public class MyItem implements Comparable<MyItem>{
     /**
 	 * @return the surfaceID
 	 */
-	public Long getSurfaceID() {
+	public Object getSurfaceID() {
 		return surfaceID;
 	}
 	/**
@@ -67,7 +67,7 @@ public class MyItem implements Comparable<MyItem>{
 	 * @param surfaceID
 	 * @param coordinates
 	 */
-	public MyItem(String id, int width, int height, Long surfaceID,double[] coordinates) {
+	public MyItem(String id, int width, int height, Object surfaceID,double[] coordinates) {
        this(id,width,height);
        this.surfaceID=surfaceID;
        this.coordinates=coordinates;
