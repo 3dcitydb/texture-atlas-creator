@@ -123,7 +123,7 @@ public class GMLModifier {
 				while(texGroupIDS.hasMoreElements()){
 					tmpKey= texGroupIDS.nextElement();
 					texGroup = building.get(tmpKey);
-					texGroup= atlasGenerator.convertor4GMLF(texGroup);
+//					texGroup= atlasGenerator.convertor4GMLF(texGroup);
 					building.put(tmpKey, texGroup);
 				}
 			
@@ -149,7 +149,7 @@ public class GMLModifier {
 //			}
 			// write new result based for each building
 			FeatureChanger myFeatureWalker = new FeatureChanger();
-//			myFeatureWalker.set(buildingsSurfaceData,citygml);
+			myFeatureWalker.set(buildings,citygml);
 			cityModel.visit(myFeatureWalker);
 			myFeatureWalker=null;
 			writeGMLFile(cityModel, outputGML);

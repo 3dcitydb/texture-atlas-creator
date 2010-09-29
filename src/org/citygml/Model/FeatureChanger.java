@@ -1,10 +1,16 @@
 package org.citygml.Model;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 import org.citygml.Model.DataStructures.SimpleSurfaceDataMember;
+import org.citygml.TextureAtlasAPI.DataStructure.TexImageInfo4GMLFile;
 import org.citygml4j.builder.copy.DeepCopyBuilder;
 import org.citygml4j.factory.CityGMLFactory;
 import org.citygml4j.model.citygml.appearance.Appearance;
@@ -19,15 +25,15 @@ import org.citygml4j.visitor.walker.FeatureWalker;
 public class FeatureChanger extends FeatureWalker {
 	private Appearance appearance;
 	private CityGMLFactory citygml;
-	private Hashtable<String, ArrayList<SimpleSurfaceDataMember>> buildingsSurfaceData;
-	private ArrayList<SimpleSurfaceDataMember> currentBuildingData;
+	private Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings;
+	private Hashtable<Integer,TexImageInfo4GMLFile> building;
 	private DeepCopyBuilder dcb = new DeepCopyBuilder();
 	
 	int pcc = 0;
 	
-	public void set(Hashtable<String, ArrayList<SimpleSurfaceDataMember>> buildingsSurfaceData, CityGMLFactory cityGML){
+	public void set(Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings, CityGMLFactory cityGML){
 		this.citygml =cityGML;
-		this.buildingsSurfaceData = buildingsSurfaceData;
+		this.buildings = buildings;
 		pcc=0;
 	}
 	
@@ -36,7 +42,7 @@ public class FeatureChanger extends FeatureWalker {
 	@Override
 	public void accept(AbstractBuilding arg0) {
 		// TODO Auto-generated method stub
-		currentBuildingData= buildingsSurfaceData.get(arg0.getId());
+		building= buildings.get(arg0.getId());
 		pcc=0;
 		super.accept(arg0);
 	}
@@ -44,12 +50,95 @@ public class FeatureChanger extends FeatureWalker {
 	
 	@Override
 	public void accept(Appearance arg0) {
-		this.appearance = arg0;
+		this.appearance = arg0;		
+		appearance.unsetSurfaceDataMember();
+		TextureCoordinates tc ;
+		TexCoordList tcl;
+		TextureAssociation ta ;
 		
+		SurfaceDataProperty sdpt;
+		ParameterizedTexture parameterizedTexture;
+		TexImageInfo4GMLFile texAtlasGroup;
+		HashMap<String, ParameterizedTexture> paramtexGroup;
+		Enumeration<TexImageInfo4GMLFile> texGroupEnum=building.elements();
+		// each texture group will be a sSurfaceDaraMember&ParameterizedTexture
+		while(texGroupEnum.hasMoreElements()){
+			sdpt = citygml.createSurfaceDataProperty();
+			
+			texAtlasGroup = texGroupEnum.nextElement();
+			paramtexGroup= new HashMap<String, ParameterizedTexture>();
+			
+			HashMap<Object, String> texImageURIS=texAtlasGroup.getTexImageURIs();
+			HashMap<Object, String> texCoordinates=texAtlasGroup.getTexCoordinates();
+			
+			// each URI refer to a parameterizedTexture
+			Iterator<String> URIS= texImageURIS.values().iterator();
+			String URI;
+			
+			// make all parameterizedTexture and add all of them to appearance
+			while(URIS.hasNext()){
+				URI=URIS.next();
+				parameterizedTexture = citygml.createParameterizedTexture();
+				parameterizedTexture.setImageURI(URI);
+				//TODO change it. it should set from image convertor.
+				parameterizedTexture.setMimeType("image/jpeg");
+				parameterizedTexture.setBorderColor(texAtlasGroup.getGeneralProp().getBoarderColor());
+				parameterizedTexture.setWrapMode(texAtlasGroup.getGeneralProp().getWrapModeType());
+				parameterizedTexture.setTextureType(texAtlasGroup.getGeneralProp().getTextureType());
+				parameterizedTexture.setIsFront(texAtlasGroup.getGeneralProp().isFront());
+				paramtexGroup.put(URI, parameterizedTexture);
+				sdpt = citygml.createSurfaceDataProperty();
+				sdpt.setSurfaceData(parameterizedTexture);
+				appearance.addSurfaceDataMember(sdpt);
+			}
+			URIS=null;
+			
+			// pars all coordinates and make the object for corresponding parameterizedTexture.
+			Iterator<Object> targetRingIte= texImageURIS.keySet().iterator();
+			String targetRing;
+			String[]tr;
+			while(targetRingIte.hasNext()){
+				targetRing= (String)targetRingIte.next();
+				tr= targetRing.split(" ");
+				
+				tc = citygml.createTextureCoordinates();
+				tc.setRing(tr[1]);
+				tc.setValue(convertCoordinates(texCoordinates.get(targetRing)));
+				
+				tcl = citygml.createTexCoordList();
+				tcl.addTextureCoordinates(tc);
+				
+				ta = citygml.createTextureAssociation();
+				ta.setUri(tr[0]);
+				ta.setTextureParameterization(tcl);
+				paramtexGroup.get(texImageURIS.get(targetRing)).addTarget(ta);
+				tr=null;
+				targetRing=null;
+			}
+			targetRingIte=null;
+		}
+	
 		super.accept(arg0);
 	}
-
 	
+	private List<Double> convertCoordinates(String coordinates){
+		if(coordinates==null)
+			return null;
+		ArrayList<Double> list= new ArrayList<Double>();
+		String[] ls= coordinates.split(" ");
+		for(int i=0;i<ls.length;i++){
+			try{
+			list.add(new Double(ls[i]));
+			}catch(Exception e){
+				
+			}
+			ls[i]=null;
+		}
+			ls=null;
+		
+		return list;
+	}
+	/**
 	@Override
 	public void accept(ParameterizedTexture parameterizedTexture) {
 		
@@ -122,7 +211,7 @@ public class FeatureChanger extends FeatureWalker {
 			pcc++;
 		}
 		super.accept(parameterizedTexture);
-	}
+	}**/
 
 	
 }
