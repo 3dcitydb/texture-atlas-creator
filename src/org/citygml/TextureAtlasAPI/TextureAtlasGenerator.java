@@ -52,6 +52,7 @@ public class TextureAtlasGenerator {
 		modifier.reset();
 		if(!tii.isImagesReady()){
 			tii.setTexImages(imageLoader.loadAllImage(tii.getImagesLocalPath()));
+			tii.setImagesReady(true);
 		}
 		modifier.setGeneralSettings(this.PackingAlgorithm, this.ImageMaxWidth, this.ImageMaxHeight);
 		TexImageInfo tmp =modifier.run(tii);

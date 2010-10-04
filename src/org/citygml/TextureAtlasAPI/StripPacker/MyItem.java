@@ -1,12 +1,23 @@
 package org.citygml.TextureAtlasAPI.StripPacker;
 
+
 /**
  * to do: change the id to integer value.
  * @author babak naderi
  *
  */
 public class MyItem implements Comparable<MyItem>{
-    public String id;
+    @Override
+	public boolean equals(Object obj) {
+		// TODO Auto-generated method stub
+    	if (obj.getClass().equals(this.getClass())){
+    		if (((MyItem)obj).getURI()==this.id)
+    			return true;
+    	}
+		return false;
+	}
+
+	public String id;
     public int  w;
     public int h;
     public int a; // area
@@ -14,67 +25,43 @@ public class MyItem implements Comparable<MyItem>{
     public int y;
     
     public Object level;
-    
-    /**
-     * by babak
-     */
-    private Object surfaceID;
-    private double[] coordinates;
+//    public String URI;
+//    private ArrayList<Object> surfaceIDList;
+//    private ArrayList<double[]> coordinateList;
+//    private boolean suitable;
     
     public void clear(){
     	id=null;
     	level=null;
-    	coordinates=null;
-    	surfaceID=null;
     }
   
-    /**
-	 * @return the surfaceID
-	 */
-	public Object getSurfaceID() {
-		return surfaceID;
-	}
-	/**
-	 * @param surfaceID the surfaceID to set
-	 */
-	public void setSurfaceID(Long surfaceID) {
-		this.surfaceID = surfaceID;
-	}
-	/**
-	 * @return the coordinates
-	 */
-	public double[] getCoordinates() {
-		return coordinates;
-	}
-	/**
-	 * @param coordinates the coordinates to set
-	 */
-	public void setCoordinates(double[] coordinates) {
-		this.coordinates = coordinates;
-	}
-	public MyItem(String id, int width, int height) {
-        this.id = new String(id);
+	public MyItem(String URI, int width, int height) {
+        this.id = new String(URI);
         w = width;
         h = height;
+//        surfaceIDList= new ArrayList<Object>();
+//        surfaceIDList.add(surfaceID);
         a = w*h;
+//        this.URI=URI;
+//        suitable=true;
     }
 	
-	/**
-	 * by babak
-	 * @param id
-	 * @param width
-	 * @param height
-	 * @param surfaceID
-	 * @param coordinates
-	 */
-	public MyItem(String id, int width, int height, Object surfaceID,double[] coordinates) {
-       this(id,width,height);
-       this.surfaceID=surfaceID;
-       this.coordinates=coordinates;
-    }
-	
-	
-    public void setPOS(int x, int y, Object level){
+//	public void addSurface(Object surfaceID){
+//		surfaceIDList.add(surfaceID);
+//	}
+//	public ArrayList<Object> getSurfaceIDList(){
+//		return surfaceIDList;
+//	}
+//	
+//    public boolean isSuitable() {
+//		return suitable;
+//	}
+//
+//	public void setSuitable(boolean suitable) {
+//		this.suitable = suitable;
+//	}
+
+	public void setPOS(int x, int y, Object level){
     	this.x=x;
     	this.y=y;
     	this.level=level;
@@ -83,9 +70,10 @@ public class MyItem implements Comparable<MyItem>{
     public void setYPos(int y){
     	this.y=y;
     }
-    public String getId(){
+    public String getURI(){
         return id;
     }
+    
     
     public int getWidth(){
         return w;

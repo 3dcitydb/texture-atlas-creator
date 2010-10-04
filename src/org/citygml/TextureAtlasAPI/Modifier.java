@@ -5,8 +5,10 @@ import java.awt.Toolkit;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -19,7 +21,7 @@ public class Modifier {
 	private int ImageMaxWidth;
 	private int ImageMaxHeight;
 	private int packingAlgorithm;
-	private String AtlasName;
+
 	
 	BufferedImage bi;
 	BufferedImage tmp;
@@ -44,114 +46,154 @@ public class Modifier {
 	
 	/**
 	 * TODO check the code whether for several texCoordiLists for a parameterizedTexture.
+	 * TODO add try catch to get errors.
 	 * @param ti
 	 * @return
 	 */
 	
 	public TexImageInfo run(TexImageInfo ti){
 		fileCounter=0;
-		AtlasName=null;
+		completeAtlasPath=null;
 		g.clearRect(0, 0, ImageMaxWidth, ImageMaxHeight);
 
 		HashMap<Object, String> coordinatesHashMap =ti.getTexCoordinates();
 		HashMap<String, Image> textImage= ti.getTexImages();
 		HashMap<Object, String> textUri= ti.getTexImageURIs();
 		
+		HashMap<String, ArrayList<Object>> uri2Object = new HashMap<String, ArrayList<Object>>();
+		HashMap<String,Boolean> isImageAcceptable = new HashMap<String, Boolean>();
+		HashMap< Object, double[]> doubleCoordinateList= new HashMap<Object, double[]>();
 		
-		Image[] imgs = new Image[textImage.size()];
+//		Image[] imgs = new Image[textImage.size()];
 		int totalWidth=0,maxw=0;
-//		Long[] surfacs_ID = new Long[texImageCount];
+//		
 		//!?!?! should I make it again?
 		MyStPacker myPack = new MyStPacker();
 		// target URI: surface ID
-		Iterator<Object> surfacesID= coordinatesHashMap.keySet().iterator();
-		int counter =0;
-		Object key;
-		Image tmp;
 		int width, height;
+		String URI;
+		ArrayList<Object> list;
+		Boolean b;
+		Image tmp;
 		
 		double[] coordinate;
-		while(surfacesID.hasNext()){
-			key = surfacesID.next();
-			if (AtlasName==null){
-				AtlasName= textUri.get(key);
-				tmp = textImage.get(AtlasName);
-				AtlasName= AtlasName.substring(0,AtlasName.lastIndexOf('.'));
-				System.out.println("Atlas NAme:"+AtlasName);
-			}else
-				tmp = textImage.get(textUri.get(key));
-//			surfacs_ID[counter]=ID;
-			if (tmp==null)
+		for (Object key : textUri.keySet()){
+			URI= textUri.get(key);
+			// The image was read before;
+			if((b=isImageAcceptable.get(URI))!=null){
+				if (!b.booleanValue())
+					continue;
+				// the coordinates should be added and then continue.
+				coordinate= formatCoordinates(coordinatesHashMap.get(key));
+				// previous coordinate was accepted but this one have problem
+				if (coordinate==null){
+		        	isImageAcceptable.put(URI, new Boolean(false));
+		        	// remve Item from list
+		        	myPack.removeItem(URI);
+		        	width= textImage.get(URI).getWidth(null);
+		        	totalWidth-=width;
+		        	// just for complicated cases.
+		        	if (totalWidth<maxw)
+		        		maxw=totalWidth;
+		        	continue;
+		        }
+				doubleCoordinateList.put(key, coordinate);
+				uri2Object.get(URI).add(key);
 				continue;
-			imgs[counter]=tmp;
+			}
+			
+			
+			if (completeAtlasPath==null)
+				completeAtlasPath= URI.substring(0,URI.lastIndexOf('.'))+"_%1d.jpg";
+			
+			// report bug
+			if ((tmp= textImage.get(URI))==null){
+				isImageAcceptable.put(URI, new Boolean(false));
+				continue;			
+			}
 			width= tmp.getWidth(null);
 	        height= tmp.getHeight(null);
+	        //LOG if the image is not accepted, do not touch it! size problem
+	        if (!acceptATexture(width,height)){
+	        	isImageAcceptable.put(URI, new Boolean(false));
+	        	continue;
+	        }
 	        coordinate= formatCoordinates(coordinatesHashMap.get(key));
 	        //LOG if coordinates have any problem, do not touch it! (like n. available or wrapping textures)
-	        if (coordinate==null)
+	        if (coordinate==null){
+	        	isImageAcceptable.put(URI, new Boolean(false));
 	        	continue;
-	        //LOG if the image is not accepted, do not touch it! size problem
-	        if (!acceptATexture(width,height))
-	        	continue;
+	        }
+	        doubleCoordinateList.put(key, coordinate);
+	        
+	     
 	        if (width>maxw)
 	        	maxw=width;	
             totalWidth+=width;
-            myPack.addItem(""+counter, width, height,key,coordinate);
-//            ID=null;//??
-//            coordinate=null;
-//            tmp.flush();//???
-	        counter++;
+            myPack.addItem(URI, width, height);
+            isImageAcceptable.put(URI, new Boolean(true));
+            if ((list=uri2Object.get(URI))==null){
+            	list=new ArrayList<Object>();
+            	list.add(key);
+            	uri2Object.put(URI,list);
+            	list=null;
+            }
+            else{
+            	list.add(key);
+            	list=null;
+            }
+
 		}
 		
-		MyResult mr=iterativePacker(null, maxw,totalWidth);
+		MyResult mr=iterativePacker(myPack, maxw,totalWidth);
 		
 		// start to make atlas. prevH: amount of height of strip which was written in file before.
-		int recID,x,y, prevH=0;
+		int x,y, prevH=0;
 		int atlasW=0,atlasH=0;
 		// list of all items which will be drawn in a same atlas.
 		Vector<MyItem> frame = new Vector<MyItem>();
-		completeAtlasPath=AtlasName+"_%1d.jpg";
+		
 		//going in side of Result
-		Iterator lIter = mr.getLevelMap().keySet().iterator();
-        while (lIter.hasNext()){
-        	Object level = lIter.next();
-             Iterator <MyItem> iIter = mr.getLevelMap().get(level).iterator();
-             while (iIter.hasNext()){
-            	 MyItem item = iIter.next();
-            	 recID =Integer.parseInt(item.getId());
-            	 x= item.getXPos();
-            	 y= item.getYPos();
-            	 if (y-prevH+item.getHeight()>ImageMaxHeight){
-            		 // set Image in Hashmap and write it to file.
-            		 textImage.put(String.format(completeAtlasPath,fileCounter),writeImage(atlasW, atlasH));
-            		 // set the new coordinates
-            		 modifyNewCorrdinates(frame,coordinatesHashMap,atlasW, atlasH);
-            		 frame.clear();
-            		 atlasW=0;
-            		 atlasH=0;
-            		 prevH=y;
-            	 }
-            	 g.drawImage(imgs[recID], x, y-prevH, null);
-            	 item.setYPos(y-prevH);
-            	 frame.add(item);
-            	 if (atlasW<x+item.getWidth())
-            		 atlasW=x+item.getWidth();
-            	 if (atlasH<y-prevH+item.getHeight())
-            		 atlasH=y-prevH+item.getHeight();
-            	 
-            	 // set the properties.
-            	 // 	set the URI 
-            	 textUri.put(item.getSurfaceID(), String.format(completeAtlasPath,fileCounter));
-             }    
-         }
-         
+		Iterator<MyItem> all= mr.getAllItems().iterator();
+		while(all.hasNext()){
+			 MyItem item = all.next();
+//        	 recID =Integer.parseInt(item.getURI());
+        	 x= item.getXPos();
+        	 y= item.getYPos();
+        	 if (y-prevH+item.getHeight()>ImageMaxHeight){
+        		 // set Image in Hashmap and write it to file.
+        		 textImage.put(String.format(completeAtlasPath,fileCounter),writeImage(atlasW, atlasH));
+        		 // set the new coordinates
+        		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
+        		 frame.clear();
+        		 atlasW=0;
+        		 atlasH=0;
+        		 prevH=y;
+        	 }
+        	 g.drawImage(textImage.get(item.getURI()), x, y-prevH, null);
+        	 item.setYPos(y-prevH);
+        	 frame.add(item);
+        	 if (atlasW<x+item.getWidth())
+        		 atlasW=x+item.getWidth();
+        	 if (atlasH<y-prevH+item.getHeight())
+        		 atlasH=y-prevH+item.getHeight();
+        	 
+        	 // set the properties.
+        	 // set the URI
+        	 for(Object obj:uri2Object.get(item.getURI())){	
+        		 textUri.put(obj, String.format(completeAtlasPath,fileCounter));
+        	 }
+		}
+		
         textImage.put(String.format(completeAtlasPath,fileCounter),writeImage(atlasW, atlasH));
 		 // set the new coordinates
-		 modifyNewCorrdinates(frame,coordinatesHashMap,atlasW, atlasH);
+		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
 		 frame.clear();
 		
-		imgs = null;
-		
+//		imgs = null;
+		uri2Object.clear();
+		isImageAcceptable.clear();
+		doubleCoordinateList.clear();
 		ti.setTexCoordinates(coordinatesHashMap);
 		ti.setTexImages(textImage);
 		ti.setTexImageURIs(textUri);
@@ -171,7 +213,7 @@ public class Modifier {
 	}
 	
 	private MyResult iterativePacker(MyStPacker msp, int maxw, int totalw){
-		msp.setStripWidth((totalw-maxw)/2);
+		msp.setStripWidth((totalw-maxw)/2+maxw);
 		try{
 			return msp.getResult(packingAlgorithm);	
 		}catch(Exception e){
@@ -187,7 +229,7 @@ public class Modifier {
 		double[]c= new double[sc.length];
 		for (int i=0;i<sc.length;i++){
 			c[i] = Double.parseDouble(sc[i]);
-			if (c[i]<0.0005||c[i]>1.0005){
+			if (c[i]<-0.0005||c[i]>1.0005){
 				sc=null;
 				return null;
 			}
@@ -203,13 +245,18 @@ public class Modifier {
 		File file = new File(String.format(completeAtlasPath,fileCounter));
 		if (!file.exists() &&file.getParent()!=null)
 			file.getParentFile().mkdirs();
-		tmp=bi.getSubimage(0, 0, w, h);
-		ImageIO.write(tmp,"jpeg", file);
-		Image result =Toolkit.getDefaultToolkit().createImage(tmp.getSource());
-		tmp.releaseWritableTile(0, 0);
-		tmp.flush();
+		BufferedImage bfi= new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+		bfi.getGraphics().drawImage(bi.getSubimage(0, 0, w, h),0,0,null);
+		ImageIO.write(bfi,"jpeg", file);
+		bfi.releaseWritableTile(0, 0);
+		Image result =Toolkit.getDefaultToolkit().createImage(bfi.getSource());
+	
+		
+		bfi.flush();
+		bfi=null;
 		fileCounter++;
 		g.clearRect(0, 0, ImageMaxWidth, ImageMaxHeight);
+		
 		return result;
 		}catch(Exception e){
 			e.printStackTrace();
@@ -217,12 +264,14 @@ public class Modifier {
 		}
 	}
 	
-	private void modifyNewCorrdinates(Vector items, HashMap<Object, String> coordinatesHashMap, int atlasWidth, int atlasHeigth){
+	private void modifyNewCorrdinates(Vector<MyItem> items, HashMap<Object, String> coordinatesHashMap,HashMap<Object, double[]>doubleCoordinateList,HashMap<String,ArrayList<Object>> URI2OBJ, int atlasWidth, int atlasHeigth){
 		Iterator<MyItem> itr= items.iterator();
 		MyItem mit;
 		while(itr.hasNext()){
 			mit = itr.next();
-			coordinatesHashMap.put(mit.getSurfaceID(),getCoordinate(mit.getCoordinates(),mit.getXPos(),mit.getYPos(), mit.getWidth(),mit.getHeight(),atlasWidth, atlasHeigth));
+			for(Object obj:URI2OBJ.get(mit.getURI())){
+				coordinatesHashMap.put(obj,getCoordinate(doubleCoordinateList.get(obj),mit.getXPos(),mit.getYPos(), mit.getWidth(),mit.getHeight(),atlasWidth, atlasHeigth));
+			}
 			mit.clear();
 		}
 		itr=null;
@@ -238,13 +287,14 @@ public class Modifier {
 			sb.append(coordinates[j]);
 			sb.append(' ');
 			sb.append(coordinates[j+1]);
-			
+			sb.append(' ');	
 		}
-		return sb.toString();
+		
+		return sb.substring(0, sb.length()-1);
 	}
 	
 	public void reset(){
-		AtlasName=null;
+
 		if(bi!=null){
 		bi.flush();
 		bi=null;

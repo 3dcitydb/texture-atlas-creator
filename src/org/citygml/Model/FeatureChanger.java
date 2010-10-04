@@ -1,15 +1,13 @@
 package org.citygml.Model;
 
 import java.util.ArrayList;
-import java.util.Collection;
+
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
-import org.citygml.Model.DataStructures.SimpleSurfaceDataMember;
 import org.citygml.TextureAtlasAPI.DataStructure.TexImageInfo4GMLFile;
 import org.citygml4j.builder.copy.DeepCopyBuilder;
 import org.citygml4j.factory.CityGMLFactory;
@@ -22,12 +20,17 @@ import org.citygml4j.model.citygml.appearance.TextureCoordinates;
 import org.citygml4j.model.citygml.building.AbstractBuilding;
 import org.citygml4j.visitor.walker.FeatureWalker;
 
+/**
+ * it will clear the input data structure
+ * @author babak naderi
+ *
+ */
 public class FeatureChanger extends FeatureWalker {
 	private Appearance appearance;
 	private CityGMLFactory citygml;
 	private Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings;
 	private Hashtable<Integer,TexImageInfo4GMLFile> building;
-	private DeepCopyBuilder dcb = new DeepCopyBuilder();
+	
 	
 	int pcc = 0;
 	
@@ -78,8 +81,11 @@ public class FeatureChanger extends FeatureWalker {
 			// make all parameterizedTexture and add all of them to appearance
 			while(URIS.hasNext()){
 				URI=URIS.next();
+				if (paramtexGroup.containsKey(URI))
+					continue;
 				parameterizedTexture = citygml.createParameterizedTexture();
 				parameterizedTexture.setImageURI(URI);
+				parameterizedTexture.setId(appearance.getId());
 				//TODO change it. it should set from image convertor.
 				parameterizedTexture.setMimeType("image/jpeg");
 				parameterizedTexture.setBorderColor(texAtlasGroup.getGeneralProp().getBoarderColor());
@@ -116,6 +122,7 @@ public class FeatureChanger extends FeatureWalker {
 				targetRing=null;
 			}
 			targetRingIte=null;
+			texAtlasGroup.clear();
 		}
 	
 		super.accept(arg0);

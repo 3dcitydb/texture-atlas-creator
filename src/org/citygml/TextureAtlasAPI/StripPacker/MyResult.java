@@ -42,6 +42,19 @@ public class MyResult {
         }
         return levelMap.get(level).add(item);
     }
+    
+    public ArrayList<MyItem> getAllItems(){
+    	ArrayList<MyItem> all = new ArrayList<MyItem>();
+    	
+    	Iterator lIter = this.levelMap.keySet().iterator();
+        while (lIter.hasNext()){
+            Object level = lIter.next();
+            all.addAll(levelMap.get(level));            
+        }
+        lIter=null;
+    	return all;
+    }
+    
     // to check output **** just for test
     public String toString(){
     	 StringBuffer str = new StringBuffer("< max value=\"" + finalHeight + "\">\n");
@@ -52,7 +65,7 @@ public class MyResult {
              Iterator <MyItem> iIter = levelMap.get(level).iterator();
              while (iIter.hasNext()){
             	 MyItem item = iIter.next();
-                 str.append("\t\t<item id=\"" + item.getId() + "\" x=\"" + item.getXPos() + "\" y=\"" + item.getYPos() + "\" />\n");
+                 str.append("\t\t<item id=\"" + item.getURI() + "\" x=\"" + item.getXPos() + "\" y=\"" + item.getYPos() + "\" />\n");
              }
              str.append("\t</level>\n");
          }

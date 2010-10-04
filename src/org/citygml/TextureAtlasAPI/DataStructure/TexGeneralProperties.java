@@ -76,4 +76,9 @@ public class TexGeneralProperties {
 			return true;
 		return false;
 	}
+	public void clear(){
+		textureType=null;
+		wrapModeType=null;
+		boarderColor=null;	
+	}
 }

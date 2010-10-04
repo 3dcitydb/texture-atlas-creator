@@ -37,7 +37,7 @@ public class TexImageInfo {
 	 * In the case that something unexpected happens during the atlas generation, the error code(Integer)
 	 * for corresponding surface-geometry, which recognized by its id(Long), will be reported.
 	 */
-	private HashMap<Long, ErrorTypes> LOG;
+	protected HashMap<Long, ErrorTypes> LOG;
 	
 	/**
 	 * check if the images are ready.
@@ -108,6 +108,17 @@ public class TexImageInfo {
 	 */
 	public void setLOG(HashMap<Long, ErrorTypes> lOG) {
 		LOG = lOG;
+	}
+	
+	public void clear(){
+		texCoordinates.clear();
+		texImages.clear();
+		texImageURIs.clear();
+		LOG.clear();
+		texCoordinates=null;
+		texImages=null;
+		texImageURIs=null;
+		LOG=null;
 	}
 	
 

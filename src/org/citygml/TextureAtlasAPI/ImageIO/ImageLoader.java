@@ -19,6 +19,7 @@ public class ImageLoader {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.err.println("PATHHHH:"+path);
 		}
 		path=null;
 		return img;

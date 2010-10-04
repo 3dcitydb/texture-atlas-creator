@@ -1,24 +1,17 @@
 package org.citygml.Model;
 
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 
-
-import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.imageio.ImageIO;
 
-
-import org.citygml.Model.DataStructures.TexturePropertiesInAtlas;
-import org.citygml.Model.DataStructures.SimpleSurfaceDataMember;
-import org.citygml.Model.TexturePackers.AbstractTexturePacker;
-
-import org.citygml.Model.TexturePackers.TexturePacker;
 import org.citygml4j.CityGMLContext;
 import org.citygml4j.builder.jaxb.JAXBBuilder;
 import org.citygml4j.factory.CityGMLFactory;
@@ -58,9 +51,13 @@ public class GMLModifier {
 	private int texturePackerType=org.citygml.TextureAtlasAPI.StripPacker.MyStPacker.FFDH;
 	private TextureAtlasGenerator atlasGenerator;
 	
-	
+	/**
+	 * formated /
+	 */
 	private String inputGML;
 	private String outputGML;
+	private String inputParentPath;
+	private String outputParentPath;
 		
 	// cityGML4j components
 	private CityGMLContext ctx = new CityGMLContext();
@@ -75,6 +72,11 @@ public class GMLModifier {
 //		atlasTextureOutputFormat= GMLModifier.PNG;
 	}
 	
+	/**
+	 * formated
+	 * @param input --> /
+	 * @param output--> /
+	 */
 	public void setProperties(String input, String output){
 	
 		this.inputGML =input;
@@ -83,10 +85,12 @@ public class GMLModifier {
 		
 	}
 
-	public void initialize() {
+	private void initialize() {
 		if (atlasGenerator==null)
 			atlasGenerator = new TextureAtlasGenerator();
 		atlasGenerator.setGeneralProp(texturePackerType, 2048, 2048);
+		inputParentPath= getDirectory(inputGML);
+		outputParentPath = getDirectory(outputGML);
 	}
 	
 	/**
@@ -100,19 +104,11 @@ public class GMLModifier {
 			// Load a cityGML file
 			CityModel cityModel = readGMLFile(inputGML);
 			// scan the cityModel object to obtain all surface data of each building separately.
-//			Hashtable<String, ArrayList<SimpleSurfaceDataMember>> buildingsSurfaceData = scanCityModel(cityModel);
 			Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings=newCityModelScaner(cityModel);
 			System.out.println(buildings.size());
-			
-			
-//			Iterator<ArrayList<SimpleSurfaceDataMember>> buildingsIterator= buildingsSurfaceData.values().iterator();
+						
 			Iterator<Hashtable<Integer,TexImageInfo4GMLFile>> buildingsIter =buildings.values().iterator();
 			// for each building merge textures and modify the coordinates and other properties.
-//			ArrayList<SimpleSurfaceDataMember> buildingSurfaces;
-//			String atlasURI;
-//			
-//			System.out.println("   Amount of buildings in this file: "+buildingsSurfaceData.size());
-			// building counter
 			
 			Hashtable<Integer,TexImageInfo4GMLFile> building;
 			TexImageInfo4GMLFile texGroup;
@@ -123,30 +119,12 @@ public class GMLModifier {
 				while(texGroupIDS.hasMoreElements()){
 					tmpKey= texGroupIDS.nextElement();
 					texGroup = building.get(tmpKey);
-//					texGroup= atlasGenerator.convertor4GMLF(texGroup);
+					texGroup= atlasGenerator.convertor4GMLF(texGroup);
 					building.put(tmpKey, texGroup);
+					writeImageFiles(texGroup.getTexImageURIs(),texGroup.getTexImages());
 				}
 			
 			}
-//			int bc=1; 
-//			while(buildingsIterator.hasNext()){
-//				buildingSurfaces = buildingsIterator.next();
-//				if (buildingSurfaces==null||buildingSurfaces.size()==0)
-//					continue;
-				// without .xxx
-////				atlasURI= getSuitableAtlasName(((SimpleSurfaceDataMember)buildingSurfaces.get(0)).getImageURI());// atlas texture path( its name is as same as the first texture's name)			
-////				texturePacker.set(generatePicturesPath(buildingSurfaces),// textures' path
-////						atlasURI,
-////						getDirectory(inputGML),// prefix
-////						atlasTextureOutputFormat);
-////				Hashtable<String, TexturePropertiesInAtlas> newTextureProperties= texturePacker.run();
-////				modifyCoordinates(buildingSurfaces,newTextureProperties);
-//				newTextureProperties.clear();
-//				newTextureProperties=null;
-//				atlasURI=null;
-//				System.out.println(bc);
-//				bc++;
-//			}
 			// write new result based for each building
 			FeatureChanger myFeatureWalker = new FeatureChanger();
 			myFeatureWalker.set(buildings,citygml);
@@ -191,7 +169,6 @@ public class GMLModifier {
 		FeatureWalker loader = new FeatureWalker() {
 			Hashtable<Integer,TexImageInfo4GMLFile> building;
 			TexImageInfo4GMLFile texGroup = null;
-			String target_ring;
 			int counter =0;
 			TexGeneralProperties genProp = null;
 			public void accept(ParameterizedTexture parameterizedTexture) {
@@ -242,8 +219,7 @@ public class GMLModifier {
 							.getTextureCoordinates().iterator();
 					while (tcs.hasNext()) {
 						TextureCoordinates tc = tcs.next();
-						texGroup.addAll(parameterizedTexture.getId(), ta
-								.getUri(), tc.getRing(), parameterizedTexture
+						texGroup.addAll(ta.getUri(), tc.getRing(), parameterizedTexture
 								.getImageURI(), double2String(tc.getValue()));
 					}
 				}
@@ -284,69 +260,7 @@ public class GMLModifier {
 		return buildings;
 
 	}
-	/**
-	 * !!!OK
-	 * Parse the input cityModel object to find list of all surfaceDataMembers for each building.
-	 * @param cityModel
-	 * @return Is a list of buildings. Each item of that is a list of  SimpleSurfaceDataMembers of a building.
-	 */
-	public Hashtable<String, ArrayList<SimpleSurfaceDataMember>> scanCityModel(CityModel cityModel) {
-		// just one building in each file.
-		// Each element refer to data of a building in this file.
-		final Hashtable<String, ArrayList<SimpleSurfaceDataMember>> buildings = new Hashtable<String, ArrayList<SimpleSurfaceDataMember>>();
-//		final ArrayList<ArrayList<SimpleSurfaceDataMember>> buildings = new ArrayList<ArrayList<SimpleSurfaceDataMember>>();
-
-		FeatureWalker loader = new FeatureWalker() {
-			ArrayList<SimpleSurfaceDataMember> building= null;
-			
-			public void accept(ParameterizedTexture parameterizedTexture) {
-				Iterator<TextureAssociation> targets= parameterizedTexture.getTarget().iterator();
-				while(targets.hasNext()){
-				TextureAssociation ta= targets.next();
-				TextureCoordinates tc= ((TexCoordList) (ta.getTextureParameterization())).getTextureCoordinates().get(0);
-							
-				// save data!
-				SimpleSurfaceDataMember simpleSurfaceMember= new SimpleSurfaceDataMember(parameterizedTexture.getImageURI(), tc.getValue(),ta.getUri(), tc.getRing());
-				building.add(simpleSurfaceMember);
-				}
-				super.accept(parameterizedTexture);
-			}
-			public void accept(AbstractBuilding abstractBuilding){
-//				if (building==null)// first building
-					building = new ArrayList<SimpleSurfaceDataMember>();
-//				else{// the building contains some surfaceDataMembers. 
-					buildings.put(abstractBuilding.getId(), building);
-//					buildings.add(building);
-//					building = new ArrayList<SimpleSurfaceDataMember>();
-//				}
-				super.accept(abstractBuilding);
-			}
-
-		};
-		
-		// pars to get information is a structured data format.
-		cityModel.visit(loader);
-		return buildings;
-	}
-
 	
-	/**
-	 * !!OK
-	 * combine all textures' path with a ';' delimiter. the first one will be the texture atlas path.
-	 * @return
-	 */
-	public String generatePicturesPath(ArrayList<SimpleSurfaceDataMember> bulding){
-		StringBuffer sb= new StringBuffer();
-		String prefixAddress= getDirectory(inputGML);
-		
-		Iterator<SimpleSurfaceDataMember> data= bulding.iterator();
-		while(data.hasNext()){
-			sb.append(prefixAddress+(prefixAddress==null||prefixAddress.length()==0?"":"/")+((SimpleSurfaceDataMember)data.next()).getImageURI()+";");
-		}
-		data=null;
-		prefixAddress=null;
-		return sb.toString().replace('\\', '/');
-	}
 	/**
 	 * !!OK
 	 * @param path
@@ -380,11 +294,9 @@ public class GMLModifier {
 		writer.write(cityModel);
 		writer.close();
 	}
+	
 	public String getCompliteImagePath(String path){
-		String prefixAddress= getDirectory(inputGML);
-		String fullpath=prefixAddress+(prefixAddress==null||prefixAddress.length()==0?"":"/")+path;
-		prefixAddress=null;
-		return fullpath.replace('\\', '/');
+		return inputParentPath+(inputParentPath==null||inputParentPath.length()==0?"":"/")+path.replace('\\', '/');
 	}
 	
 	public String double2String(List<Double> coordinates){
@@ -394,9 +306,48 @@ public class GMLModifier {
 		Iterator<Double> coord =coordinates.iterator();
 		while(coord.hasNext()){
 			sb.append(coord.next());
+			sb.append(' ');
 		}
 		coord=null;
 		coordinates=null;
 		return sb.toString();
 	}
+	/**
+	 * write all the images in the correct place with respect to output GML address. 
+	 * NOTE: It will remove all objects
+	 * @param texImage
+	 */
+	private void writeImageFiles(HashMap<Object, String> texImageURIS, HashMap<String, Image> texImage){
+		
+		Iterator<String> uris= texImageURIS.values().iterator();
+		String path;
+		Image im;
+		BufferedImage bi;
+		while(uris.hasNext()){
+			path = uris.next();
+			im= texImage.get(path);
+			if (im==null)
+				continue;
+			texImage.remove(path);
+			
+			File file = new File(outputParentPath+(outputParentPath==null||outputParentPath.length()==0?"":"/")+path.replace('\\', '/'));
+			if (!file.exists() &&file.getParent()!=null)
+				file.getParentFile().mkdirs();
+			try{
+				
+				bi = new BufferedImage(im.getWidth(null), im.getHeight(null), BufferedImage.TYPE_INT_RGB);
+			bi.getGraphics().drawImage(im,0,0,null);
+			ImageIO.write(bi,"jpeg", file);
+			im.flush();
+			im=null;
+			bi.flush();
+			bi=null;
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		
+	}
+	
+	
 }

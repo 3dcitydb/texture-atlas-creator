@@ -31,9 +31,17 @@ public class MyStPacker  {
 //		return items.add(new MyItem(id, width, height));
 //	}
 
-	public boolean addItem(String id, int width, int height, Object surfaceID, double[] coordinates) {
-		return items.add(new MyItem(id, width, height,surfaceID,coordinates));
+	public boolean addItem(String URI, int width, int height) {
+		return items.add(new MyItem(URI, width, height));
 	}
+	
+	public boolean addItem(MyItem mi){
+		return items.add(mi);
+	}
+	public boolean removeItem(String URI){
+		return items.remove(new MyItem(URI,0,0));
+	}
+	
 	public void reset(){
 		items.clear();
 	}
@@ -100,7 +108,8 @@ public class MyStPacker  {
                 topLev = topLev + 1;
                 levelFill.add(i.getWidth());
                 levels.add(new Integer(nextTopLev));
-                i.setPOS(0, nextTopLev, new Integer(topLev));    
+                i.setPOS(0, nextTopLev, new Integer(topLev));
+                res.addItem(i);
                 nextTopLev = i.getHeight() + nextTopLev;
             }
         }

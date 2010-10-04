@@ -12,8 +12,8 @@ import java.util.HashMap;
  */
 public class TexImageInfo4GMLFile extends TexImageInfo {
 	
-	HashMap<String, String> texParIdentifier;
 	HashMap<String,String> ImagesLocalPath;
+	
 	public HashMap<String, String> getImagesLocalPath() {
 		return ImagesLocalPath;
 	}
@@ -47,32 +47,12 @@ public class TexImageInfo4GMLFile extends TexImageInfo {
 		ImagesLocalPath.put(URI, completePath);
 		setImagesReady(false);
 	}
-	
-	public void addTexParIdentifier(String Target_Ring,String parameterizedTextureID){
-		if (texParIdentifier ==null)
-			texParIdentifier = new HashMap<String, String>();
-		texParIdentifier.put(Target_Ring, parameterizedTextureID);
-	}
-	
-	/**
-	 * @return the texParIdentifier
-	 */
-	public HashMap<String, String> getTexParIdentifier() {
-		return texParIdentifier;
-	}
 
-	/**
-	 * @param texParIdentifier the texParIdentifier to set
-	 */
-	public void setTexParIdentifier(HashMap<String, String> texParIdentifier) {
-		this.texParIdentifier = texParIdentifier;
-	}
 	
-	public void addAll(String parmTextID,String Target,String ring, String imageURI, String coordinates){
+	public void addAll(String Target,String ring, String imageURI, String coordinates){
 		String tr= getTargetRing(Target, ring);
 		addTexImageURI(tr,imageURI);
 		addTexCoordinates(tr,coordinates);
-		addTexParIdentifier(tr,parmTextID);
 		tr=null;
 	}
 	
@@ -80,4 +60,21 @@ public class TexImageInfo4GMLFile extends TexImageInfo {
 		return Target+' '+Ring;
 	}
 	
+	public void clear(){
+		if(texCoordinates!=null)
+			texCoordinates.clear();
+		if(texImages!=null)
+			texImages.clear();
+		if(texImageURIs!=null)
+			texImageURIs.clear();
+		if (ImagesLocalPath!=null)
+			ImagesLocalPath.clear();
+		if (LOG!=null)
+			LOG.clear();
+		texCoordinates=null;
+		texImages=null;
+		texImageURIs=null;
+		LOG=null;	
+		ImagesLocalPath=null;
+	}
 }
