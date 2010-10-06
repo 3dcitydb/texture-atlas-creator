@@ -4,6 +4,10 @@ import java.awt.Image;
 import java.awt.Toolkit;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.ImageProducer;
+import java.awt.image.WritableRaster;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,6 +16,10 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+
+import org.citygml.TextureAtlasAPI.DataStructure.ErrorTypes;
+import org.citygml.TextureAtlasAPI.DataStructure.ImageScaling;
 import org.citygml.TextureAtlasAPI.DataStructure.TexImageInfo;
 import org.citygml.TextureAtlasAPI.StripPacker.MyItem;
 import org.citygml.TextureAtlasAPI.StripPacker.MyResult;
@@ -59,14 +67,17 @@ public class Modifier {
 		HashMap<Object, String> coordinatesHashMap =ti.getTexCoordinates();
 		HashMap<String, Image> textImage= ti.getTexImages();
 		HashMap<Object, String> textUri= ti.getTexImageURIs();
+		HashMap<Object, ErrorTypes> LOG= ti.getLOG();
+		if (LOG==null)
+			LOG= new HashMap<Object, ErrorTypes>();
 		
 		HashMap<String, ArrayList<Object>> uri2Object = new HashMap<String, ArrayList<Object>>();
 		HashMap<String,Boolean> isImageAcceptable = new HashMap<String, Boolean>();
 		HashMap< Object, double[]> doubleCoordinateList= new HashMap<Object, double[]>();
 		
-//		Image[] imgs = new Image[textImage.size()];
+
 		int totalWidth=0,maxw=0;
-//		
+		
 		//!?!?! should I make it again?
 		MyStPacker myPack = new MyStPacker();
 		// target URI: surface ID
@@ -81,8 +92,10 @@ public class Modifier {
 			URI= textUri.get(key);
 			// The image was read before;
 			if((b=isImageAcceptable.get(URI))!=null){
-				if (!b.booleanValue())
+				if (!b.booleanValue()){
+					LOG.put(key,ErrorTypes.TARGET_PT_NOT_SUPPORTED);
 					continue;
+				}
 				// the coordinates should be added and then continue.
 				coordinate= formatCoordinates(coordinatesHashMap.get(key));
 				// previous coordinate was accepted but this one have problem
@@ -95,6 +108,9 @@ public class Modifier {
 		        	// just for complicated cases.
 		        	if (totalWidth<maxw)
 		        		maxw=totalWidth;
+		        	LOG.put(key,ErrorTypes.IMAGE_FORMAT_NOT_SUPPORTED);
+		        	for (Object obj: uri2Object.get(URI))
+		        		LOG.put(obj,ErrorTypes.IMAGE_FORMAT_NOT_SUPPORTED);
 		        	continue;
 		        }
 				doubleCoordinateList.put(key, coordinate);
@@ -109,19 +125,26 @@ public class Modifier {
 			// report bug
 			if ((tmp= textImage.get(URI))==null){
 				isImageAcceptable.put(URI, new Boolean(false));
+				LOG.put(key,ErrorTypes.IMAGE_IS_NOT_AVAILABLE);
 				continue;			
 			}
 			width= tmp.getWidth(null);
 	        height= tmp.getHeight(null);
 	        //LOG if the image is not accepted, do not touch it! size problem
 	        if (!acceptATexture(width,height)){
-	        	isImageAcceptable.put(URI, new Boolean(false));
-	        	continue;
+	        	tmp = ImageScaling.rescale(tmp, ImageMaxWidth, ImageMaxHeight);
+	        	if (tmp==null||!acceptATexture(width= tmp.getWidth(null),height= tmp.getHeight(null))){
+					isImageAcceptable.put(URI, new Boolean(false));
+					LOG.put(key, ErrorTypes.IMAGE_UNBONDED_SIZE);
+					continue;
+	        	}
+	        	textImage.put(URI, tmp);
 	        }
 	        coordinate= formatCoordinates(coordinatesHashMap.get(key));
 	        //LOG if coordinates have any problem, do not touch it! (like n. available or wrapping textures)
 	        if (coordinate==null){
 	        	isImageAcceptable.put(URI, new Boolean(false));
+	        	LOG.put(key,ErrorTypes.ERROR_IN_COORDINATES);
 	        	continue;
 	        }
 	        doubleCoordinateList.put(key, coordinate);
@@ -152,6 +175,7 @@ public class Modifier {
 		int atlasW=0,atlasH=0;
 		// list of all items which will be drawn in a same atlas.
 		Vector<MyItem> frame = new Vector<MyItem>();
+		int k=1;
 		
 		//going in side of Result
 		Iterator<MyItem> all= mr.getAllItems().iterator();
@@ -161,6 +185,7 @@ public class Modifier {
         	 x= item.getXPos();
         	 y= item.getYPos();
         	 if (y-prevH+item.getHeight()>ImageMaxHeight){
+        		 System.out.println(k++);
         		 // set Image in Hashmap and write it to file.
         		 textImage.put(String.format(completeAtlasPath,fileCounter),writeImage(atlasW, atlasH));
         		 // set the new coordinates
@@ -171,6 +196,7 @@ public class Modifier {
         		 prevH=y;
         	 }
         	 g.drawImage(textImage.get(item.getURI()), x, y-prevH, null);
+        	 textImage.remove(item.getURI()).flush();
         	 item.setYPos(y-prevH);
         	 frame.add(item);
         	 if (atlasW<x+item.getWidth())
@@ -184,19 +210,21 @@ public class Modifier {
         		 textUri.put(obj, String.format(completeAtlasPath,fileCounter));
         	 }
 		}
+		if (atlasH!=0||atlasW!=0){
+	        textImage.put(String.format(completeAtlasPath,fileCounter),writeImage(atlasW, atlasH));
+			 // set the new coordinates
+			 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
+			 frame.clear();
+		}
 		
-        textImage.put(String.format(completeAtlasPath,fileCounter),writeImage(atlasW, atlasH));
-		 // set the new coordinates
-		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
-		 frame.clear();
-		
-//		imgs = null;
+
 		uri2Object.clear();
 		isImageAcceptable.clear();
 		doubleCoordinateList.clear();
 		ti.setTexCoordinates(coordinatesHashMap);
 		ti.setTexImages(textImage);
 		ti.setTexImageURIs(textUri);
+		ti.setLOG(LOG);
 		return ti;
 	}
 	
@@ -213,7 +241,7 @@ public class Modifier {
 	}
 	
 	private MyResult iterativePacker(MyStPacker msp, int maxw, int totalw){
-		msp.setStripWidth((totalw-maxw)/2+maxw);
+		msp.setStripWidth(Math.min((totalw-maxw)/2+maxw,ImageMaxWidth));
 		try{
 			return msp.getResult(packingAlgorithm);	
 		}catch(Exception e){
@@ -241,21 +269,17 @@ public class Modifier {
 	
 	private Image writeImage(int w, int h){
 		try{
-		
-		File file = new File(String.format(completeAtlasPath,fileCounter));
-		if (!file.exists() &&file.getParent()!=null)
-			file.getParentFile().mkdirs();
-		BufferedImage bfi= new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-		bfi.getGraphics().drawImage(bi.getSubimage(0, 0, w, h),0,0,null);
-		ImageIO.write(bfi,"jpeg", file);
-		bfi.releaseWritableTile(0, 0);
-		Image result =Toolkit.getDefaultToolkit().createImage(bfi.getSource());
-	
-		
-		bfi.flush();
-		bfi=null;
-		fileCounter++;
-		g.clearRect(0, 0, ImageMaxWidth, ImageMaxHeight);
+			ImageIcon ii;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ImageIO.write(bi.getSubimage(0, 0, w, h),"jpeg",baos);
+			ii=new ImageIcon(baos.toByteArray());
+			Image result =ii.getImage();
+			ii=null;
+			baos.flush();
+			baos=null;
+			
+			fileCounter++;
+			g.clearRect(0, 0, w, h);
 		
 		return result;
 		}catch(Exception e){
@@ -303,6 +327,7 @@ public class Modifier {
 			tmp.flush();
 			tmp=null;
 		}
+		
 		g=null;
 		completeAtlasPath=null;
 	}

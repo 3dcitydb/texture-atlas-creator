@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 
 
 public class ImageLoader {
@@ -15,7 +16,9 @@ public class ImageLoader {
 	private Image loadImage(String path){
 		Image img=null;
 		try {
-			img =ImageIO.read(new File(path));
+			
+			img =new ImageIcon(ImageIO.read(new File(path))).getImage();;
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

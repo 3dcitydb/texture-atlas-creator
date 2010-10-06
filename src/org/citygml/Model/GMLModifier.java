@@ -1,8 +1,14 @@
 package org.citygml.Model;
 
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -11,6 +17,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.imageio.ImageIO;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import org.citygml4j.CityGMLContext;
 import org.citygml4j.builder.jaxb.JAXBBuilder;
@@ -66,6 +74,8 @@ public class GMLModifier {
 	final CityGMLFactory citygml = new CityGMLFactory();
 	
 	
+	private int maxImageH,maxImageW;
+	
 	public GMLModifier(){
 		inputGML=null;
 		outputGML=null;
@@ -88,7 +98,9 @@ public class GMLModifier {
 	private void initialize() {
 		if (atlasGenerator==null)
 			atlasGenerator = new TextureAtlasGenerator();
-		atlasGenerator.setGeneralProp(texturePackerType, 2048, 2048);
+		maxImageH=1024;
+		maxImageW=1024;
+		atlasGenerator.setGeneralProp(texturePackerType, maxImageW, maxImageH);
 		inputParentPath= getDirectory(inputGML);
 		outputParentPath = getDirectory(outputGML);
 	}
@@ -113,16 +125,20 @@ public class GMLModifier {
 			Hashtable<Integer,TexImageInfo4GMLFile> building;
 			TexImageInfo4GMLFile texGroup;
 			Integer tmpKey;
+			int cc=1;
 			while(buildingsIter.hasNext()){
+				System.out.println("building:"+cc);
 				building=buildingsIter.next();
 				Enumeration<Integer> texGroupIDS= building.keys();
 				while(texGroupIDS.hasMoreElements()){
 					tmpKey= texGroupIDS.nextElement();
 					texGroup = building.get(tmpKey);
 					texGroup= atlasGenerator.convertor4GMLF(texGroup);
+					System.out.println("LOG:"+texGroup.getLOGInText());
 					building.put(tmpKey, texGroup);
-					writeImageFiles(texGroup.getTexImageURIs(),texGroup.getTexImages());
+					writeImageFiles(texGroup.getTexImages());
 				}
+				cc++;
 			
 			}
 			// write new result based for each building
@@ -137,8 +153,6 @@ public class GMLModifier {
 		}
 
 	}
-	
-	
 
 	/**
 	 * !!!OK
@@ -317,36 +331,40 @@ public class GMLModifier {
 	 * NOTE: It will remove all objects
 	 * @param texImage
 	 */
-	private void writeImageFiles(HashMap<Object, String> texImageURIS, HashMap<String, Image> texImage){
-		
-		Iterator<String> uris= texImageURIS.values().iterator();
-		String path;
-		Image im;
-		BufferedImage bi;
-		while(uris.hasNext()){
-			path = uris.next();
+	private void writeImageFiles(HashMap<String, Image> texImage){
+		Image im;	
+		BufferedImage bi = new BufferedImage(maxImageW, maxImageH, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g=bi.createGraphics();
+		for(String path: texImage.keySet()){
 			im= texImage.get(path);
 			if (im==null)
-				continue;
-			texImage.remove(path);
-			
+				continue;		
 			File file = new File(outputParentPath+(outputParentPath==null||outputParentPath.length()==0?"":"/")+path.replace('\\', '/'));
 			if (!file.exists() &&file.getParent()!=null)
 				file.getParentFile().mkdirs();
 			try{
-				
-				bi = new BufferedImage(im.getWidth(null), im.getHeight(null), BufferedImage.TYPE_INT_RGB);
-			bi.getGraphics().drawImage(im,0,0,null);
-			ImageIO.write(bi,"jpeg", file);
-			im.flush();
-			im=null;
-			bi.flush();
-			bi=null;
+				if(im instanceof RenderedImage ){
+					ImageIO.write((RenderedImage)im, "jpeg", file);
+					im.flush();
+					im = null;
+				}else{
+					g.drawImage(im, 0, 0, null);
+					ImageIO.write(bi.getSubimage(0, 0, im.getWidth(null), im
+							.getHeight(null)), "jpeg", file);
+					g.clearRect(0, 0, maxImageW, maxImageH);
+					im.flush();
+					im = null;
+				}
+
 			}catch(Exception e){
 				e.printStackTrace();
 			}
+
 		}
-		
+		g.dispose();
+		bi.flush();
+		bi = null;
+		texImage.clear();
 	}
 	
 	
