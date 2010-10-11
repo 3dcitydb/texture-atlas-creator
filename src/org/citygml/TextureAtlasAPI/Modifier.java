@@ -1,14 +1,10 @@
 package org.citygml.TextureAtlasAPI;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.Toolkit;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.ImageProducer;
-import java.awt.image.WritableRaster;
+
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -60,6 +56,10 @@ public class Modifier {
 	 */
 	
 	public TexImageInfo run(TexImageInfo ti){
+		if (bi==null){
+			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
+			g = bi.getGraphics();
+		}
 		fileCounter=0;
 		completeAtlasPath=null;
 		g.clearRect(0, 0, ImageMaxWidth, ImageMaxHeight);
@@ -175,7 +175,6 @@ public class Modifier {
 		int atlasW=0,atlasH=0;
 		// list of all items which will be drawn in a same atlas.
 		Vector<MyItem> frame = new Vector<MyItem>();
-		int k=1;
 		
 		//going in side of Result
 		Iterator<MyItem> all= mr.getAllItems().iterator();
@@ -185,7 +184,7 @@ public class Modifier {
         	 x= item.getXPos();
         	 y= item.getYPos();
         	 if (y-prevH+item.getHeight()>ImageMaxHeight){
-        		 System.out.println(k++);
+        		
         		 // set Image in Hashmap and write it to file.
         		 textImage.put(String.format(completeAtlasPath,fileCounter),writeImage(atlasW, atlasH));
         		 // set the new coordinates
@@ -225,6 +224,10 @@ public class Modifier {
 		ti.setTexImages(textImage);
 		ti.setTexImageURIs(textUri);
 		ti.setLOG(LOG);
+		bi.flush();
+		g.dispose();
+		g=null;
+		bi=null;
 		return ti;
 	}
 	

@@ -1,14 +1,12 @@
 package org.citygml.Model;
 
-import java.awt.Graphics;
+
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+
 
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -17,8 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.imageio.ImageIO;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 import org.citygml4j.CityGMLContext;
 import org.citygml4j.builder.jaxb.JAXBBuilder;
@@ -98,8 +94,8 @@ public class GMLModifier {
 	private void initialize() {
 		if (atlasGenerator==null)
 			atlasGenerator = new TextureAtlasGenerator();
-		maxImageH=1024;
-		maxImageW=1024;
+		maxImageH=2048;
+		maxImageW=2048;
 		atlasGenerator.setGeneralProp(texturePackerType, maxImageW, maxImageH);
 		inputParentPath= getDirectory(inputGML);
 		outputParentPath = getDirectory(outputGML);
