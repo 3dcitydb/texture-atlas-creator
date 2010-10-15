@@ -55,6 +55,7 @@ public class FeatureChanger extends FeatureWalker {
 	public void accept(Appearance arg0) {
 		this.appearance = arg0;		
 		appearance.unsetSurfaceDataMember();
+
 		TextureCoordinates tc ;
 		TexCoordList tcl;
 		TextureAssociation ta ;
@@ -66,9 +67,12 @@ public class FeatureChanger extends FeatureWalker {
 		Enumeration<TexImageInfo4GMLFile> texGroupEnum=building.elements();
 		// each texture group will be a sSurfaceDaraMember&ParameterizedTexture
 		while(texGroupEnum.hasMoreElements()){
+			texAtlasGroup = texGroupEnum.nextElement();
+			if (!texAtlasGroup.getGeneralProp().getAppearanceID().equalsIgnoreCase(arg0.getId()))
+				continue;
+			
 			sdpt = citygml.createSurfaceDataProperty();
 			
-			texAtlasGroup = texGroupEnum.nextElement();
 			paramtexGroup= new HashMap<String, ParameterizedTexture>();
 			
 			HashMap<Object, String> texImageURIS=texAtlasGroup.getTexImageURIs();
@@ -87,7 +91,7 @@ public class FeatureChanger extends FeatureWalker {
 				parameterizedTexture.setImageURI(URI);
 				parameterizedTexture.setId(appearance.getId());
 				//TODO change it. it should set from image convertor.
-				parameterizedTexture.setMimeType("image/jpeg");
+				parameterizedTexture.setMimeType(texAtlasGroup.getGeneralProp().getMIMEType());
 				parameterizedTexture.setBorderColor(texAtlasGroup.getGeneralProp().getBoarderColor());
 				parameterizedTexture.setWrapMode(texAtlasGroup.getGeneralProp().getWrapModeType());
 				parameterizedTexture.setTextureType(texAtlasGroup.getGeneralProp().getTextureType());

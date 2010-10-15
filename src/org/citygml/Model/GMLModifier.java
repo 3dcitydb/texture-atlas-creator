@@ -6,6 +6,9 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 
 import java.util.Enumeration;
@@ -29,6 +32,7 @@ import org.citygml4j.xml.io.writer.CityGMLWriter;
 import org.citygml4j.commons.gmlid.DefaultGMLIdManager;
 import org.citygml4j.commons.gmlid.GMLIdManager;
 
+import org.citygml4j.model.citygml.appearance.Appearance;
 import org.citygml4j.model.citygml.appearance.ParameterizedTexture;
 import org.citygml4j.model.citygml.appearance.TexCoordList;
 import org.citygml4j.model.citygml.appearance.TextureAssociation;
@@ -73,6 +77,7 @@ public class GMLModifier {
 	private int maxImageH,maxImageW;
 	
 	public GMLModifier(){
+		
 		inputGML=null;
 		outputGML=null;
 //		atlasTextureOutputFormat= GMLModifier.PNG;
@@ -179,37 +184,39 @@ public class GMLModifier {
 		FeatureWalker loader = new FeatureWalker() {
 			Hashtable<Integer,TexImageInfo4GMLFile> building;
 			TexImageInfo4GMLFile texGroup = null;
+			TexGeneralProperties tmpProp=null;
 			int counter =0;
 			TexGeneralProperties genProp = null;
+			String currentAppID=null;
+			public void accept(Appearance ap) {
+				currentAppID= ap.getId();
+				super.accept(ap);
+			}
+			
 			public void accept(ParameterizedTexture parameterizedTexture) {
 				if (genProp==null){
 					genProp = new TexGeneralProperties(parameterizedTexture
 							.getTextureType(), parameterizedTexture
 							.getWrapMode(), parameterizedTexture
 							.getBorderColor(), parameterizedTexture
-							.getIsFront());
+							.getIsFront(),currentAppID,parameterizedTexture.getMimeType());
 					texGroup.setGeneralProp(genProp);
-				}else if(!genProp.compareItTo(parameterizedTexture
+				}else if(!genProp.compareItTo(tmpProp = new TexGeneralProperties (parameterizedTexture
 						.getTextureType(), parameterizedTexture
 						.getWrapMode(), parameterizedTexture
 						.getBorderColor(), parameterizedTexture
-						.getIsFront())){
+						.getIsFront(),currentAppID,parameterizedTexture.getMimeType()))){
 					// find corresponding texGroup
-					texGroup = findTextGroupInBuilding(new TexGeneralProperties(parameterizedTexture
-						.getTextureType(), parameterizedTexture
-						.getWrapMode(), parameterizedTexture
-						.getBorderColor(), parameterizedTexture
-						.getIsFront()));
+					texGroup = findTextGroupInBuilding(tmpProp);
 					if (texGroup!=null){
 						// it is found.
 						genProp= texGroup.getGeneralProp();
+						tmpProp.clear();
+						tmpProp=null;
 					}else{
 						// there is not any similar texture in this building.
-						genProp = new TexGeneralProperties(parameterizedTexture
-								.getTextureType(), parameterizedTexture
-								.getWrapMode(), parameterizedTexture
-								.getBorderColor(), parameterizedTexture
-								.getIsFront());
+						genProp =tmpProp;
+						tmpProp=null;
 						counter++;
 						texGroup = new TexImageInfo4GMLFile();
 						texGroup.setGeneralProp(genProp);
@@ -329,13 +336,20 @@ public class GMLModifier {
 	 */
 	private void writeImageFiles(HashMap<String, Image> texImage){
 		Image im;	
+
+		String outPath;
 		BufferedImage bi = new BufferedImage(maxImageW, maxImageH, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g=bi.createGraphics();
 		for(String path: texImage.keySet()){
 			im= texImage.get(path);
-			if (im==null)
-				continue;		
-			File file = new File(outputParentPath+(outputParentPath==null||outputParentPath.length()==0?"":"/")+path.replace('\\', '/'));
+			outPath=outputParentPath+(outputParentPath==null||outputParentPath.length()==0?"":"/")+path.replace('\\', '/');
+			// copy file exactly in the new place
+			if (im==null){	
+				copyFile(getCompliteImagePath(path), outPath);
+				outPath=null;
+				continue;
+			}
+			File file = new File(outPath);
 			if (!file.exists() &&file.getParent()!=null)
 				file.getParentFile().mkdirs();
 			try{
@@ -355,6 +369,7 @@ public class GMLModifier {
 			}catch(Exception e){
 				e.printStackTrace();
 			}
+			outPath=null;
 
 		}
 		g.dispose();
@@ -362,6 +377,41 @@ public class GMLModifier {
 		bi = null;
 		texImage.clear();
 	}
+	
+	private void copyFile(String pathIn, String pathOut){
+		int size;
+		File fin=new File(pathIn);
+		if (fin.exists()&& fin.canRead()){
+			File fout =new File(pathOut);
+			if (!fout.exists() &&fout.getParent()!=null)
+				fout.getParentFile().mkdirs();
+			try {
+				FileOutputStream fos = new FileOutputStream(fout);
+				FileInputStream fis = new FileInputStream(fin);
+				byte[] mb = new byte[1024];
+				size=1;
+				while(size>0){
+					size=fis.read(mb);
+					if (size>0)
+					fos.write(mb,0,size);
+				}
+				fis.close();
+				fos.flush();
+				fos.close();
+				mb=null;
+				fis=null;
+				fos=null;
+				fout=null;
+				fin=null;
+				
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
+	
 	
 	
 }

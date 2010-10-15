@@ -1,13 +1,24 @@
 package org.citygml.bin;
 
-import org.citygml.Control.Controller;;
+
+
+
+import javax.swing.JFrame;
+
+import org.citygml.Control.Controller;
+import org.citygml.GUI.UI;
  
 public class TextureAtlasGenerator {
 	
 	Controller controller;
-	
-	public TextureAtlasGenerator(String atlasOption,String inputPath,String outputPath){
+	UI frame;
+	public TextureAtlasGenerator(){
+		frame = new UI(this);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
+		frame.setVisible(true);
+	}
+	public TextureAtlasGenerator(String atlasOption,String inputPath,String outputPath){
 		controller = new Controller();
 		controller.setProperties(atlasOption, inputPath, outputPath);
 		if (!controller.validateArguments())
@@ -15,7 +26,14 @@ public class TextureAtlasGenerator {
 		else
 			controller.start();
 	}
-
+	public void run(String atlasOption,String inputPath,String outputPath){
+		controller = new Controller();
+		controller.setProperties(atlasOption, inputPath, outputPath);
+		if (!controller.validateArguments())
+			syntaxError();
+		else
+			controller.start();
+	}
 	/**
 	 * Note: do not use any space in the directory names.
 	 * @param args
@@ -24,6 +42,7 @@ public class TextureAtlasGenerator {
 	 * args[2]:Output(file/directory)|null
 	 */
 	public static void main(String[] args) {
+		System.out.print(System.currentTimeMillis());
 		TextureAtlasGenerator mt;
 		switch(args.length){
 		case 2:// without  Output atlas options
@@ -33,7 +52,9 @@ public class TextureAtlasGenerator {
 			mt = new TextureAtlasGenerator(args[0],args[1],args[2]);
 			break;
 		default:
-			syntaxError();
+//			syntaxError();
+			mt = new TextureAtlasGenerator();
+			
 		}
 	}
 	

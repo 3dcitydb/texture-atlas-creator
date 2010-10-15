@@ -1,9 +1,13 @@
 package org.citygml.Control;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryUsage;
 import java.util.Stack;
 
 import org.citygml.Model.GMLModifier;
+
+
 
 public class Controller {
 	
@@ -74,6 +78,7 @@ public class Controller {
 			gmlModifier.modify();
 		}			
 		System.out.println("Complete!");
+		System.out.println(System.currentTimeMillis());
 	}
 	
 
@@ -123,6 +128,10 @@ public class Controller {
 			e.printStackTrace();
 			
 		}	
+		System.out.println(System.currentTimeMillis());
+		System.out.println(ManagementFactory.getRuntimeMXBean().getName());
+		MemoryUsage mu =ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+		System.out.println("init:"+mu.getInit()+", max:"+mu.getMax()+", commited:"+mu.getCommitted()+",Used:"+mu.getUsed());
 	}
 	
 	
