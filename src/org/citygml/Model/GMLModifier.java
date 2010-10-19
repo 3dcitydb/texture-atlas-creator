@@ -342,6 +342,7 @@ public class GMLModifier {
 		Graphics2D g=bi.createGraphics();
 		for(String path: texImage.keySet()){
 			im= texImage.get(path);
+			
 			outPath=outputParentPath+(outputParentPath==null||outputParentPath.length()==0?"":"/")+path.replace('\\', '/');
 			// copy file exactly in the new place
 			if (im==null){	
