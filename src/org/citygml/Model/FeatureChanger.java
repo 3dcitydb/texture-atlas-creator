@@ -68,8 +68,10 @@ public class FeatureChanger extends FeatureWalker {
 		// each texture group will be a sSurfaceDaraMember&ParameterizedTexture
 		while(texGroupEnum.hasMoreElements()){
 			texAtlasGroup = texGroupEnum.nextElement();
-			if (!texAtlasGroup.getGeneralProp().getAppearanceID().equalsIgnoreCase(arg0.getId()))
-				continue;
+			if(arg0.getId()!=null)
+				if (!texAtlasGroup.getGeneralProp().getAppearanceID().equalsIgnoreCase(arg0.getId()))
+					continue;
+				
 			
 			sdpt = citygml.createSurfaceDataProperty();
 			

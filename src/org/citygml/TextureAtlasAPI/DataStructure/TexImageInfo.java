@@ -1,6 +1,5 @@
 package org.citygml.TextureAtlasAPI.DataStructure;
 
-import java.awt.Image;
 import java.util.HashMap;
 
 
@@ -31,7 +30,7 @@ public class TexImageInfo {
 	 * textImages contains an imageURI(String) and the corresponding Image object which is a texture
 	 * for the corresponding surface-geometry. 
 	 */
-	protected HashMap<String, Image> texImages;
+	protected HashMap<String, TextureImage> texImages;
 	
 	/**
 	 * In the case that something unexpected happens during the atlas generation, the error code(Integer)
@@ -85,14 +84,14 @@ public class TexImageInfo {
 	/**
 	 * @return the texImages
 	 */
-	public HashMap<String, Image> getTexImages() {
+	public HashMap<String, TextureImage> getTexImages() {
 		return texImages;
 	}
 
 	/**
 	 * @param texImages the texImages to set
 	 */
-	public void setTexImages(HashMap<String, Image> texImages) {
+	public void setTexImages(HashMap<String, TextureImage> texImages) {
 		this.texImages = texImages;
 	}
 
@@ -120,6 +119,7 @@ public class TexImageInfo {
 		texImageURIs=null;
 		LOG=null;
 	}
+	
 	public String getLOGInText(){
 		StringBuffer sb = new StringBuffer();
 		for(Object key: LOG.keySet()){

@@ -1,4 +1,4 @@
-package org.citygml.TextureAtlasAPI.DataStructure;
+package org.citygml.TextureAtlasAPI.ImageIO;
 
 import java.awt.Graphics2D;
 import java.awt.Image;

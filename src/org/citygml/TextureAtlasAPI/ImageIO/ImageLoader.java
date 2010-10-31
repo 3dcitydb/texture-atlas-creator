@@ -3,6 +3,7 @@ package org.citygml.TextureAtlasAPI.ImageIO;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.InputStream;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +11,8 @@ import java.util.Iterator;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+
+import org.citygml.TextureAtlasAPI.DataStructure.TextureImage;
 
 
 
@@ -52,13 +55,35 @@ public class ImageLoader {
 		return img;
 	}
 	
-	public HashMap<String, Image> loadAllImage(HashMap<String,String> imageLocalPath){
-		HashMap<String, Image> texImages = new HashMap<String, Image>();
+	public Image loadImage(InputStream is, String MIME_Type, int size){
+		Image img=null;
+		if (!isSupportedImageFormat(MIME_Type))
+			return null;
+		try {
+		if (MIME_Type.lastIndexOf("rgb")>0){
+				b=rgbEncoder.readRGB(is,size);
+				rgbEncoder.freeMemory();
+		}
+			else
+				b= ImageIO.read(is);
+			ii= new ImageIcon(b);
+			img =ii.getImage();
+			b.flush();
+			b=null;
+			ii=null	;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return img;
+	}
+	
+	public HashMap<String, TextureImage> loadAllImage(HashMap<String,String> imageLocalPath){
+		HashMap<String, TextureImage> texImages = new HashMap<String, TextureImage>();
 		Iterator<String> imageURI=imageLocalPath.keySet().iterator();
 		String URI;
 		while(imageURI.hasNext()){
 			URI=imageURI.next();
-			texImages.put(URI, loadImage(imageLocalPath.get(URI)));
+			texImages.put(URI,new TextureImage(loadImage(imageLocalPath.get(URI))));
 			URI=null;
 		}
 		imageURI=null;

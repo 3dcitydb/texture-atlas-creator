@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 
 public class RGBEncoder {
@@ -143,10 +144,15 @@ public class RGBEncoder {
 	public BufferedImage readRGB(File file) throws Exception {
 		if (!file.exists())
 			return null;
-
-		FileInputStream fis = new FileInputStream(file);
+		return readRGB(new FileInputStream(file),(int)file.length());
 		
-		RGBHeader header = readHeader(fis);
+	}
+	
+	public BufferedImage readRGB(InputStream is, int fileLength)throws Exception {
+		if (is==null)
+			return null;
+		
+		RGBHeader header = readHeader(is);
 		System.out.println(header.toString());
 		bi = new BufferedImage(header.xSize, header.ySize,
 				header.chanels==4?BufferedImage.TYPE_INT_ARGB:BufferedImage.TYPE_INT_RGB);
@@ -158,12 +164,13 @@ public class RGBEncoder {
 			tmp = 4 * header.ySize * header.chanels;
 			startTableB = new byte[tmp];
 			lengthTableB = new byte[tmp];
-			fis.read(startTableB);
-			fis.read(lengthTableB);
+			is.read(startTableB);
+			is.read(lengthTableB);
 		}
 		tmp = tmp * 2 + 512;
-		byte[] all = new byte[(int) file.length() - tmp];
-		fis.read(all, 0, all.length);
+		
+		byte[] all = new byte[fileLength - tmp];
+		is.read(all, 0, all.length);
 
 		int[] lineData = new int[header.xSize];
 		int scanline = header.ySize - 1;
@@ -198,14 +205,14 @@ public class RGBEncoder {
 		all = null;
 		lineData = null;
 		
-		fis.close();
+		is.close();
 		header=null;
-		fis=null;
+		is=null;
 		System.out.println("finish");
 		return bi;
 	}
 
-	private RGBHeader readHeader(FileInputStream fis) {
+	private RGBHeader readHeader(InputStream fis) {
 		byte[] headerR= new byte[512];
 		RGBHeader header = new RGBHeader();
 		try {

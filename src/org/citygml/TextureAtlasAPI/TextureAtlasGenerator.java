@@ -37,8 +37,6 @@ public class TextureAtlasGenerator {
 	public TexImageInfo convertor(TexImageInfo tii, int PackingAlgorithm){
 		modifier.reset();
 		// check tii.isImagesReady()
-			
-		
 		modifier.setGeneralSettings(this.PackingAlgorithm, this.ImageMaxWidth, this.ImageMaxHeight);
 		return modifier.run(tii);
 	}

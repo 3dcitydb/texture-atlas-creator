@@ -2,12 +2,12 @@ package org.citygml.Model;
 
 
 import java.awt.Graphics2D;
+
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 
@@ -47,6 +47,8 @@ import org.citygml4j.xml.io.CityGMLOutputFactory;
 
 import org.citygml.TextureAtlasAPI.TextureAtlasGenerator;
 import org.citygml.TextureAtlasAPI.DataStructure.*;
+
+
 public class GMLModifier {
 	
 //	public final static int PNG=1;
@@ -334,14 +336,14 @@ public class GMLModifier {
 	 * NOTE: It will remove all objects
 	 * @param texImage
 	 */
-	private void writeImageFiles(HashMap<String, Image> texImage){
+	private void writeImageFiles(HashMap<String, TextureImage> texImage){
 		Image im;	
-
+		
 		String outPath;
 		BufferedImage bi = new BufferedImage(maxImageW, maxImageH, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g=bi.createGraphics();
 		for(String path: texImage.keySet()){
-			im= texImage.get(path);
+			im= texImage.get(path).getImage();
 			
 			outPath=outputParentPath+(outputParentPath==null||outputParentPath.length()==0?"":"/")+path.replace('\\', '/');
 			// copy file exactly in the new place

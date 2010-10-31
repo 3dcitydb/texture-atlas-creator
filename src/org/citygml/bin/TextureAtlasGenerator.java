@@ -1,13 +1,11 @@
 package org.citygml.bin;
-
-
-
+import oracle.ord.im.OrdImage;
 
 import javax.swing.JFrame;
 
 import org.citygml.Control.Controller;
 import org.citygml.GUI.UI;
- 
+
 public class TextureAtlasGenerator {
 	
 	Controller controller;

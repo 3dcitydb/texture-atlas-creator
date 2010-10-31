@@ -15,8 +15,9 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 import org.citygml.TextureAtlasAPI.DataStructure.ErrorTypes;
-import org.citygml.TextureAtlasAPI.DataStructure.ImageScaling;
 import org.citygml.TextureAtlasAPI.DataStructure.TexImageInfo;
+import org.citygml.TextureAtlasAPI.DataStructure.TextureImage;
+import org.citygml.TextureAtlasAPI.ImageIO.ImageScaling;
 import org.citygml.TextureAtlasAPI.StripPacker.MyItem;
 import org.citygml.TextureAtlasAPI.StripPacker.MyResult;
 import org.citygml.TextureAtlasAPI.StripPacker.MyStPacker;
@@ -65,7 +66,7 @@ public class Modifier {
 		g.clearRect(0, 0, ImageMaxWidth, ImageMaxHeight);
 
 		HashMap<Object, String> coordinatesHashMap =ti.getTexCoordinates();
-		HashMap<String, Image> textImage= ti.getTexImages();
+		HashMap<String, TextureImage> textImage= ti.getTexImages();
 		HashMap<Object, String> textUri= ti.getTexImageURIs();
 		HashMap<Object, ErrorTypes> LOG= ti.getLOG();
 		if (LOG==null)
@@ -98,19 +99,19 @@ public class Modifier {
 				}
 				// the coordinates should be added and then continue.
 				coordinate= formatCoordinates(coordinatesHashMap.get(key));
-				// previous coordinate was accepted but this one have problem
+				// previous coordinate was accepted but this one has a problem with coordinates
 				if (coordinate==null){
 		        	isImageAcceptable.put(URI, new Boolean(false));
 		        	// remve Item from list
 		        	myPack.removeItem(URI);
-		        	width= textImage.get(URI).getWidth(null);
+		        	width= textImage.get(URI).getImage().getWidth(null);
 		        	totalWidth-=width;
 		        	// just for complicated cases.
 		        	if (totalWidth<maxw)
 		        		maxw=totalWidth;
-		        	LOG.put(key,ErrorTypes.IMAGE_FORMAT_NOT_SUPPORTED);
+		        	LOG.put(key,ErrorTypes.ERROR_IN_COORDINATES);
 		        	for (Object obj: uri2Object.get(URI))
-		        		LOG.put(obj,ErrorTypes.IMAGE_FORMAT_NOT_SUPPORTED);
+		        		LOG.put(obj,ErrorTypes.ERROR_IN_COORDINATES);
 		        	continue;
 		        }
 				doubleCoordinateList.put(key, coordinate);
@@ -123,7 +124,7 @@ public class Modifier {
 				completeAtlasPath= URI.substring(0,URI.lastIndexOf('.'))+"_%1d.jpg";
 			
 			// report bug
-			if ((tmp= textImage.get(URI))==null){
+			if ((tmp= textImage.get(URI).getImage())==null){
 				isImageAcceptable.put(URI, new Boolean(false));
 				LOG.put(key,ErrorTypes.IMAGE_IS_NOT_AVAILABLE);
 				continue;			
@@ -138,7 +139,7 @@ public class Modifier {
 					LOG.put(key, ErrorTypes.IMAGE_UNBONDED_SIZE);
 					continue;
 	        	}
-	        	textImage.put(URI, tmp);
+	        	textImage.get(URI).setImage(tmp);
 	        }
 	        coordinate= formatCoordinates(coordinatesHashMap.get(key));
 	        //LOG if coordinates have any problem, do not touch it! (like n. available or wrapping textures)
@@ -186,7 +187,7 @@ public class Modifier {
         	 if (y-prevH+item.getHeight()>ImageMaxHeight){
         		
         		 // set Image in Hashmap and write it to file.
-        		 textImage.put(String.format(completeAtlasPath,fileCounter),writeImage(atlasW, atlasH));
+        		 textImage.put(String.format(completeAtlasPath,fileCounter),new TextureImage(getImage(atlasW, atlasH)));
         		 // set the new coordinates
         		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
         		 frame.clear();
@@ -194,8 +195,8 @@ public class Modifier {
         		 atlasH=0;
         		 prevH=y;
         	 }
-        	 g.drawImage(textImage.get(item.getURI()), x, y-prevH, null);
-        	 textImage.remove(item.getURI()).flush();
+        	 g.drawImage(textImage.get(item.getURI()).getImage(), x, y-prevH, null);
+        	 textImage.remove(item.getURI()).freeMemory();
         	 item.setYPos(y-prevH);
         	 frame.add(item);
         	 if (atlasW<x+item.getWidth())
@@ -210,7 +211,7 @@ public class Modifier {
         	 }
 		}
 		if (atlasH!=0||atlasW!=0){
-	        textImage.put(String.format(completeAtlasPath,fileCounter),writeImage(atlasW, atlasH));
+	        textImage.put(String.format(completeAtlasPath,fileCounter),new TextureImage(getImage(atlasW, atlasH)));
 			 // set the new coordinates
 			 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
 			 frame.clear();
@@ -270,7 +271,7 @@ public class Modifier {
 		return c;
 	}
 	
-	private Image writeImage(int w, int h){
+	private Image getImage(int w, int h){
 		try{
 			ImageIcon ii;
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
