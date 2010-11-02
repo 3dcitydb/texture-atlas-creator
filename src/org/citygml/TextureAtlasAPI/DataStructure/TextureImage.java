@@ -1,7 +1,11 @@
 package org.citygml.TextureAtlasAPI.DataStructure;
 
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.sql.SQLException;
+
+import javax.swing.ImageIcon;
+
 import org.citygml.TextureAtlasAPI.ImageIO.ImageLoader;
 import oracle.ord.im.OrdImage;
 
@@ -18,10 +22,12 @@ public class TextureImage {
 	private Image image;
 	private OrdImage ordImage;
 	private static ImageLoader imageLoader = new ImageLoader();
+	private int chanels=3;
 
-	public TextureImage(Image bi) {
+	public TextureImage(Image bi, int chanels) {
 		this.image = bi;
 		this.type = IMAGE;
+		this.chanels= chanels;
 	}
 
 	public TextureImage(OrdImage ordImage) {
@@ -36,8 +42,7 @@ public class TextureImage {
 			try {
 				this.image= imageLoader.loadImage(ordImage.getDataInStream(), ordImage
 						.getMimeType(), ordImage.getContentLength());
-				
-
+				this.chanels=imageLoader.getChanels();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -66,6 +71,9 @@ public class TextureImage {
 
 	public void setImage(OrdImage ordImage) {
 		this.ordImage = ordImage;
+	}
+	public int getChanels(){
+		return this.chanels;
 	}
 	
 	public void freeMemory(){

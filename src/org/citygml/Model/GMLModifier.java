@@ -340,10 +340,12 @@ public class GMLModifier {
 		Image im;	
 		
 		String outPath;
+		int chanels=0;
 		BufferedImage bi = new BufferedImage(maxImageW, maxImageH, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g=bi.createGraphics();
 		for(String path: texImage.keySet()){
 			im= texImage.get(path).getImage();
+			chanels=texImage.get(path).getChanels();
 			
 			outPath=outputParentPath+(outputParentPath==null||outputParentPath.length()==0?"":"/")+path.replace('\\', '/');
 			// copy file exactly in the new place
@@ -352,18 +354,40 @@ public class GMLModifier {
 				outPath=null;
 				continue;
 			}
+			
+			if (chanels==3)
+				outPath= outPath.substring(0, outPath.lastIndexOf('.'))+".jpeg";
+			else
+				outPath= outPath.substring(0, outPath.lastIndexOf('.'))+".png";
+			
 			File file = new File(outPath);
 			if (!file.exists() &&file.getParent()!=null)
 				file.getParentFile().mkdirs();
 			try{
 				if(im instanceof RenderedImage ){
-					ImageIO.write((RenderedImage)im, "jpeg", file);
+					ImageIO.write((RenderedImage)im, chanels ==3?"jpeg":"png", file);
 					im.flush();
 					im = null;
 				}else{
+					if (chanels==3&&bi.getType()!=BufferedImage.TYPE_INT_RGB){
+						g.dispose();
+						g=null;
+						bi.flush();
+						bi = null;
+						bi = new BufferedImage(maxImageW, maxImageH, BufferedImage.TYPE_INT_RGB);
+						g= bi.createGraphics();
+					}else if(chanels==4&&bi.getType()!=BufferedImage.TYPE_INT_ARGB){
+						g.dispose();
+						g=null;
+						bi.flush();
+						bi = null;
+						bi = new BufferedImage(maxImageW, maxImageH, BufferedImage.TYPE_INT_ARGB);
+						g= bi.createGraphics();
+					}
+					
 					g.drawImage(im, 0, 0, null);
 					ImageIO.write(bi.getSubimage(0, 0, im.getWidth(null), im
-							.getHeight(null)), "jpeg", file);
+							.getHeight(null)), chanels ==3?"jpeg":"png", file);
 					g.clearRect(0, 0, maxImageW, maxImageH);
 					im.flush();
 					im = null;

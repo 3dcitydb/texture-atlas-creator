@@ -10,8 +10,8 @@ public class MyItem implements Comparable<MyItem>{
     @Override
 	public boolean equals(Object obj) {
 		// TODO Auto-generated method stub
-    	if (obj.getClass().equals(this.getClass())){
-    		if (((MyItem)obj).getURI()==this.id)
+    	if (obj instanceof MyItem){
+    		if (((MyItem)obj).getURI()!=null&&((MyItem)obj).getURI().equalsIgnoreCase(this.id))
     			return true;
     	}
 		return false;

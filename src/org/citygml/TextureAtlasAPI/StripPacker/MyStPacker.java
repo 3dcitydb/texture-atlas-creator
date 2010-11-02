@@ -43,6 +43,7 @@ public class MyStPacker  {
 		return items.add(mi);
 	}
 	public boolean removeItem(String URI){
+		
 		return items.remove(new MyItem(URI,0,0));
 	}
 	

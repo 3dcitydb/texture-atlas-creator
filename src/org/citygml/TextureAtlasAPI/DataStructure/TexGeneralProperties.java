@@ -57,6 +57,10 @@ public class TexGeneralProperties {
 	public String getMIMEType(){
 		return this.MIMEType;
 	}
+
+	public void setMIMEType(String MIMEType){
+		this.MIMEType=MIMEType;
+	}
 	
 	public boolean isSupportedImageFormat(){
 		return this.supportedImageFormat;
@@ -76,7 +80,7 @@ public class TexGeneralProperties {
 		return false;
 	}
 	
-
+	
 	public boolean compareItTo(TexGeneralProperties t1) {
 		return Compare(this, t1);
 //		if(this.isFront==t1.isFront()&&

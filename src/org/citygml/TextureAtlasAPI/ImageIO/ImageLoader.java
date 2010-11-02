@@ -25,6 +25,8 @@ public class ImageLoader {
 	File f;
 	BufferedImage b;
 	ImageIcon ii;
+	int chanels;
+	
 	private Image loadImage(String path){
 		Image img=null;
 		try {
@@ -36,14 +38,14 @@ public class ImageLoader {
 			}
 			else
 				b= ImageIO.read(f);
-			
 			if (b!=null){
+				chanelDetector(b);
 				ii= new ImageIcon(b);
 				img =ii.getImage();
 				b.flush();
 				b=null;
 				ii=null;
-			}
+			}else chanels=0;
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -66,15 +68,36 @@ public class ImageLoader {
 		}
 			else
 				b= ImageIO.read(is);
-			ii= new ImageIcon(b);
-			img =ii.getImage();
-			b.flush();
-			b=null;
-			ii=null	;
+			if (b!=null){
+				chanelDetector(b);		
+				ii= new ImageIcon(b);
+				img =ii.getImage();
+				b.flush();
+				b=null;
+				ii=null	;
+			}else chanels=0;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return img;
+	}
+
+	
+	private void chanelDetector(BufferedImage bImage){
+		switch(bImage.getType()){
+		case BufferedImage.TYPE_INT_ARGB:
+		case BufferedImage.TYPE_INT_ARGB_PRE:
+		case BufferedImage.TYPE_4BYTE_ABGR:
+		case BufferedImage.TYPE_4BYTE_ABGR_PRE:
+			this.chanels=4;
+			break;
+		default:
+			this.chanels=3;
+		}
+		
+	}
+	public int getChanels(){
+		return this.chanels;
 	}
 	
 	public HashMap<String, TextureImage> loadAllImage(HashMap<String,String> imageLocalPath){
@@ -83,7 +106,7 @@ public class ImageLoader {
 		String URI;
 		while(imageURI.hasNext()){
 			URI=imageURI.next();
-			texImages.put(URI,new TextureImage(loadImage(imageLocalPath.get(URI))));
+			texImages.put(URI,new TextureImage(loadImage(imageLocalPath.get(URI)),chanels));
 			URI=null;
 		}
 		imageURI=null;

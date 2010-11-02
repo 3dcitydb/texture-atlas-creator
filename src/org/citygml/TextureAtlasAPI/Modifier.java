@@ -16,6 +16,7 @@ import javax.swing.ImageIcon;
 
 import org.citygml.TextureAtlasAPI.DataStructure.ErrorTypes;
 import org.citygml.TextureAtlasAPI.DataStructure.TexImageInfo;
+import org.citygml.TextureAtlasAPI.DataStructure.TexImageInfo4GMLFile;
 import org.citygml.TextureAtlasAPI.DataStructure.TextureImage;
 import org.citygml.TextureAtlasAPI.ImageIO.ImageScaling;
 import org.citygml.TextureAtlasAPI.StripPacker.MyItem;
@@ -69,11 +70,14 @@ public class Modifier {
 		HashMap<String, TextureImage> textImage= ti.getTexImages();
 		HashMap<Object, String> textUri= ti.getTexImageURIs();
 		HashMap<Object, ErrorTypes> LOG= ti.getLOG();
+		
 		if (LOG==null)
 			LOG= new HashMap<Object, ErrorTypes>();
 		
 		HashMap<String, ArrayList<Object>> uri2Object = new HashMap<String, ArrayList<Object>>();
+	
 		HashMap<String,Boolean> isImageAcceptable = new HashMap<String, Boolean>();
+		HashMap<String, String> URIDic= new HashMap<String, String>();
 		HashMap< Object, double[]> doubleCoordinateList= new HashMap<Object, double[]>();
 		
 
@@ -83,14 +87,35 @@ public class Modifier {
 		MyStPacker myPack = new MyStPacker();
 		// target URI: surface ID
 		int width, height;
-		String URI;
+		String URI,tmpURI;
 		ArrayList<Object> list;
 		Boolean b;
+		TextureImage tmpTextureImage;
 		Image tmp;
-		
+		boolean is4Chanel=false;
 		double[] coordinate;
 		for (Object key : textUri.keySet()){
 			URI= textUri.get(key);
+		
+			//Check whether this URI is changed before.
+			if((tmpURI=URIDic.get(URI))!=null){
+				// this URI previously have been changed, so textImage should also be changed before.
+				textUri.put(key,tmpURI);
+				URI=tmpURI;
+			}else{
+				tmpTextureImage= textImage.get(URI);
+				if (tmpTextureImage!=null){
+					tmpURI= makeNewURI(URI, tmpTextureImage.getChanels());
+					textUri.put(key,tmpURI);
+					textImage.remove(URI);
+					textImage.put(tmpURI, tmpTextureImage);
+					URIDic.put(URI, tmpURI);
+					URI=tmpURI;
+				}
+			}
+			tmpURI=null;
+			tmpTextureImage=null;
+			
 			// The image was read before;
 			if((b=isImageAcceptable.get(URI))!=null){
 				if (!b.booleanValue()){
@@ -121,7 +146,7 @@ public class Modifier {
 			
 			
 			if (completeAtlasPath==null)
-				completeAtlasPath= URI.substring(0,URI.lastIndexOf('.'))+"_%1d.jpg";
+				completeAtlasPath= URI.substring(0,URI.lastIndexOf('.'))+"_%1d.";
 			
 			// report bug
 			if ((tmp= textImage.get(URI).getImage())==null){
@@ -129,6 +154,9 @@ public class Modifier {
 				LOG.put(key,ErrorTypes.IMAGE_IS_NOT_AVAILABLE);
 				continue;			
 			}
+			if (!is4Chanel&&textImage.get(URI).getChanels()==4)
+				is4Chanel=true;
+			 
 			width= tmp.getWidth(null);
 	        height= tmp.getHeight(null);
 	        //LOG if the image is not accepted, do not touch it! size problem
@@ -168,6 +196,24 @@ public class Modifier {
             }
 
 		}
+		// check whether the image format is correct.
+		if (is4Chanel&& bi.getType()!=BufferedImage.TYPE_INT_ARGB){
+			//....new
+			g.finalize();
+			g=null;
+			bi.flush();
+			bi=null;
+			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_ARGB);
+			g = bi.getGraphics();
+			
+		}else if (!is4Chanel&&bi.getType()!=BufferedImage.TYPE_INT_RGB){
+			g.finalize();
+			g=null;
+			bi.flush();
+			bi=null;
+			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
+			g = bi.getGraphics();
+		}
 		
 		MyResult mr=iterativePacker(myPack, maxw,totalWidth);
 		
@@ -185,9 +231,8 @@ public class Modifier {
         	 x= item.getXPos();
         	 y= item.getYPos();
         	 if (y-prevH+item.getHeight()>ImageMaxHeight){
-        		
         		 // set Image in Hashmap and write it to file.
-        		 textImage.put(String.format(completeAtlasPath,fileCounter),new TextureImage(getImage(atlasW, atlasH)));
+        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TextureImage(getImage(atlasW, atlasH),is4Chanel?4:3));
         		 // set the new coordinates
         		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
         		 frame.clear();
@@ -207,20 +252,24 @@ public class Modifier {
         	 // set the properties.
         	 // set the URI
         	 for(Object obj:uri2Object.get(item.getURI())){	
-        		 textUri.put(obj, String.format(completeAtlasPath,fileCounter));
+        		 textUri.put(obj, String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"));
         	 }
 		}
 		if (atlasH!=0||atlasW!=0){
-	        textImage.put(String.format(completeAtlasPath,fileCounter),new TextureImage(getImage(atlasW, atlasH)));
+	        textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TextureImage(getImage(atlasW, atlasH),is4Chanel?4:3));
 			 // set the new coordinates
 			 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
 			 frame.clear();
 		}
 		
+		if (ti instanceof TexImageInfo4GMLFile)
+			((TexImageInfo4GMLFile) ti).getGeneralProp().setMIMEType(is4Chanel?"image/png":"image/jpeg");
+		
 
 		uri2Object.clear();
 		isImageAcceptable.clear();
 		doubleCoordinateList.clear();
+		URIDic.clear();
 		ti.setTexCoordinates(coordinatesHashMap);
 		ti.setTexImages(textImage);
 		ti.setTexImageURIs(textUri);
@@ -230,6 +279,10 @@ public class Modifier {
 		g=null;
 		bi=null;
 		return ti;
+	}
+	
+	private String makeNewURI(String prevURI, int chanel){
+		return prevURI.substring(0, prevURI.lastIndexOf('.'))+(chanel==3?".jpeg":".png");
 	}
 	
 	/**
@@ -261,7 +314,8 @@ public class Modifier {
 		double[]c= new double[sc.length];
 		for (int i=0;i<sc.length;i++){
 			c[i] = Double.parseDouble(sc[i]);
-			if (c[i]<-0.0005||c[i]>1.0005){
+//			if (c[i]<-0.0005||c[i]>1.0005){
+			if (c[i]<-0.5||c[i]>1.5){
 				sc=null;
 				return null;
 			}

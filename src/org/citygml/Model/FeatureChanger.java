@@ -17,6 +17,7 @@ import org.citygml4j.model.citygml.appearance.SurfaceDataProperty;
 import org.citygml4j.model.citygml.appearance.TexCoordList;
 import org.citygml4j.model.citygml.appearance.TextureAssociation;
 import org.citygml4j.model.citygml.appearance.TextureCoordinates;
+import org.citygml4j.model.citygml.appearance.X3DMaterial;
 import org.citygml4j.model.citygml.building.AbstractBuilding;
 import org.citygml4j.visitor.walker.FeatureWalker;
 
@@ -49,7 +50,9 @@ public class FeatureChanger extends FeatureWalker {
 		pcc=0;
 		super.accept(arg0);
 	}
-
+	public void accept(X3DMaterial x3dMaterial) {
+		System.out.println("X3D!!!");
+	}
 	
 	@Override
 	public void accept(Appearance arg0) {
@@ -93,7 +96,7 @@ public class FeatureChanger extends FeatureWalker {
 				parameterizedTexture.setImageURI(URI);
 				parameterizedTexture.setId(appearance.getId());
 				//TODO change it. it should set from image convertor.
-				parameterizedTexture.setMimeType(texAtlasGroup.getGeneralProp().getMIMEType());
+				parameterizedTexture.setMimeType(getMIMEType(URI,texAtlasGroup.getGeneralProp().getMIMEType()));
 				parameterizedTexture.setBorderColor(texAtlasGroup.getGeneralProp().getBoarderColor());
 				parameterizedTexture.setWrapMode(texAtlasGroup.getGeneralProp().getWrapModeType());
 				parameterizedTexture.setTextureType(texAtlasGroup.getGeneralProp().getTextureType());
@@ -150,6 +153,14 @@ public class FeatureChanger extends FeatureWalker {
 			ls=null;
 		
 		return list;
+	}
+	
+	private String getMIMEType(String URI,String generalMIMEType){
+		if (URI.lastIndexOf(".jpeg")>0)
+			return "image/jpeg";
+		if (URI.lastIndexOf(".png")>0)
+			return "image/png";
+		return generalMIMEType;
 	}
 	/**
 	@Override
