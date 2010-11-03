@@ -32,6 +32,10 @@ public class ImageLoader {
 		try {
 			
 			f= new File(path);
+			if (!f.exists()){
+				System.err.println("file is not available:"+path);
+				return null;
+			}
 			if (path.lastIndexOf(".rgb")>0){
 				b=rgbEncoder.readRGB(f);
 				rgbEncoder.freeMemory();

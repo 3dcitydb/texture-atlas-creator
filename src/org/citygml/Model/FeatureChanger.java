@@ -66,8 +66,9 @@ public class FeatureChanger extends FeatureWalker {
 		ParameterizedTexture parameterizedTexture;
 		TexImageInfo4GMLFile texAtlasGroup;
 		HashMap<String, ParameterizedTexture> paramtexGroup;
+		HashMap<String, TexCoordList> TexCoordListHashMap = new HashMap<String, TexCoordList>();
 		Enumeration<TexImageInfo4GMLFile> texGroupEnum=building.elements();
-		// each texture group will be a sSurfaceDaraMember&ParameterizedTexture
+		// each texture group will be a SurfaceDataMember&ParameterizedTexture
 		while(texGroupEnum.hasMoreElements()){
 			texAtlasGroup = texGroupEnum.nextElement();
 			if(arg0.getId()!=null)
@@ -118,7 +119,13 @@ public class FeatureChanger extends FeatureWalker {
 				tc = citygml.createTextureCoordinates();
 				tc.setRing(tr[1]);
 				tc.setValue(convertCoordinates(texCoordinates.get(targetRing)));
-				
+				// if another TexCoordList for this target is available use that. to support holes. 
+				if((tcl=TexCoordListHashMap.get(tr[0]))!=null){
+					tcl.addTextureCoordinates(tc);
+					tr=null;
+					targetRing=null;
+					continue;
+				}
 				tcl = citygml.createTexCoordList();
 				tcl.addTextureCoordinates(tc);
 				
@@ -126,11 +133,13 @@ public class FeatureChanger extends FeatureWalker {
 				ta.setUri(tr[0]);
 				ta.setTextureParameterization(tcl);
 				paramtexGroup.get(texImageURIS.get(targetRing)).addTarget(ta);
+				TexCoordListHashMap.put(tr[0],tcl);
 				tr=null;
 				targetRing=null;
 			}
 			targetRingIte=null;
 			texAtlasGroup.clear();
+			TexCoordListHashMap.clear();
 		}
 	
 		super.accept(arg0);
