@@ -50,19 +50,18 @@ public class FeatureChanger extends FeatureWalker {
 		pcc=0;
 		super.accept(arg0);
 	}
-	public void accept(X3DMaterial x3dMaterial) {
-		System.out.println("X3D!!!");
-	}
+
 	
 	@Override
 	public void accept(Appearance arg0) {
 		this.appearance = arg0;		
-		appearance.unsetSurfaceDataMember();
+//		appearance.unsetSurfaceDataMember();
 
 		TextureCoordinates tc ;
 		TexCoordList tcl;
 		TextureAssociation ta ;
 		
+
 		SurfaceDataProperty sdpt;
 		ParameterizedTexture parameterizedTexture;
 		TexImageInfo4GMLFile texAtlasGroup;

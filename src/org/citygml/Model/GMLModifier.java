@@ -34,6 +34,7 @@ import org.citygml4j.commons.gmlid.GMLIdManager;
 
 import org.citygml4j.model.citygml.appearance.Appearance;
 import org.citygml4j.model.citygml.appearance.ParameterizedTexture;
+import org.citygml4j.model.citygml.appearance.SurfaceDataProperty;
 import org.citygml4j.model.citygml.appearance.TexCoordList;
 import org.citygml4j.model.citygml.appearance.TextureAssociation;
 import org.citygml4j.model.citygml.appearance.TextureCoordinates;
@@ -190,12 +191,15 @@ public class GMLModifier {
 			int counter =0;
 			TexGeneralProperties genProp = null;
 			String currentAppID=null;
+			Appearance currentApp;
 			public void accept(Appearance ap) {
 				currentAppID= ap.getId();
+				currentApp=ap;
 				super.accept(ap);
 			}
 			
 			public void accept(ParameterizedTexture parameterizedTexture) {
+
 				if (genProp==null){
 					genProp = new TexGeneralProperties(parameterizedTexture
 							.getTextureType(), parameterizedTexture
@@ -242,6 +246,8 @@ public class GMLModifier {
 								.getImageURI(), double2String(tc.getValue()));
 					}
 				}
+				
+				currentApp.unsetSurfaceDataMember((SurfaceDataProperty) parameterizedTexture.getParent());
 				super.accept(parameterizedTexture);
 			}
 
