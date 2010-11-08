@@ -30,36 +30,39 @@ public class TextureAtlasGenerator {
 	}
 	
 	
-	public TexImageInfo convertor(TexImageInfo tii){
-		return convertor(tii,PackingAlgorithm);
+	public TexImageInfo convert(TexImageInfo tii, boolean loadImage){
+		return convert(tii,PackingAlgorithm,loadImage);
 	}
 	
-	public TexImageInfo convertor(TexImageInfo tii, int PackingAlgorithm){
+	public TexImageInfo convert(TexImageInfo tii, int PackingAlgorithm,boolean loadImage){
 		modifier.reset();
+		if (loadImage){
+			if(!tii.isImagesReady()&& tii instanceof TexImageInfo4GMLFile){
+				tii.setTexImages(imageLoader.loadAllImage(((TexImageInfo4GMLFile)tii).getImagesLocalPath()));
+				tii.setImagesReady(true);
+			}
+		}
 		// check tii.isImagesReady()
 		modifier.setGeneralSettings(this.PackingAlgorithm, this.ImageMaxWidth, this.ImageMaxHeight);
 		return modifier.run(tii);
 	}
 
 	
-	public TexImageInfo4GMLFile convertor4GMLF(TexImageInfo4GMLFile tii){
-		return convertor4GMLF(tii,PackingAlgorithm);
-	}
-	
-	public TexImageInfo4GMLFile convertor4GMLF(TexImageInfo4GMLFile tii, int PackingAlgorithm){
-		modifier.reset();
-		if(!tii.isImagesReady()){
-			tii.setTexImages(imageLoader.loadAllImage(tii.getImagesLocalPath()));
-			tii.setImagesReady(true);
-		}
-		modifier.setGeneralSettings(this.PackingAlgorithm, this.ImageMaxWidth, this.ImageMaxHeight);
-		TexImageInfo tmp =modifier.run(tii);
-		tii.setLOG(tmp.getLOG());
-		tii.setTexCoordinates(tmp.getTexCoordinates());
-		tii.setTexImages(tmp.getTexImages());
-		tii.setTexImageURIs(tmp.getTexImageURIs());
-		return tii;
-	}
+//	public TexImageInfo4GMLFile convertor4GMLF(TexImageInfo4GMLFile tii){
+//		return convertor4GMLF(tii,PackingAlgorithm);
+//	}
+//	
+//	public TexImageInfo4GMLFile convertor4GMLF(TexImageInfo4GMLFile tii, int PackingAlgorithm){
+//		modifier.reset();
+//		
+//		modifier.setGeneralSettings(this.PackingAlgorithm, this.ImageMaxWidth, this.ImageMaxHeight);
+//		TexImageInfo tmp =modifier.run(tii);
+//		tii.setLOG(tmp.getLOG());
+//		tii.setTexCoordinates(tmp.getTexCoordinates());
+//		tii.setTexImages(tmp.getTexImages());
+//		tii.setTexImageURIs(tmp.getTexImageURIs());
+//		return tii;
+//	}
 
 
 }

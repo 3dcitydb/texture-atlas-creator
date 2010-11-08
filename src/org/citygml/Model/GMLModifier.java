@@ -137,7 +137,7 @@ public class GMLModifier {
 				while(texGroupIDS.hasMoreElements()){
 					tmpKey= texGroupIDS.nextElement();
 					texGroup = building.get(tmpKey);
-					texGroup= atlasGenerator.convertor4GMLF(texGroup);
+					texGroup= (TexImageInfo4GMLFile) atlasGenerator.convert(texGroup,true);
 					System.out.println("LOG:"+texGroup.getLOGInText());
 					building.put(tmpKey, texGroup);
 					writeImageFiles(texGroup.getTexImages());
