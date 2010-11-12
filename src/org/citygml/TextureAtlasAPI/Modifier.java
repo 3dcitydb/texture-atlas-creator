@@ -1,27 +1,25 @@
-package org.citygml.TextureAtlasAPI;
-import java.awt.Graphics;
+package org.citygml.textureAtlasAPI;
+
+import java.awt.Graphics2D;
 import java.awt.Image;
 
 import java.awt.image.BufferedImage;
 
-import java.io.ByteArrayOutputStream;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
 import java.util.Vector;
 
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-
-import org.citygml.TextureAtlasAPI.DataStructure.ErrorTypes;
-import org.citygml.TextureAtlasAPI.DataStructure.TexImageInfo;
-import org.citygml.TextureAtlasAPI.DataStructure.TexImageInfo4GMLFile;
-import org.citygml.TextureAtlasAPI.DataStructure.TextureImage;
-import org.citygml.TextureAtlasAPI.ImageIO.ImageScaling;
-import org.citygml.TextureAtlasAPI.StripPacker.MyItem;
-import org.citygml.TextureAtlasAPI.StripPacker.MyResult;
-import org.citygml.TextureAtlasAPI.StripPacker.MyStPacker;
+import org.citygml.textureAtlasAPI.dataStructure.ErrorTypes;
+import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo;
+import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
+import org.citygml.textureAtlasAPI.dataStructure.TexImage;
+import org.citygml.textureAtlasAPI.imageIO.ImageScaling;
+import org.citygml.textureAtlasAPI.stripPacker.MyItem;
+import org.citygml.textureAtlasAPI.stripPacker.MyResult;
+import org.citygml.textureAtlasAPI.stripPacker.MyStPacker;
 
 public class Modifier {
 	private int ImageMaxWidth;
@@ -29,9 +27,9 @@ public class Modifier {
 	private int packingAlgorithm;
 
 	
-	BufferedImage bi;
-	BufferedImage tmp;
-	Graphics g;
+//	BufferedImage bi;
+//	BufferedImage tmp;
+//	Graphics g;
 	int fileCounter=0;
 	String completeAtlasPath;
 	boolean overBorder=false;
@@ -45,9 +43,15 @@ public class Modifier {
 		this.packingAlgorithm = PackingAlg;
 		this.ImageMaxHeight=atlasMaxHeight;
 		this.ImageMaxWidth= atlasMaxWidth;
-		
-		bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
-		g = bi.getGraphics();
+//		if (bi!=null){
+//			if (g!=null)
+//				g.dispose();
+//			g=null;
+//			bi.flush();
+//			bi=null;
+//		}
+//		bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
+//		g = bi.getGraphics();
 	}
 	
 	/**
@@ -56,23 +60,27 @@ public class Modifier {
 	 * @param ti
 	 * @return
 	 */
+	HashMap<Object, ErrorTypes> LOG;
 	
+	public HashMap<Object, ErrorTypes> getLOG(){
+		return this.LOG;
+	}
 	public TexImageInfo run(TexImageInfo ti){
-		if (bi==null){
-			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
-			g = bi.getGraphics();
-		}
+//		if (bi==null){
+//			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
+//			g = bi.getGraphics();
+//		}
 		fileCounter=0;
 		completeAtlasPath=null;
-		g.clearRect(0, 0, ImageMaxWidth, ImageMaxHeight);
+//		g.clearRect(0, 0, ImageMaxWidth, ImageMaxHeight);
 
 		HashMap<Object, String> coordinatesHashMap =ti.getTexCoordinates();
-		HashMap<String, TextureImage> textImage= ti.getTexImages();
+		HashMap<String, TexImage> textImage= ti.getTexImages();
 		HashMap<Object, String> textUri= ti.getTexImageURIs();
-		HashMap<Object, ErrorTypes> LOG= ti.getLOG();
-		
 		if (LOG==null)
-			LOG= new HashMap<Object, ErrorTypes>();
+			this.LOG =new HashMap<Object, ErrorTypes>(); 
+		else
+			LOG.clear();
 		
 		HashMap<String, ArrayList<Object>> uri2Object = new HashMap<String, ArrayList<Object>>();
 	
@@ -90,7 +98,7 @@ public class Modifier {
 		String URI,tmpURI;
 		ArrayList<Object> list;
 		Boolean b;
-		TextureImage tmpTextureImage;
+		TexImage tmpTextureImage;
 		Image tmp;
 		boolean is4Chanel=false;
 		double[] coordinate;
@@ -196,27 +204,35 @@ public class Modifier {
             }
 
 		}
+		
+		
 		// check whether the image format is correct.
-		if (is4Chanel&& bi.getType()!=BufferedImage.TYPE_INT_ARGB){
-			//....new
-			g.finalize();
-			g=null;
-			bi.flush();
-			bi=null;
-			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_ARGB);
-			g = bi.getGraphics();
-			
-		}else if (!is4Chanel&&bi.getType()!=BufferedImage.TYPE_INT_RGB){
-			g.finalize();
-			g=null;
-			bi.flush();
-			bi=null;
-			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
-			g = bi.getGraphics();
-		}
+//		if (is4Chanel&& bi.getType()!=BufferedImage.TYPE_INT_ARGB){
+//			//....new
+//			
+//			g.finalize();
+//			
+//			g=null;
+//			bi.flush();
+//			bi=null;
+//			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_ARGB);
+//			g = bi.getGraphics();
+//			
+//		}else if (!is4Chanel&&bi.getType()!=BufferedImage.TYPE_INT_RGB){
+//			g.finalize();
+//			g=null;
+//			bi.flush();
+//			bi=null;
+//			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
+//			g = bi.getGraphics();
+//		}
 		
 		MyResult mr=iterativePacker(myPack, maxw,totalWidth);
-		
+		BufferedImage bi = new BufferedImage(Math.min(mr.getWidth(),
+				ImageMaxWidth), Math.min(mr.getFinalHeight(), ImageMaxHeight),
+				is4Chanel ? BufferedImage.TYPE_INT_ARGB
+						: BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = bi.createGraphics();
 		// start to make atlas. prevH: amount of height of strip which was written in file before.
 		int x,y, prevH=0;
 		int atlasW=0,atlasH=0;
@@ -232,7 +248,18 @@ public class Modifier {
         	 y= item.getYPos();
         	 if (y-prevH+item.getHeight()>ImageMaxHeight){
         		 // set Image in Hashmap and write it to file.
-        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TextureImage(getImage(atlasW, atlasH),is4Chanel?4:3));
+//        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi),is4Chanel?4:3));
+        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi)));
+        		 g.dispose();
+        		 fileCounter++;
+        		 bi=null;
+        		 g=null;
+        		 
+        		 bi = new BufferedImage(Math.min(mr.getWidth(),
+        					ImageMaxWidth), Math.min(mr.getFinalHeight(), ImageMaxHeight),
+        					is4Chanel ? BufferedImage.TYPE_INT_ARGB
+        							: BufferedImage.TYPE_INT_RGB);
+        		 g = bi.createGraphics();
         		 // set the new coordinates
         		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
         		 frame.clear();
@@ -256,7 +283,9 @@ public class Modifier {
         	 }
 		}
 		if (atlasH!=0||atlasW!=0){
-	        textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TextureImage(getImage(atlasW, atlasH),is4Chanel?4:3));
+//	        textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi),is4Chanel?4:3));
+			textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi)));
+			fileCounter++;
 			 // set the new coordinates
 			 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
 			 frame.clear();
@@ -273,8 +302,7 @@ public class Modifier {
 		ti.setTexCoordinates(coordinatesHashMap);
 		ti.setTexImages(textImage);
 		ti.setTexImageURIs(textUri);
-		ti.setLOG(LOG);
-		bi.flush();
+		bi=null;
 		g.dispose();
 		g=null;
 		bi=null;
@@ -315,7 +343,7 @@ public class Modifier {
 		for (int i=0;i<sc.length;i++){
 			c[i] = Double.parseDouble(sc[i]);
 //			if (c[i]<-0.0005||c[i]>1.0005){
-			if (c[i]<-0.5||c[i]>1.5){
+			if (c[i]<-0.1||c[i]>1.1){
 				sc=null;
 				return null;
 			}
@@ -325,7 +353,9 @@ public class Modifier {
 		return c;
 	}
 	
-	private Image getImage(int w, int h){
+	private BufferedImage getImage(int w, int h, BufferedImage bi){
+		return bi.getSubimage(0, 0, w, h);
+		/**
 		try{
 			ImageIcon ii;
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -343,7 +373,7 @@ public class Modifier {
 		}catch(Exception e){
 			e.printStackTrace();
 			return null;
-		}
+		}**/
 	}
 	
 	private void modifyNewCorrdinates(Vector<MyItem> items, HashMap<Object, String> coordinatesHashMap,HashMap<Object, double[]>doubleCoordinateList,HashMap<String,ArrayList<Object>> URI2OBJ, int atlasWidth, int atlasHeigth){
@@ -376,7 +406,7 @@ public class Modifier {
 	}
 	
 	public void reset(){
-
+/**
 		if(bi!=null){
 		bi.flush();
 		bi=null;
@@ -386,7 +416,7 @@ public class Modifier {
 			tmp=null;
 		}
 		
-		g=null;
+		g=null;**/
 		completeAtlasPath=null;
 	}
 }
