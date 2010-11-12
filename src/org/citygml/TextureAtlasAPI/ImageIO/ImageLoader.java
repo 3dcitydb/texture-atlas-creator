@@ -1,4 +1,4 @@
-package org.citygml.TextureAtlasAPI.ImageIO;
+package org.citygml.textureAtlasAPI.imageIO;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -12,7 +12,7 @@ import java.util.Iterator;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
-import org.citygml.TextureAtlasAPI.DataStructure.TextureImage;
+import org.citygml.textureAtlasAPI.dataStructure.TexImage;
 
 
 
@@ -54,7 +54,7 @@ public class ImageLoader {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			System.err.println("PATHHHH:"+path);
+			System.err.println("Problem with loading file:"+path);
 		}
 		f=null;
 		path=null;
@@ -85,6 +85,8 @@ public class ImageLoader {
 		}
 		return img;
 	}
+	
+	
 
 	
 	private void chanelDetector(BufferedImage bImage){
@@ -104,13 +106,13 @@ public class ImageLoader {
 		return this.chanels;
 	}
 	
-	public HashMap<String, TextureImage> loadAllImage(HashMap<String,String> imageLocalPath){
-		HashMap<String, TextureImage> texImages = new HashMap<String, TextureImage>();
+	public HashMap<String, TexImage> loadAllImage(HashMap<String,String> imageLocalPath){
+		HashMap<String, TexImage> texImages = new HashMap<String, TexImage>();
 		Iterator<String> imageURI=imageLocalPath.keySet().iterator();
 		String URI;
 		while(imageURI.hasNext()){
 			URI=imageURI.next();
-			texImages.put(URI,new TextureImage(loadImage(imageLocalPath.get(URI)),chanels));
+			texImages.put(URI,new TexImage(loadImage(imageLocalPath.get(URI)),chanels));
 			URI=null;
 		}
 		imageURI=null;
