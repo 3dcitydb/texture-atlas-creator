@@ -1,4 +1,4 @@
-package org.citygml.TextureAtlasAPI.StripPacker;
+package org.citygml.textureAtlasAPI.stripPacker;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,14 +9,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
+import org.citygml.textureAtlasAPI.TextureAtlasGenerator;
+
 
 public class MyStPacker  {
-	
+	/**
 	static public final int FFDH = 0;
     static public final int NFDH = 1;
     static public final int SLEA = 2;
     static public final int BOLE = 3;
-    static public final int STBG = 4;
+    static public final int STBG = 4;**/
     static public final String[] algNames = {"FFDH", "NFDH", "Sleator", "BL", "Steinberg"};
 
 	private List <MyItem> items;
@@ -49,26 +51,27 @@ public class MyStPacker  {
 	
 	public void reset(){
 		items.clear();
+		
 	}
 
 	public MyResult getResult(int algo) throws Exception {
 		MyResult res = new MyResult(stripWidth);
         switch (algo){
-            case FFDH:
+            case TextureAtlasGenerator.FFDH:
                 calcFFDH(res);
                 break;
-            case NFDH:
+            case TextureAtlasGenerator.NFDH:
                 calcNFDH(res);
                 break;
-            case SLEA:
+            case TextureAtlasGenerator.SLEA:
                 calcSLEA(res);
                 break;
-            case BOLE:
+            /**case TextureAtlasGenerator.BOLE:
                 calcBOLE(res);
                 break;
-            case STBG:
+            case TextureAtlasGenerator.STBG:
                 calcSTBG(res);
-                break;
+                break;**/
             default:
                 throw new Exception(algo + " ist kein bekannter Algorithmus");
         }
@@ -154,7 +157,7 @@ public class MyStPacker  {
 	}
 
 	private void calcSLEA(MyResult res) {
-		 LinkedList <MyItem> smallerItems = new LinkedList();
+		 LinkedList <MyItem> smallerItems = new LinkedList<MyItem>();
 	        Iterator <MyItem> iter = items.iterator();
 	        int nextX = 0, nextY = 0;
 	        Integer level = new Integer(0);
@@ -253,10 +256,10 @@ public class MyStPacker  {
 	                    right.push(x + item.w);
 	                    
 	                } catch (EmptyStackException e) {
-	                    System.err.println("irgendwie ists doch passiert ... : " + e);
+	                    
 	                }              // das dürfte eh nicht passieren ...
 	            }
-	            item.setPOS(x, y, "0");
+	            item.setPOS(x, y, new Integer(0));
 	            res.addItem(item);
 	            x = x + item.w;
 	        }

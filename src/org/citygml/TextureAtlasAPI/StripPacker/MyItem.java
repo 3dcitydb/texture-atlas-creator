@@ -1,4 +1,4 @@
-package org.citygml.TextureAtlasAPI.StripPacker;
+package org.citygml.textureAtlasAPI.stripPacker;
 
 
 /**
@@ -24,7 +24,7 @@ public class MyItem implements Comparable<MyItem>{
     public int x;
     public int y;
     
-    public Object level;
+    public Integer level;
 //    public String URI;
 //    private ArrayList<Object> surfaceIDList;
 //    private ArrayList<double[]> coordinateList;
@@ -61,7 +61,7 @@ public class MyItem implements Comparable<MyItem>{
 //		this.suitable = suitable;
 //	}
 
-	public void setPOS(int x, int y, Object level){
+	public void setPOS(int x, int y, Integer level){
     	this.x=x;
     	this.y=y;
     	this.level=level;
@@ -94,7 +94,7 @@ public class MyItem implements Comparable<MyItem>{
         return y;
     }
     
-    public Object getLevel(){
+    public Integer getLevel(){
         return level;
     }
 

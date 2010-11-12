@@ -1,23 +1,24 @@
-package org.citygml.TextureAtlasAPI.StripPacker;
+package org.citygml.textureAtlasAPI.stripPacker;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 public class MyResult {
-	private Map <Object,List<MyItem>> levelMap; 
+	private Map <Integer,List<MyItem>> levelMap; 
 	private int finalHeight = 0;
 	private int stripWidth = 0;
     
     // Constructors
     public MyResult(){
-    	levelMap=new HashMap<Object,List<MyItem>>();
+    	levelMap=new HashMap<Integer,List<MyItem>>();
     }
     public MyResult(int imageWidth){
     	stripWidth= imageWidth;
-    	levelMap=new HashMap<Object,List<MyItem>>();
+    	levelMap=new HashMap<Integer,List<MyItem>>();
     }
     
     // set methods
@@ -25,7 +26,7 @@ public class MyResult {
     	finalHeight=h;
     }
     //get methods
-    public Map <Object,List<MyItem>> getLevelMap(){
+    public Map <Integer,List<MyItem>> getLevelMap(){
     	return levelMap;
     }
     public int getFinalHeight(){
@@ -36,7 +37,7 @@ public class MyResult {
     }
     // add Items
     public boolean addItem(MyItem item){
-    	Object level = item.getLevel();
+    	Integer level = item.getLevel();
         if (!levelMap.containsKey(level)){
             levelMap.put(level, new ArrayList<MyItem>());
         }
@@ -45,23 +46,27 @@ public class MyResult {
     
     public ArrayList<MyItem> getAllItems(){
     	ArrayList<MyItem> all = new ArrayList<MyItem>();
+ 
+    	List<Integer> sortedKeys=new ArrayList<Integer>(this.levelMap.keySet());
+    	Collections.sort(sortedKeys);
     	
-    	Iterator lIter = this.levelMap.keySet().iterator();
+    	Iterator<Integer> lIter = sortedKeys.iterator();
         while (lIter.hasNext()){
-            Object level = lIter.next();
+            Integer level = (Integer) lIter.next();
             all.addAll(levelMap.get(level));            
         }
         lIter=null;
+        sortedKeys=null;
     	return all;
     }
-    
+    /**
     // to check output **** just for test
     public String toString(){
     	 StringBuffer str = new StringBuffer("< max value=\"" + finalHeight + "\">\n");
          Iterator lIter = this.levelMap.keySet().iterator();
          while (lIter.hasNext()){
-             Object level = lIter.next();
-             str.append("\t<level id=\"" + level + "\">\n");
+        	 Integer level = (Integer) lIter.next();
+             str.append("\t<level id=\"" + level.intValue() + "\">\n");
              Iterator <MyItem> iIter = levelMap.get(level).iterator();
              while (iIter.hasNext()){
             	 MyItem item = iIter.next();
@@ -71,6 +76,6 @@ public class MyResult {
          }
          str.append("</algorithm>\n");
          return str.toString();
-    }
+    }**/
     
 }
