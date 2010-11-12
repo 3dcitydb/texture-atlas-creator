@@ -46,8 +46,8 @@ import org.citygml4j.visitor.walker.FeatureWalker;
 
 import org.citygml4j.xml.io.CityGMLOutputFactory;
 
-import org.citygml.TextureAtlasAPI.TextureAtlasGenerator;
-import org.citygml.TextureAtlasAPI.DataStructure.*;
+import org.citygml.textureAtlasAPI.dataStructure.*;
+import org.citygml.textureAtlasAPI.TextureAtlasGenerator;
 
 
 public class GMLModifier {
@@ -59,7 +59,7 @@ public class GMLModifier {
 //	
 //	private int atlasTextureOutputFormat;
 	
-	private int texturePackerType=org.citygml.TextureAtlasAPI.StripPacker.MyStPacker.FFDH;
+	private int texturePackerType=org.citygml.textureAtlasAPI.TextureAtlasGenerator.FFDH;
 	private TextureAtlasGenerator atlasGenerator;
 	
 	/**
@@ -104,7 +104,10 @@ public class GMLModifier {
 			atlasGenerator = new TextureAtlasGenerator();
 		maxImageH=2048;
 		maxImageW=2048;
-		atlasGenerator.setGeneralProp(texturePackerType, maxImageW, maxImageH);
+		atlasGenerator.setImageMaxWidth(maxImageW);
+		atlasGenerator.setImageMaxHeight(maxImageH);
+		atlasGenerator.setPackingAlgorithm(TextureAtlasGenerator.FFDH);
+		
 		inputParentPath= getDirectory(inputGML);
 		outputParentPath = getDirectory(outputGML);
 	}
@@ -137,8 +140,8 @@ public class GMLModifier {
 				while(texGroupIDS.hasMoreElements()){
 					tmpKey= texGroupIDS.nextElement();
 					texGroup = building.get(tmpKey);
-					texGroup= (TexImageInfo4GMLFile) atlasGenerator.convert(texGroup,true);
-					System.out.println("LOG:"+texGroup.getLOGInText());
+					texGroup= (TexImageInfo4GMLFile) atlasGenerator.convert(texGroup);
+					System.out.println("LOG:"+atlasGenerator.getLOGInText());
 					building.put(tmpKey, texGroup);
 					writeImageFiles(texGroup.getTexImages());
 				}
@@ -342,7 +345,7 @@ public class GMLModifier {
 	 * NOTE: It will remove all objects
 	 * @param texImage
 	 */
-	private void writeImageFiles(HashMap<String, TextureImage> texImage){
+	private void writeImageFiles(HashMap<String, TexImage> texImage){
 		Image im;	
 		
 		String outPath;
