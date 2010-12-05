@@ -59,7 +59,7 @@ public class GMLModifier {
 //	
 //	private int atlasTextureOutputFormat;
 	
-	private int texturePackerType=org.citygml.textureAtlasAPI.TextureAtlasGenerator.FFDH;
+	private int texturePackerType=org.citygml.textureAtlasAPI.TextureAtlasGenerator.TPIM_WITHOUT_ROTATION;
 	private TextureAtlasGenerator atlasGenerator;
 	
 	/**
@@ -106,7 +106,7 @@ public class GMLModifier {
 		maxImageW=2048;
 		atlasGenerator.setImageMaxWidth(maxImageW);
 		atlasGenerator.setImageMaxHeight(maxImageH);
-		atlasGenerator.setPackingAlgorithm(TextureAtlasGenerator.FFDH);
+		atlasGenerator.setPackingAlgorithm(texturePackerType);
 		
 		inputParentPath= getDirectory(inputGML);
 		outputParentPath = getDirectory(outputGML);
