@@ -1,7 +1,7 @@
-package org.citygml.TextureAtlasAPI.DataStructure;
+package org.citygml.textureAtlasAPI.dataStructure;
 
 
-import org.citygml.TextureAtlasAPI.ImageIO.ImageLoader;
+import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
 import org.citygml4j.model.citygml.appearance.TextureType;
 import org.citygml4j.model.citygml.appearance.WrapMode;
 import org.citygml4j.model.citygml.appearance.ColorPlusOpacity;

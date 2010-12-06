@@ -1,4 +1,4 @@
-package org.citygml.textureAtlasAPI.stripPacker;
+package org.citygml.textureAtlasAPI.packer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,51 +12,60 @@ import java.util.Stack;
 import org.citygml.textureAtlasAPI.TextureAtlasGenerator;
 
 
-public class MyStPacker  {
+public class Packer  {
 	/**
 	static public final int FFDH = 0;
     static public final int NFDH = 1;
     static public final int SLEA = 2;
     static public final int BOLE = 3;
     static public final int STBG = 4;**/
-    static public final String[] algNames = {"FFDH", "NFDH", "Sleator", "BL", "Steinberg"};
+//    static public final String[] algNames = {"FFDH", "NFDH", "Sleator", "BL", "Steinberg"};
 
-	private List <MyItem> items;
-    private int stripWidth = 0;
+	private List <AbstractRect> items;
+	// Can be used just for 2D Strip Packers also
+    private int binWidth = 0;
+    // in the case that using 2dB
+    private int binHeight = 0;
     
-    public MyStPacker(){
-    	items = new LinkedList<MyItem>();
+    private int algorithm=TextureAtlasGenerator.FFDH;
+    
+    private HeuristicBinPacking tpPacker;
+    
+    public Packer(int width, int height,int algorithm){
+    	items = new LinkedList<AbstractRect>();
+    	this.algorithm=algorithm;
+    	setSize(width, height);
     }
 
-    public void setStripWidth(int stripWidth) {
-		this.stripWidth=stripWidth;
-
+    public void setSize(int width, int height) {
+    	this.binWidth= width;
+    	this.binHeight=height;
+    	
 	}
     
-//	public boolean addItem(String id, int width, int height) {
-//		return items.add(new MyItem(id, width, height));
-//	}
-
 	public boolean addItem(String URI, int width, int height) {
-		return items.add(new MyItem(URI, width, height));
+		if (algorithm==TextureAtlasGenerator.TPIM||algorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)
+			return items.add(new Rect(URI, width, height));
+		return items.add(new Item(URI, width, height));
 	}
 	
-	public boolean addItem(MyItem mi){
+	public boolean addItem(AbstractRect mi){
 		return items.add(mi);
 	}
+	
 	public boolean removeItem(String URI){
-		
-		return items.remove(new MyItem(URI,0,0));
+		return items.remove(new Item(URI,0,0));
 	}
 	
 	public void reset(){
 		items.clear();
-		
 	}
 
-	public MyResult getResult(int algo) throws Exception {
-		MyResult res = new MyResult(stripWidth);
-        switch (algo){
+	
+	public Atlas getResult() throws Exception {
+		Atlas res = new Atlas();
+		res.setBindingBoxWidth(binWidth);
+        switch (algorithm){
             case TextureAtlasGenerator.FFDH:
                 calcFFDH(res);
                 break;
@@ -66,6 +75,23 @@ public class MyStPacker  {
             case TextureAtlasGenerator.SLEA:
                 calcSLEA(res);
                 break;
+            case TextureAtlasGenerator.TPIM:
+                if (tpPacker==null)
+                	tpPacker= new HeuristicBinPacking(binWidth,binHeight);
+                else
+                	tpPacker.init(binWidth, binHeight);
+                tpPacker.setUseRotation(true);
+                res= tpPacker.insert(items);
+                break;
+                
+            case TextureAtlasGenerator.TPIM_WITHOUT_ROTATION:
+                if (tpPacker==null)
+                	tpPacker= new HeuristicBinPacking(binWidth,binHeight);
+                else
+                	tpPacker.init(binWidth, binHeight);
+                tpPacker.setUseRotation(false);
+                res= tpPacker.insert(items);
+                break;
             /**case TextureAtlasGenerator.BOLE:
                 calcBOLE(res);
                 break;
@@ -73,26 +99,26 @@ public class MyStPacker  {
                 calcSTBG(res);
                 break;**/
             default:
-                throw new Exception(algo + " ist kein bekannter Algorithmus");
+                throw new Exception(algorithm + " is not supported.");
         }
 		return res;
 	}
 	
-	private void calcFFDH(MyResult res) {
+	private void calcFFDH(Atlas res) {
 		List <Integer> levels = new ArrayList<Integer>();
         List <Integer> levelFill = new ArrayList<Integer>();
         int topLev = 0;
         int nextTopLev = 0;       // der nächste level wird bei dieser höhe beginnen
 
-        Collections.sort(items);    //TODO: unpassende stelle, da die items bei jedem aufruf einer calc-methode neu sortiert werden
+        Collections.sort(items);    
         Collections.reverse(items);     //da sort() aufsteigend sortiert
-        Iterator <MyItem> iter = items.iterator();
+        Iterator <AbstractRect> iter=items.iterator();
 
         levels.add(new Integer(0));    // die starthöhen der jeweiligen level
         levelFill.add(new Integer(0)); // die füllstände der level
 
         if (iter.hasNext()){
-            MyItem i = iter.next();
+        	AbstractRect i = iter.next();
             nextTopLev = i.getHeight();
             levelFill.set(0,Integer.valueOf(i.getWidth()) );
             i.setPOS(0, 0, new Integer(0));
@@ -100,12 +126,12 @@ public class MyStPacker  {
             
         }
         while (iter.hasNext()){
-            MyItem i = iter.next();
+        	AbstractRect i = iter.next();
             int itemWidth = i.getWidth();
             int curLev;
             for (curLev = 0; curLev <= topLev; curLev++){   // versuche das item in einen möglichst niedrigen level zu packen
                 int curFill;
-                if ((curFill = levelFill.get(curLev)) <= (stripWidth - itemWidth)){
+                if ((curFill = levelFill.get(curLev)) <= (binWidth - itemWidth)){
                 	i.setPOS(curFill, levels.get(curLev).intValue(), new Integer(curLev));
                 	res.addItem(i);
                     levelFill.set(curLev, new Integer(curFill + itemWidth));
@@ -121,10 +147,10 @@ public class MyStPacker  {
                 nextTopLev = i.getHeight() + nextTopLev;
             }
         }
-        res.setFinalHeight(nextTopLev);    // die max. packungshöhe
+        res.setBindingBoxHeight(nextTopLev);    // die max. packungshöhe
 	}
 
-	private void calcNFDH(MyResult res) {
+	private void calcNFDH(Atlas res) {
 	     Integer levelCount = new Integer(0);
 	        int levelFill = 0;     // die bereits ausgefüllte breite des strips auf dem akt. level
 	        int currLevel = 0;     // die untere grenze des akt. levels
@@ -132,18 +158,18 @@ public class MyStPacker  {
 
 	        Collections.sort(items);    //TODO: woanders hinstecken
 	        Collections.reverse(items);     //da sort() aufsteigend sortiert
-	        Iterator <MyItem> iter = items.iterator();
+	        Iterator <AbstractRect> iter = items.iterator();
 
 	        if (iter.hasNext()){    // das erste item passt immer, da der strip leer ist und die items nicht breiter als der strip sind
-	            MyItem i = iter.next();
+	        	AbstractRect i = iter.next();
 	            i.setPOS(levelFill, currLevel, levelCount);
 	            res.addItem(i);
 	            levelFill = i.getWidth();
 	            nextLevel = i.getHeight();
 	        }
 	        while (iter.hasNext()){
-	            MyItem i = iter.next();
-	            if (levelFill + i.getWidth() > stripWidth){   // das neue item ist zu breit für den level
+	        	AbstractRect i = iter.next();
+	            if (levelFill + i.getWidth() > binWidth){   // das neue item ist zu breit für den level
 	                levelCount = levelCount + 1;
 	                levelFill = 0;
 	                currLevel = nextLevel;
@@ -153,19 +179,19 @@ public class MyStPacker  {
 	            res.addItem(i);
 	            levelFill = levelFill + i.getWidth();
 	        }
-	        res.setFinalHeight(nextLevel);
+	        res.setBindingBoxHeight(nextLevel);
 	}
 
-	private void calcSLEA(MyResult res) {
-		 LinkedList <MyItem> smallerItems = new LinkedList<MyItem>();
-	        Iterator <MyItem> iter = items.iterator();
+	private void calcSLEA(Atlas res) {
+		 LinkedList <AbstractRect> smallerItems = new LinkedList<AbstractRect>();
+	        Iterator <AbstractRect> iter = items.iterator();
 	        int nextX = 0, nextY = 0;
 	        Integer level = new Integer(0);
 	        
 	        while (iter.hasNext()){     // grundlinie, d.h. die breiten items
-	        	MyItem item = iter.next();
+	        	AbstractRect item = iter.next();
 	            int iWidth = item.getWidth();
-	            if (iWidth > (0.5 * stripWidth)){  // es wird natürlich vorausgesetzt, dass 0 <= iWidth <= stripWidth gilt
+	            if (iWidth > (0.5 * binWidth)){  // es wird natürlich vorausgesetzt, dass 0 <= iWidth <= stripWidth gilt
 	            	item.setPOS(nextX, nextY, level);
 	                res.addItem(item);
 	                nextY= nextY + item.getHeight();
@@ -173,21 +199,21 @@ public class MyStPacker  {
 	                smallerItems.add(item);
 	            }
 	        }
-	        res.setFinalHeight(nextY);
+	        res.setBindingBoxHeight(nextY);
 	        
 	        Collections.sort(smallerItems); //TODO: war vielleicht eh schon sortiert (wahr, wenn, die anderen TODOs erledigt sind)
 	        Collections.reverse(smallerItems);
 	        
 	        iter = smallerItems.iterator();
 	        if (iter.hasNext()){
-	            MyItem item = iter.next();
+	        	AbstractRect item = iter.next();
 	            level++;
 	            int nextLeftLevel = nextY + item.getHeight();    // entspr. h0 + h1
 	            assert nextX == 0;
 	            item.setPOS(nextX, nextY, level);
 	            res.addItem(item);    // erstes item auf h0
 	            nextX = item.getWidth();
-	            while (iter.hasNext() && (nextX < 0.5 * stripWidth)){    // auf h0 bis min. halbe breite füllen
+	            while (iter.hasNext() && (nextX < 0.5 * binWidth)){    // auf h0 bis min. halbe breite füllen
 	                item = iter.next();
 	                item.setPOS(nextX, nextY, level);
 	                res.addItem(item);
@@ -197,12 +223,12 @@ public class MyStPacker  {
 	            while (iter.hasNext()){
 	                item = iter.next();
 	                int width = item.getWidth();
-	                if (nextX < (0.5 * stripWidth) && (nextX + width) >= (0.5 * stripWidth)){   // wahr, wenn das item zu breit für die akt. linke Spalte ist
-	                    nextX = stripWidth/2;
+	                if (nextX < (0.5 * binWidth) && (nextX + width) >= (0.5 * binWidth)){   // wahr, wenn das item zu breit für die akt. linke Spalte ist
+	                    nextX = binWidth/2;
 	                    nextY = nextRightLevel;
 	                    nextRightLevel = nextY + item.getHeight();
 	                    level++;
-	                } else if (nextX >= (0.5 * stripWidth) && (nextX + width) >= stripWidth){   //     ""   ... rechte Spalte
+	                } else if (nextX >= (0.5 * binWidth) && (nextX + width) >= binWidth){   //     ""   ... rechte Spalte
 	                    nextX = 0;
 	                    nextY = nextLeftLevel;
 	                    nextLeftLevel = nextY + item.getHeight();
@@ -212,11 +238,11 @@ public class MyStPacker  {
 	                res.addItem(item);
 	                nextX = nextX + item.getWidth();
 	            }
-	            res.setFinalHeight((nextRightLevel > nextLeftLevel) ? nextRightLevel : nextLeftLevel);
+	            res.setBindingBoxHeight((nextRightLevel > nextLeftLevel) ? nextRightLevel : nextLeftLevel);
 	        }
 	}
 
-	private void calcBOLE(MyResult res) {
+	private void calcBOLE(Atlas res) {
 			Stack <Integer> top = new Stack<Integer>();   // die beiden stacks hängen zusammen (immer beide zugleich push()en und pop()en)
 	        Stack <Integer> right = new Stack<Integer>(); // das sind die 'top-right-corner' der obersten, linken items
 	        top.push(Integer.MAX_VALUE);
@@ -224,23 +250,23 @@ public class MyStPacker  {
 	        
 	        Collections.sort(items);    //TODO: unpassende stelle, da die items bei jedem aufruf einer calc-methode neu sortiert werden
 	        Collections.reverse(items);     //da sort() aufsteigend sortiert
-	        Iterator <MyItem> iter = items.iterator();
+	        Iterator <AbstractRect> iter = items.iterator();
 
 	        int x = 0, y = 0;
 	        while (iter.hasNext()){
-	        	MyItem item = iter.next();
-	            if (stripWidth - x >= item.w){
-	                if (top.peek() != y+item.h){    // anderenfalls: (eh uninteressant + würde aufwändige sonderbehandlung benötigen)
-	                    right.push(x+item.w);
-	                    top.push(y+item.h);    //wg. der vorherigen sortierung werden die oberen, rechten ecken der items mit absteigendem y+item.h abgelegt
+	        	AbstractRect item = iter.next();
+	            if (binWidth - x >= item.width){
+	                if (top.peek() != y+item.height){    // anderenfalls: (eh uninteressant + würde aufwändige sonderbehandlung benötigen)
+	                    right.push(x+item.width);
+	                    top.push(y+item.height);    //wg. der vorherigen sortierung werden die oberen, rechten ecken der items mit absteigendem y+item.h abgelegt
 	                } else {
 	                    right.pop();
-	                    right.push(x+item.w);
+	                    right.push(x+item.width);
 	                }
 	            } else {    // das item passt nicht mehr auf diesen 'level'
 	                try {
 	                    y = top.peek();     // das akt. item wird mindestens auf höhe der oberkante des letzten items eingefügt
-	                    while (stripWidth - right.peek() < item.w){  // hier darf der stack nicht unerwartet leer laufen - und sollte es auch nicht
+	                    while (binWidth - right.peek() < item.width){  
 	                        right.pop();
 	                        y=top.pop();
 	                    }
@@ -249,11 +275,11 @@ public class MyStPacker  {
 	                    do {    // entferne alle BL-Punkte, die unterhalb od. gleich der aktuellen(neuen) grundlinie liegen
 	                        nextTop = top.pop();
 	                        nextRight = right.pop();
-	                    } while(nextTop <= y + item.h);
+	                    } while(nextTop <= y + item.height);
 	                    top.push(nextTop);
 	                    right.push(nextRight);
-	                    top.push(y + item.h);
-	                    right.push(x + item.w);
+	                    top.push(y + item.height);
+	                    right.push(x + item.width);
 	                    
 	                } catch (EmptyStackException e) {
 	                    
@@ -261,12 +287,12 @@ public class MyStPacker  {
 	            }
 	            item.setPOS(x, y, new Integer(0));
 	            res.addItem(item);
-	            x = x + item.w;
+	            x = x + item.width;
 	        }
-	        res.setFinalHeight(top.elementAt(1));
+	        res.setBindingBoxHeight(top.elementAt(1));
 	}
 
-	private void calcSTBG(MyResult res) {/*
+	private void calcSTBG(Atlas res) {/*
 		 // die listen enthalten die (teil-)listen von items nach breite, höhe und fläche sortiert
         Stack <LinkedList<MyItem>> wsLists = new Stack();
         Stack <LinkedList<MyItem>> hsLists = new Stack();
@@ -510,18 +536,18 @@ public class MyStPacker  {
             }
         }*/
 	}
-	  private void addSortedLists(List <MyItem> src, Stack <LinkedList<MyItem>> wsLists,
-	            Stack <LinkedList<MyItem>> hsLists, Stack <LinkedList<MyItem>> asLists) {
+	  private void addSortedLists(List <Rect> src, Stack <LinkedList<Rect>> wsLists,
+	            Stack <LinkedList<Rect>> hsLists, Stack <LinkedList<Rect>> asLists) {
 	            addSortedLists(src, wsLists, hsLists, asLists, false, false);
 	    }
 	    
-	    private void addSortedLists(List <MyItem> src, Stack <LinkedList<MyItem>> wsLists,
-	            Stack <LinkedList<MyItem>> hsLists, Stack <LinkedList<MyItem>> asLists, boolean isWSorted, boolean isHSorted) {
+	    private void addSortedLists(List <Rect> src, Stack <LinkedList<Rect>> wsLists,
+	            Stack <LinkedList<Rect>> hsLists, Stack <LinkedList<Rect>> asLists, boolean isWSorted, boolean isHSorted) {
 	        wsLists.push(new LinkedList(src));
 	        if (isWSorted == false){
-	            Collections.sort(wsLists.peek(), new Comparator<MyItem>(){   // nach breite sortiert
-	                public int compare(MyItem o1, MyItem o2) { 
-	                    return o1.w > o2.w ? -1 : o1.w == o2.w ? 0 : 1;}});
+	            Collections.sort(wsLists.peek(), new Comparator<Rect>(){   // nach breite sortiert
+	                public int compare(Rect o1, Rect o2) { 
+	                    return o1.width > o2.width ? -1 : o1.width == o2.width ? 0 : 1;}});
 	        }
 
 	        hsLists.push(new LinkedList(src));
@@ -531,8 +557,8 @@ public class MyStPacker  {
 	        }
 	        
 	        asLists.push(new LinkedList(src));
-	        Collections.sort(asLists.peek(), new Comparator<MyItem>(){    // nach fläche sortiert
-	            public int compare(MyItem o1, MyItem o2){
-	                return (o1.a) > (o2.a) ? -1 : (o1.a) == (o2.a) ? 0 : 1;}});
+	        Collections.sort(asLists.peek(), new Comparator<Rect>(){    // nach fläche sortiert
+	            public int compare(Rect o1, Rect o2){
+	                return (o1.area) > (o2.area) ? -1 : (o1.area) == (o2.area) ? 0 : 1;}});
 	    }
 }

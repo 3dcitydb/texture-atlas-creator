@@ -1,4 +1,4 @@
-package org.citygml.textureAtlasAPI.stripPacker;
+package org.citygml.textureAtlasAPI.packer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,45 +7,50 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class MyResult {
-	private Map <Integer,List<MyItem>> levelMap; 
-	private int finalHeight = 0;
-	private int stripWidth = 0;
+public class Atlas {
+	private Map <Integer,List<AbstractRect>> levelMap; 
+	private int bindingBoxHeight = 0;
+	private int bindingBoxWidth = 0;
     
     // Constructors
-    public MyResult(){
-    	levelMap=new HashMap<Integer,List<MyItem>>();
+    public Atlas(){
+    	levelMap=new HashMap<Integer,List<AbstractRect>>();
     }
-    public MyResult(int imageWidth){
-    	stripWidth= imageWidth;
-    	levelMap=new HashMap<Integer,List<MyItem>>();
-    }
-    
+        
     // set methods
-    public void setFinalHeight(int h){
-    	finalHeight=h;
+    public void setBindingBox(int w,int h){
+    	bindingBoxHeight=h;
+    	bindingBoxWidth=w;
     }
+    public void setBindingBoxWidth(int w){
+    	bindingBoxWidth=w;
+    }
+    public void setBindingBoxHeight(int h){
+    	bindingBoxHeight=h;
+    }
+
+    public int getBindingBoxHeight(){
+    	return bindingBoxHeight;
+    }
+    public int getBindingBoxWidth(){
+    	return bindingBoxWidth;
+    }
+
     //get methods
-    public Map <Integer,List<MyItem>> getLevelMap(){
+    public Map <Integer,List<AbstractRect>> getLevelMap(){
     	return levelMap;
     }
-    public int getFinalHeight(){
-    	return finalHeight;
-    }
-    public int getWidth(){
-    	return stripWidth;
-    }
     // add Items
-    public boolean addItem(MyItem item){
+    public boolean addItem(AbstractRect item){
     	Integer level = item.getLevel();
         if (!levelMap.containsKey(level)){
-            levelMap.put(level, new ArrayList<MyItem>());
+            levelMap.put(level, new ArrayList<AbstractRect>());
         }
         return levelMap.get(level).add(item);
     }
     
-    public ArrayList<MyItem> getAllItems(){
-    	ArrayList<MyItem> all = new ArrayList<MyItem>();
+    public ArrayList<AbstractRect> getAllItems(){
+    	ArrayList<AbstractRect> all = new ArrayList<AbstractRect>();
  
     	List<Integer> sortedKeys=new ArrayList<Integer>(this.levelMap.keySet());
     	Collections.sort(sortedKeys);
@@ -59,6 +64,7 @@ public class MyResult {
         sortedKeys=null;
     	return all;
     }
+    
     /**
     // to check output **** just for test
     public String toString(){

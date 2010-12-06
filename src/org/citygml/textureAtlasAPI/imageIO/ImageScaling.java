@@ -28,20 +28,17 @@ public class ImageScaling {
 	    g2.dispose();
 	    return result;
 	}*/
-	public static Image rescale(Image source,int maxW,int maxH) {
+	public static BufferedImage rescale(BufferedImage source,int maxW,int maxH) {
 		
 		int nw,nh;
-		if (source.getWidth(null)>source.getHeight(null)){
+		if (source.getWidth()>source.getHeight()){
 			nw=maxW;
-			nh = nw*source.getHeight(null)/source.getWidth(null);
+			nh = nw*source.getHeight()/source.getWidth();
 		}else{
 			nh=maxH;
-			nw = nh*source.getWidth(null)/source.getHeight(null);
+			nw = nh*source.getWidth()/source.getHeight();
 		}
-		BufferedImage sourceBuffer = new BufferedImage(source.getWidth(null), source.getHeight(null), BufferedImage.TYPE_INT_RGB);
-		Graphics2D g= sourceBuffer.createGraphics();
-		g.drawImage(source, 0,0,null);
-		g.dispose();
+
 		
 		BufferedImage target = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_RGB);
 	    Graphics2D g2 = target.createGraphics();
@@ -49,10 +46,10 @@ public class ImageScaling {
 	    double scalex = (double) target.getWidth()/ source.getWidth(null);
 	    double scaley = (double) target.getHeight()/ source.getHeight(null);
 	    AffineTransform xform = AffineTransform.getScaleInstance(scalex, scaley);
-	    g2.drawRenderedImage(sourceBuffer, xform);
+	    g2.drawRenderedImage(source, xform);
 	    g2.dispose();
-	    sourceBuffer=null;
-	    return new ImageIcon(target).getImage();
+	    source=null;
+	    return target;
 	}
 	
 

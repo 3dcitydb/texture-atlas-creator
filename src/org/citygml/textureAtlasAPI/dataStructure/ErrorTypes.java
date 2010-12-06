@@ -1,4 +1,4 @@
-package org.citygml.TextureAtlasAPI.DataStructure;
+package org.citygml.textureAtlasAPI.dataStructure;
 
 public enum ErrorTypes {
 	IMAGE_FORMAT_NOT_SUPPORTED,

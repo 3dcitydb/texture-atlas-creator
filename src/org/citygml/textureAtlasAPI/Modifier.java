@@ -3,7 +3,11 @@ package org.citygml.textureAtlasAPI;
 import java.awt.Graphics2D;
 import java.awt.Image;
 
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.io.File;
 
 
 import java.util.ArrayList;
@@ -12,14 +16,17 @@ import java.util.Iterator;
 
 import java.util.Vector;
 
+import javax.imageio.ImageIO;
+
 import org.citygml.textureAtlasAPI.dataStructure.ErrorTypes;
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo;
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
 import org.citygml.textureAtlasAPI.dataStructure.TexImage;
 import org.citygml.textureAtlasAPI.imageIO.ImageScaling;
-import org.citygml.textureAtlasAPI.stripPacker.MyItem;
-import org.citygml.textureAtlasAPI.stripPacker.MyResult;
-import org.citygml.textureAtlasAPI.stripPacker.MyStPacker;
+import org.citygml.textureAtlasAPI.packer.AbstractRect;
+import org.citygml.textureAtlasAPI.packer.Atlas;
+import org.citygml.textureAtlasAPI.packer.Packer;
+import org.citygml.textureAtlasAPI.packer.Rect;
 
 public class Modifier {
 	private int ImageMaxWidth;
@@ -43,15 +50,6 @@ public class Modifier {
 		this.packingAlgorithm = PackingAlg;
 		this.ImageMaxHeight=atlasMaxHeight;
 		this.ImageMaxWidth= atlasMaxWidth;
-//		if (bi!=null){
-//			if (g!=null)
-//				g.dispose();
-//			g=null;
-//			bi.flush();
-//			bi=null;
-//		}
-//		bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
-//		g = bi.getGraphics();
 	}
 	
 	/**
@@ -92,14 +90,14 @@ public class Modifier {
 		int totalWidth=0,maxw=0;
 		
 		//!?!?! should I make it again?
-		MyStPacker myPack = new MyStPacker();
+		Packer packer = new Packer(ImageMaxWidth,ImageMaxHeight,packingAlgorithm);
 		// target URI: surface ID
 		int width, height;
 		String URI,tmpURI;
 		ArrayList<Object> list;
 		Boolean b;
 		TexImage tmpTextureImage;
-		Image tmp;
+		BufferedImage tmp;
 		boolean is4Chanel=false;
 		double[] coordinate;
 		for (Object key : textUri.keySet()){
@@ -136,8 +134,8 @@ public class Modifier {
 				if (coordinate==null){
 		        	isImageAcceptable.put(URI, new Boolean(false));
 		        	// remve Item from list
-		        	myPack.removeItem(URI);
-		        	width= textImage.get(URI).getImage().getWidth(null);
+		        	packer.removeItem(URI);
+		        	width= textImage.get(URI).getBufferedImage().getWidth(null);
 		        	totalWidth-=width;
 		        	// just for complicated cases.
 		        	if (totalWidth<maxw)
@@ -157,7 +155,7 @@ public class Modifier {
 				completeAtlasPath= URI.substring(0,URI.lastIndexOf('.'))+"_%1d.";
 			
 			// report bug
-			if ((tmp= textImage.get(URI).getImage())==null){
+			if ((tmp= textImage.get(URI).getBufferedImage())==null){
 				isImageAcceptable.put(URI, new Boolean(false));
 				LOG.put(key,ErrorTypes.IMAGE_IS_NOT_AVAILABLE);
 				continue;			
@@ -165,8 +163,8 @@ public class Modifier {
 			if (!is4Chanel&&textImage.get(URI).getChanels()==4)
 				is4Chanel=true;
 			 
-			width= tmp.getWidth(null);
-	        height= tmp.getHeight(null);
+			width= tmp.getWidth();
+	        height= tmp.getHeight();
 	        //LOG if the image is not accepted, do not touch it! size problem
 	        if (!acceptATexture(width,height)){
 	        	tmp = ImageScaling.rescale(tmp, ImageMaxWidth, ImageMaxHeight);
@@ -190,7 +188,7 @@ public class Modifier {
 	        if (width>maxw)
 	        	maxw=width;	
             totalWidth+=width;
-            myPack.addItem(URI, width, height);
+            packer.addItem(URI, width, height);
             isImageAcceptable.put(URI, new Boolean(true));
             if ((list=uri2Object.get(URI))==null){
             	list=new ArrayList<Object>();
@@ -227,9 +225,9 @@ public class Modifier {
 //			g = bi.getGraphics();
 //		}
 		
-		MyResult mr=iterativePacker(myPack, maxw,totalWidth);
-		BufferedImage bi = new BufferedImage(Math.min(mr.getWidth(),
-				ImageMaxWidth), Math.min(mr.getFinalHeight(), ImageMaxHeight),
+		Atlas mr=iterativePacker(packer, maxw,totalWidth);
+		BufferedImage bi = new BufferedImage(Math.min(mr.getBindingBoxWidth(),
+				ImageMaxWidth), Math.min(mr.getBindingBoxHeight(),ImageMaxHeight),
 				is4Chanel ? BufferedImage.TYPE_INT_ARGB
 						: BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = bi.createGraphics();
@@ -237,16 +235,36 @@ public class Modifier {
 		int x,y, prevH=0;
 		int atlasW=0,atlasH=0;
 		// list of all items which will be drawn in a same atlas.
-		Vector<MyItem> frame = new Vector<MyItem>();
+		Vector<AbstractRect> frame = new Vector<AbstractRect>();
 		
 		//going in side of Result
-		Iterator<MyItem> all= mr.getAllItems().iterator();
+		Iterator<AbstractRect> all= mr.getAllItems().iterator();
+		AbstractRect item;
+		
+		int currentLevel=0;
 		while(all.hasNext()){
-			 MyItem item = all.next();
-//        	 recID =Integer.parseInt(item.getURI());
+
+			item = all.next();		
+			if (item.rotated){
+				// just for test mode.
+				BufferedImage bif = textImage.get(item.getURI()).getBufferedImage();
+				
+				AffineTransform at = new AffineTransform();
+				at.translate ( 0,bif.getWidth() ) ;
+		        at.rotate(Math.toRadians(-90));
+		        AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
+		        Rectangle2D rd= ato.getBounds2D(bif);;
+		       
+				BufferedImage bb= new BufferedImage(bif.getHeight(), bif.getWidth(), bif.getType());
+				ato.filter(bif, bb);
+		        
+		        textImage.get(item.getURI()).setImage(bb);
+		        bif=null;
+			}
+			
         	 x= item.getXPos();
         	 y= item.getYPos();
-        	 if (y-prevH+item.getHeight()>ImageMaxHeight){
+        	 if (y-prevH+item.getHeight()>ImageMaxHeight||((this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)&&currentLevel!=item.getLevel().intValue())){
         		 // set Image in Hashmap and write it to file.
 //        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi),is4Chanel?4:3));
         		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi)));
@@ -255,8 +273,8 @@ public class Modifier {
         		 bi=null;
         		 g=null;
         		 
-        		 bi = new BufferedImage(Math.min(mr.getWidth(),
-        					ImageMaxWidth), Math.min(mr.getFinalHeight(), ImageMaxHeight),
+        		 bi = new BufferedImage(Math.min(mr.getBindingBoxWidth(),
+        					ImageMaxWidth), Math.min(mr.getBindingBoxHeight(), ImageMaxHeight),
         					is4Chanel ? BufferedImage.TYPE_INT_ARGB
         							: BufferedImage.TYPE_INT_RGB);
         		 g = bi.createGraphics();
@@ -266,8 +284,11 @@ public class Modifier {
         		 atlasW=0;
         		 atlasH=0;
         		 prevH=y;
+        		 currentLevel=item.getLevel().intValue();
+        		 if(this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)
+        			 prevH=0; 
         	 }
-        	 g.drawImage(textImage.get(item.getURI()).getImage(), x, y-prevH, null);
+        	 g.drawImage(textImage.get(item.getURI()).getBufferedImage(), x, y-prevH, null);
         	 textImage.remove(item.getURI()).freeMemory();
         	 item.setYPos(y-prevH);
         	 frame.add(item);
@@ -312,6 +333,14 @@ public class Modifier {
 	private String makeNewURI(String prevURI, int chanel){
 		return prevURI.substring(0, prevURI.lastIndexOf('.'))+(chanel==3?".jpeg":".png");
 	}
+	private void testImageWriter(BufferedImage bitext){
+		try{
+			ImageIO.write(bitext,"jpeg",new File("C:/test1.jpg"));
+		
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
 	
 	/**
 	 * also can add the textures.
@@ -325,10 +354,13 @@ public class Modifier {
 		
 	}
 	
-	private MyResult iterativePacker(MyStPacker msp, int maxw, int totalw){
-		msp.setStripWidth(Math.min((totalw-maxw)/2+maxw,ImageMaxWidth));
+	private Atlas iterativePacker(Packer msp, int maxw, int totalw){
+		if (this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)
+			msp.setSize(ImageMaxWidth,ImageMaxHeight);
+		else
+			msp.setSize(Math.min((totalw-maxw)/2+maxw,ImageMaxWidth),ImageMaxHeight);
 		try{
-			return msp.getResult(packingAlgorithm);	
+			return msp.getResult();	
 		}catch(Exception e){
 			return null;
 		}
@@ -376,22 +408,31 @@ public class Modifier {
 		}**/
 	}
 	
-	private void modifyNewCorrdinates(Vector<MyItem> items, HashMap<Object, String> coordinatesHashMap,HashMap<Object, double[]>doubleCoordinateList,HashMap<String,ArrayList<Object>> URI2OBJ, int atlasWidth, int atlasHeigth){
-		Iterator<MyItem> itr= items.iterator();
-		MyItem mit;
+	private void modifyNewCorrdinates(Vector<AbstractRect> items, HashMap<Object, String> coordinatesHashMap,HashMap<Object, double[]>doubleCoordinateList,HashMap<String,ArrayList<Object>> URI2OBJ, int atlasWidth, int atlasHeigth){
+		Iterator<AbstractRect> itr= items.iterator();
+		AbstractRect mit;
 		while(itr.hasNext()){
 			mit = itr.next();
 			for(Object obj:URI2OBJ.get(mit.getURI())){
-				coordinatesHashMap.put(obj,getCoordinate(doubleCoordinateList.get(obj),mit.getXPos(),mit.getYPos(), mit.getWidth(),mit.getHeight(),atlasWidth, atlasHeigth));
+				coordinatesHashMap.put(obj,getCoordinate(doubleCoordinateList.get(obj),mit.getXPos(),mit.getYPos(), mit.getWidth(),mit.getHeight(),atlasWidth, atlasHeigth,mit.rotated));
 			}
 			mit.clear();
 		}
 		itr=null;
 	}
 	
-	private String getCoordinate(double[]coordinates, double posX, double posY, double imW,double imH ,double atlasw, double atlasH){
+	private String getCoordinate(double[]coordinates, double posX, double posY, double imW,double imH ,double atlasw, double atlasH, boolean rotated){
 		StringBuffer sb = new StringBuffer(coordinates.length*15);
+		double tmp;
 		for (int j = 0; j < coordinates.length; j += 2) {
+			if (rotated){
+				
+				tmp =coordinates[j];
+				coordinates[j]=1- coordinates[j+1];
+				coordinates[j+1]= tmp;
+			
+			
+			}
 			// Horizontal
 			coordinates[j] = (posX+(coordinates[j] * imW))/atlasw;
 			// corner as a origin,but cityGML used left down corner.

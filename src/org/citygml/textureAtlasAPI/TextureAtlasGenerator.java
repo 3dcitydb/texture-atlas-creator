@@ -22,7 +22,11 @@ public class TextureAtlasGenerator {
 	public static  final int SLEA = 2;
 	/**public static  final int BOLE = 3;
 	public static  final int STBG = 4;**/
-    
+	//Touching Perimeter+ improved
+	public static  final int TPIM = 5;
+	public static  final int TPIM_WITHOUT_ROTATION = 6;
+	
+	
 	private int PackingAlgorithm;
 	
 	private int ImageMaxWidth=2048;
@@ -57,7 +61,7 @@ public class TextureAtlasGenerator {
 	}
 
 	public void setPackingAlgorithm(int packingAlgorithm) {
-		PackingAlgorithm = packingAlgorithm;
+		this.PackingAlgorithm = packingAlgorithm;
 	}
 
 	public int getImageMaxWidth() {
@@ -65,7 +69,7 @@ public class TextureAtlasGenerator {
 	}
 
 	public void setImageMaxWidth(int imageMaxWidth) {
-		ImageMaxWidth = imageMaxWidth;
+		this.ImageMaxWidth = imageMaxWidth;
 	}
 
 	public int getImageMaxHeight() {
@@ -73,7 +77,7 @@ public class TextureAtlasGenerator {
 	}
 
 	public void setImageMaxHeight(int imageMaxHeight) {
-		ImageMaxHeight = imageMaxHeight;
+		this.ImageMaxHeight = imageMaxHeight;
 	}
 
 	public TexImageInfo convert(TexImageInfo tii){	
@@ -88,6 +92,7 @@ public class TextureAtlasGenerator {
 				
 			}
 		}
+		this.PackingAlgorithm=PackingAlgorithm;
 		// check tii.isImagesReady()
 		modifier.setGeneralSettings(this.PackingAlgorithm, this.ImageMaxWidth, this.ImageMaxHeight);
 		return modifier.run(tii);

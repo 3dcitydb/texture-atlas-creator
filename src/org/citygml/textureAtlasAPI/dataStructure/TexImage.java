@@ -1,12 +1,12 @@
-package org.citygml.TextureAtlasAPI.DataStructure;
+package org.citygml.textureAtlasAPI.dataStructure;
 
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.sql.SQLException;
-
 import javax.swing.ImageIcon;
-
-import org.citygml.TextureAtlasAPI.ImageIO.ImageLoader;
+import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
 import oracle.ord.im.OrdImage;
 
 /**
@@ -15,45 +15,71 @@ import oracle.ord.im.OrdImage;
  * @author babak naderi
  * 
  */
-public class TextureImage {
+public class TexImage {
 	public final static int ORD_IMAGE = 1;
 	public final static int IMAGE = 2;
 	private int type;
-	private Image image;
+	private BufferedImage image;
 	private OrdImage ordImage;
 	private static ImageLoader imageLoader = new ImageLoader();
 	private int chanels=3;
 
-	public TextureImage(Image bi, int chanels) {
-		this.image = bi;
-		this.type = IMAGE;
-		this.chanels= chanels;
+//	public TexImage(Image bi, int chanels) {
+//		this.image = bi;
+//		this.type = IMAGE;
+//		this.chanels= chanels;
+//	}
+	
+	public TexImage(BufferedImage bi){
+		this.image=bi;
+		this.type=IMAGE;
+		this.chanels = (bi.getType()==(BufferedImage.TYPE_4BYTE_ABGR)||(bi.getType()==BufferedImage.TYPE_INT_ARGB)?4:3);	
 	}
-
-	public TextureImage(OrdImage ordImage) {
+		
+	
+	
+	
+	public TexImage(OrdImage ordImage) {
 		this.ordImage = ordImage;
 		this.type = ORD_IMAGE;
 	}
 
-	public Image getImage() {
+	
+	public BufferedImage getBufferedImage(){
 		if (this.image == null){
 			if (this.ordImage == null)
 				return null;
-			try {
+			try {	
+				byte[] mb=ordImage.getDataInByteArray();
 				this.image= imageLoader.loadImage(ordImage.getDataInStream(), ordImage
-						.getMimeType(), ordImage.getContentLength());
+						.getMimeType(), mb.length);
+				mb=null;
 				this.chanels=imageLoader.getChanels();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				e = null;
 				return null;
+			}catch (OutOfMemoryError e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		return this.image;
-
+//		if (image==null)
+//			return null;
+//		
+//		BufferedImage bi = new BufferedImage(image.getWidth(null), image.getHeight(null), chanels==3? BufferedImage.TYPE_INT_RGB:BufferedImage.TYPE_INT_ARGB);
+//		Graphics2D g=bi.createGraphics();
+//		g.drawImage(image, 0, 0,null);
+//		g.dispose();
+//		return bi;
 	}
-
+	
+	
 	// before that you should set db connection in a static variable
 	public OrdImage getOrdImage() {
 		if (this.type == ORD_IMAGE)
@@ -65,7 +91,7 @@ public class TextureImage {
 		}
 	}
 
-	public void setImage(Image bImage) {
+	public void setImage(BufferedImage bImage) {
 		this.image = bImage;
 	}
 

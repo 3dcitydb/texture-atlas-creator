@@ -1,4 +1,4 @@
-package org.citygml.TextureAtlasAPI.DataStructure;
+package org.citygml.textureAtlasAPI.dataStructure;
 
 
 
@@ -19,6 +19,12 @@ public class TexImageInfo4GMLFile extends TexImageInfo {
 	}
 
 	TexGeneralProperties generalProp; 
+	
+	public boolean isImageLoaded(){
+		if (texImages==null||texImages.size()==0)
+			return false;
+		return true;
+	}
 	
 	public TexGeneralProperties getGeneralProp() {
 		return generalProp;
@@ -45,7 +51,7 @@ public class TexImageInfo4GMLFile extends TexImageInfo {
 		if (ImagesLocalPath ==null)
 			ImagesLocalPath = new HashMap<String, String>();
 		ImagesLocalPath.put(URI, completePath);
-		setImagesReady(false);
+		// it was removed. is...
 	}
 
 	
@@ -69,12 +75,9 @@ public class TexImageInfo4GMLFile extends TexImageInfo {
 			texImageURIs.clear();
 		if (ImagesLocalPath!=null)
 			ImagesLocalPath.clear();
-		if (LOG!=null)
-			LOG.clear();
 		texCoordinates=null;
 		texImages=null;
-		texImageURIs=null;
-		LOG=null;	
+		texImageURIs=null;	
 		ImagesLocalPath=null;
 	}
 }

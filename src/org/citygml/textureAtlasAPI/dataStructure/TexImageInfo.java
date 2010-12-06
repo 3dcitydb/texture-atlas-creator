@@ -1,4 +1,4 @@
-package org.citygml.TextureAtlasAPI.DataStructure;
+package org.citygml.textureAtlasAPI.dataStructure;
 
 import java.util.HashMap;
 
@@ -30,28 +30,10 @@ public class TexImageInfo {
 	 * textImages contains an imageURI(String) and the corresponding Image object which is a texture
 	 * for the corresponding surface-geometry. 
 	 */
-	protected HashMap<String, TextureImage> texImages;
+	protected HashMap<String, TexImage> texImages;
 	
-	/**
-	 * In the case that something unexpected happens during the atlas generation, the error code(Integer)
-	 * for corresponding surface-geometry, which recognized by its id(Long), will be reported.
-	 */
-	protected HashMap<Object, ErrorTypes> LOG;
 	
-	/**
-	 * check if the images are ready.
-	 * IN DB mode: whenever all the images are converted to Java Image object it will be true.
-	 * In StandAlone: whenever all images are loaded in a java Image format, it will be true.
-	 */
-	private boolean ImagesReady=false;
 
-	public boolean isImagesReady() {
-		return ImagesReady;
-	}
-
-	public void setImagesReady(boolean imagesReady) {
-		ImagesReady = imagesReady;
-	}
 
 	/**
 	 * @return the texImageURIs
@@ -84,52 +66,32 @@ public class TexImageInfo {
 	/**
 	 * @return the texImages
 	 */
-	public HashMap<String, TextureImage> getTexImages() {
+	public HashMap<String, TexImage> getTexImages() {
 		return texImages;
 	}
 
 	/**
 	 * @param texImages the texImages to set
 	 */
-	public void setTexImages(HashMap<String, TextureImage> texImages) {
+	public void setTexImages(HashMap<String, TexImage> texImages) {
 		this.texImages = texImages;
 	}
 
 	/**
 	 * @return the lOG
 	 */
-	public HashMap<Object, ErrorTypes> getLOG() {
-		return LOG;
-	}
 
-	/**
-	 * @param lOG the lOG to set
-	 */
-	public void setLOG(HashMap<Object, ErrorTypes> lOG) {
-		LOG = lOG;
-	}
-	
+
 	public void clear(){
 		texCoordinates.clear();
 		texImages.clear();
 		texImageURIs.clear();
-		LOG.clear();
+
 		texCoordinates=null;
 		texImages=null;
 		texImageURIs=null;
-		LOG=null;
 	}
 	
-	public String getLOGInText(){
-		StringBuffer sb = new StringBuffer();
-		for(Object key: LOG.keySet()){
-			sb.append("<");
-			sb.append(key.toString());
-			sb.append(": ");
-			sb.append(LOG.get(key));
-			sb.append(">\r\n");
-		}
-		return sb.toString();
-	}
+
 
 }
