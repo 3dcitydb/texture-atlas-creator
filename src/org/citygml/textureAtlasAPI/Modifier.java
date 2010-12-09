@@ -64,7 +64,7 @@ public class Modifier {
 		return this.LOG;
 	}
 	public TexImageInfo run(TexImageInfo ti){
-		System.out.println("Helllo");
+
 //		if (bi==null){
 //			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
 //			g = bi.getGraphics();
