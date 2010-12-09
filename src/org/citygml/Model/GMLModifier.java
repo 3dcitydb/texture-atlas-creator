@@ -59,7 +59,7 @@ public class GMLModifier {
 //	
 //	private int atlasTextureOutputFormat;
 	
-	private int texturePackerType=org.citygml.textureAtlasAPI.TextureAtlasGenerator.TPIM_WITHOUT_ROTATION;
+	private int texturePackerType=org.citygml.textureAtlasAPI.TextureAtlasGenerator.TPIM;
 	private TextureAtlasGenerator atlasGenerator;
 	
 	/**
@@ -353,6 +353,7 @@ public class GMLModifier {
 		BufferedImage bi = new BufferedImage(maxImageW, maxImageH, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g=bi.createGraphics();
 		for(String path: texImage.keySet()){
+
 			bim= texImage.get(path).getBufferedImage();
 			chanels=texImage.get(path).getChanels();
 			

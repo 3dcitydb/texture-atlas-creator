@@ -93,12 +93,15 @@ public class TexImage {
 
 	public void setImage(BufferedImage bImage) {
 		this.image = bImage;
+		this.chanels = (bImage.getType()==(BufferedImage.TYPE_4BYTE_ABGR)||(bImage.getType()==BufferedImage.TYPE_INT_ARGB)?4:3);
 	}
 
 	public void setImage(OrdImage ordImage) {
 		this.ordImage = ordImage;
 	}
 	public int getChanels(){
+		if (this.image==null)
+			getBufferedImage();
 		return this.chanels;
 	}
 	
