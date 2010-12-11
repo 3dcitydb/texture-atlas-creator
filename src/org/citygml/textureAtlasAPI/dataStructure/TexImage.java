@@ -51,20 +51,21 @@ public class TexImage {
 				return null;
 			try {	
 				byte[] mb=ordImage.getDataInByteArray();
+			
 				this.image= imageLoader.loadImage(ordImage.getDataInStream(), ordImage
 						.getMimeType(), mb.length);
 				mb=null;
 				this.chanels=imageLoader.getChanels();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
+
 				e.printStackTrace();
 				e = null;
 				return null;
 			}catch (OutOfMemoryError e) {
-				// TODO Auto-generated catch block
+
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+
 				e.printStackTrace();
 			}
 		}

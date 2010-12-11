@@ -16,10 +16,11 @@ public class RGBTest {
 		// TODO Auto-generated method stub
 		RGBEncoder en = new RGBEncoder();
 		try {
-			BufferedImage bi = en.readRGB("_tex2050070.rgb");
+			String name="tex2050042";
+			BufferedImage bi = en.readRGB(name+".rgb");
 			File f=new File(
-					bi.getType() == BufferedImage.TYPE_INT_ARGB ? "r.png"
-							: "r.jpeg");
+					bi.getType() == BufferedImage.TYPE_INT_ARGB ? name+".png"
+							: name+".jpeg");
 			ImageIO
 					.write(
 							bi,

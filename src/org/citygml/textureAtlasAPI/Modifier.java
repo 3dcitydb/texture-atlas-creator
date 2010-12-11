@@ -103,7 +103,7 @@ public class Modifier {
 		double[] coordinate;
 		for (Object key : textUri.keySet()){
 			URI= textUri.get(key);
-		
+
 			//Check whether this URI is changed before.
 			if((tmpURI=URIDic.get(URI))!=null){
 				// this URI previously have been changed, so textImage should also be changed before.

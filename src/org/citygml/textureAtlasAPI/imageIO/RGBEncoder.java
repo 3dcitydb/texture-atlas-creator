@@ -59,7 +59,8 @@ public class RGBEncoder {
 			while (start < max) {
 				tmp = allData[start++] & 0xff;
 				tmp = tmp << channelShift;
-				result[rCounter] = tmp | 0xff000000;
+				result[rCounter] = channelShift > 16 ? (int) tmp
+						: (int) tmp | 0xff000000;
 				rCounter++;
 			}
 		}
