@@ -158,6 +158,7 @@ public class RGBEncoder {
 		bi = new BufferedImage(header.xSize, header.ySize,
 				header.chanels==4?BufferedImage.TYPE_INT_ARGB:BufferedImage.TYPE_INT_RGB);
 
+		
 		int tmp = 0;
 		byte[] startTableB = null;
 		byte[] lengthTableB = null;

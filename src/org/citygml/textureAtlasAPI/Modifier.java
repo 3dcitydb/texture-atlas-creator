@@ -8,6 +8,8 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.MathContext;
 
 
 import java.util.ArrayList;
@@ -263,12 +265,9 @@ public class Modifier {
 				AffineTransform at = new AffineTransform();
 				at.translate ( 0,bif.getWidth() ) ;
 		        at.rotate(Math.toRadians(-90));
-		        AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
-		        Rectangle2D rd= ato.getBounds2D(bif);;
-		       
+		        AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);		       
 				BufferedImage bb= new BufferedImage(bif.getHeight(), bif.getWidth(), bif.getType());
 				ato.filter(bif, bb);
-		        
 		        textImage.get(item.getURI()).setImage(bb);
 		        bif=null;
 			}
@@ -291,6 +290,7 @@ public class Modifier {
         		 g = bi.createGraphics();
         		 // set the new coordinates
         		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
+//        		 analyzeOccupation(frame,atlasW,atlasH);
         		 frame.clear();
         		 atlasW=0;
         		 atlasH=0;
@@ -320,6 +320,7 @@ public class Modifier {
 			fileCounter++;
 			 // set the new coordinates
 			 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
+//			 analyzeOccupation(frame,atlasW,atlasH);
 			 frame.clear();
 		}
 		
@@ -426,15 +427,32 @@ public class Modifier {
 			mit = itr.next();
 			for(Object obj:URI2OBJ.get(mit.getURI())){
 				coordinatesHashMap.put(obj,getCoordinate(doubleCoordinateList.get(obj),mit.getXPos(),mit.getYPos(), mit.getWidth(),mit.getHeight(),atlasWidth, atlasHeigth,mit.rotated));
+//				coordinatesHashMap.put(obj,getCoordinate2(doubleCoordinateList.get(obj),mit.getXPos(),mit.getYPos(), mit.getWidth(),mit.getHeight(),atlasWidth, atlasHeigth,mit.rotated));
 			}
 			mit.clear();
 		}
 		itr=null;
 	}
 	
-	private String getCoordinate(double[]coordinates, double posX, double posY, double imW,double imH ,double atlasw, double atlasH, boolean rotated){
+	private void analyzeOccupation(Vector<AbstractRect> items,int atlasW,int atlasH){
+		Iterator<AbstractRect> itr= items.iterator();
+		AbstractRect mit;
+		int sumArea=0;
+		int num=0;
+		while(itr.hasNext()){
+			num++;
+			mit = itr.next();
+			sumArea+= mit.area;
+		}
+		itr=null;
+		
+		System.out.println(num+","+(float)(sumArea)/(atlasH*atlasW));
+		
+	}
+	private String getCoordinate(double[]coordinates, double posX, double posY, double imW,double imH ,double atlasw, double atlasH, boolean rotated){		
 		StringBuffer sb = new StringBuffer(coordinates.length*15);
 		double tmp;
+		
 		for (int j = 0; j < coordinates.length; j += 2) {
 			if (rotated){
 				
@@ -442,19 +460,87 @@ public class Modifier {
 				coordinates[j]=1- coordinates[j+1];
 				coordinates[j+1]= tmp;
 			
-			
 			}
 			// Horizontal
 			coordinates[j] = (posX+(coordinates[j] * imW))/atlasw;
 			// corner as a origin,but cityGML used left down corner.
-			coordinates[j + 1] =1-((1-coordinates[j+1])*imH+posY)/atlasH; 
+			coordinates[j + 1] =1-((1-coordinates[j+1])*imH+posY)/atlasH;
+			
+//			coordinates[j + 1] =((atlasH-posY-imH)+coordinates[j+1]*imH)/atlasH;
+
 			sb.append(coordinates[j]);
 			sb.append(' ');
 			sb.append(coordinates[j+1]);
 			sb.append(' ');	
 		}
-		
+//		System.out.println("#"+sb.substring(0, sb.length()-1));
 		return sb.substring(0, sb.length()-1);
+	}
+	
+	private String getCoordinate2(double[]coordinates, double posX, double posY, double imW,double imH ,double atlasw, double atlasH, boolean rotated){
+		StringBuffer sb = new StringBuffer(coordinates.length*15);
+		
+		BigDecimal bdPosX= BigDecimal.valueOf(posX);
+		BigDecimal bdPosY= BigDecimal.valueOf(posY);
+		BigDecimal bdImW= BigDecimal.valueOf(imW);
+		BigDecimal bdImH= BigDecimal.valueOf(imH);
+		BigDecimal bdAtlasw= BigDecimal.valueOf(atlasw);
+		BigDecimal bdAtlash= BigDecimal.valueOf(atlasH);
+		BigDecimal cor1;
+		BigDecimal cor2;
+		double tmp;
+
+		for (int j = 0; j < coordinates.length; j += 2) {
+			cor1=null;
+			cor2=null;
+			cor1= BigDecimal.valueOf(coordinates[j]);
+			cor2= BigDecimal.valueOf(coordinates[j+1]);
+//			System.out.println(cor1.doubleValue());
+//			System.out.println(coordinates[j]);
+			if (rotated){			
+				cor1= BigDecimal.ONE.subtract(cor2);
+				cor2=BigDecimal.valueOf(coordinates[j]);
+				tmp =coordinates[j];
+//				coordinates[j]=1- coordinates[j+1];
+//				coordinates[j+1]= tmp;		
+			}
+			
+			
+			// Horizontal
+//			System.out.println(bdPosX.doubleValue()+","+cor1.doubleValue()+","+bdImW.doubleValue());
+//			System.out.println(posX+","+coordinates[j]+","+imW);
+//			
+//			System.out.println((bdPosX.add(cor1.multiply(bdImW))).doubleValue());
+//			System.out.println((posX+(coordinates[j] * imW)));
+//			
+//			System.out.println((bdPosX.add(cor1.multiply(bdImW))).divide(bdAtlasw,30,BigDecimal.ROUND_DOWN).doubleValue());
+//			System.out.println((posX+(coordinates[j] * imW))/atlasw);
+			
+			sb.append((bdPosX.add(cor1.multiply(bdImW))).divide(bdAtlasw,30,BigDecimal.ROUND_CEILING).doubleValue());
+			sb.append(' ');
+			
+			
+			// corner as a origin,but cityGML used left down corner.
+			sb.append(BigDecimal.ONE.subtract((BigDecimal.ONE.subtract(cor2).multiply(bdImH).add(bdPosY)).divide(bdAtlash,30,BigDecimal.ROUND_CEILING)).doubleValue());
+			sb.append(' ');
+//			System.out.println(BigDecimal.ONE.subtract((BigDecimal.ONE.subtract(cor2).multiply(bdImH).add(bdPosY)).divide(bdAtlash,30,BigDecimal.ROUND_CEILING)).doubleValue());
+//			System.out.println(1-((1-coordinates[j+1])*imH+posY)/atlasH);
+			
+		}
+		System.out.println("*"+sb.substring(0, sb.length()-1));
+		bdPosX=null;
+		bdPosY=null;
+		bdImW=null;
+		bdImH=null;
+		bdAtlasw=null;
+		bdAtlash=null;
+		cor1=null;
+		cor2=null;
+
+	
+		return sb.substring(0, sb.length()-1);
+		//return null;
+		
 	}
 	
 	public void reset(){

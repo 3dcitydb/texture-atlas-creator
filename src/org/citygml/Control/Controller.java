@@ -2,11 +2,14 @@ package org.citygml.Control;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.Stack;
 
-import org.citygml.Model.GMLModifier;
+import javax.management.Notification;
 
+import org.citygml.Model.GMLModifier;
+import javax.management.*;
 
 
 public class Controller {
@@ -78,7 +81,7 @@ public class Controller {
 			gmlModifier.modify();
 		}			
 		System.out.println("Complete!");
-		System.out.println(System.currentTimeMillis());
+		//System.out.println(System.currentTimeMillis());
 	}
 	
 
@@ -121,17 +124,20 @@ public class Controller {
 				String t =path.replaceFirst(inputPath, outputPath);
 				gmlModifier.setProperties(path, t);
 				gmlModifier.modify();
-				System.out.println("   ..................... OK");
+				System.out.println("..................... OK");
 			}
 						
 		}catch (Exception e){
 			e.printStackTrace();
 			
 		}	
-		System.out.println(System.currentTimeMillis());
-		System.out.println(ManagementFactory.getRuntimeMXBean().getName());
-		MemoryUsage mu =ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-		System.out.println("init:"+mu.getInit()+", max:"+mu.getMax()+", commited:"+mu.getCommitted()+",Used:"+mu.getUsed());
+		
+//		System.out.println(System.currentTimeMillis());
+//		System.out.println(ManagementFactory.getRuntimeMXBean().getName());
+//		MemoryUsage mu =ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+//		System.out.println("init:"+mu.getInit()+", max:"+mu.getMax()+", commited:"+mu.getCommitted()+",Used:"+mu.getUsed());
+
+
 	}
 	
 	
@@ -142,3 +148,12 @@ public class Controller {
 	}
 
 }
+class MyListener implements javax.management.NotificationListener {
+	@Override
+	public void handleNotification(Notification arg0, Object arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+}
+
+
