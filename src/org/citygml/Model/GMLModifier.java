@@ -48,6 +48,7 @@ import org.citygml4j.xml.io.CityGMLOutputFactory;
 
 import org.citygml.textureAtlasAPI.dataStructure.*;
 import org.citygml.textureAtlasAPI.TextureAtlasGenerator;
+import org.citygml.util.Logger;
 
 
 public class GMLModifier {
@@ -112,6 +113,15 @@ public class GMLModifier {
 		outputParentPath = getDirectory(outputGML);
 	}
 	
+	private String getNumber(int c){
+		switch(c){
+		case 1: return "1st";
+		case 2: return "2nd";
+		case 3: return "3rd";
+		default: return c+"th";
+		}
+	}
+	
 	/**
 	 * Read the GML file from which is in the address inputGML. 
 	 * Change the format and also merge the textures to make a texture atlas for each building.
@@ -124,7 +134,7 @@ public class GMLModifier {
 			CityModel cityModel = readGMLFile(inputGML);
 			// scan the cityModel object to obtain all surface data of each building separately.
 			Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings=newCityModelScaner(cityModel);
-			System.out.println(buildings.size());
+			Logger.getInstance().log(Logger.TYPE_INFO,"   Contains "+buildings.size()+" building(s).");
 						
 			Iterator<Hashtable<Integer,TexImageInfo4GMLFile>> buildingsIter =buildings.values().iterator();
 			// for each building merge textures and modify the coordinates and other properties.
@@ -133,15 +143,23 @@ public class GMLModifier {
 			TexImageInfo4GMLFile texGroup;
 			Integer tmpKey;
 			int cc=1;
+			String log;
 			while(buildingsIter.hasNext()){
-				System.out.println("building:"+cc);
+				if (cc==104)
+					System.out.println("hiiii 104");
+				Logger.getInstance().log(Logger.TYPE_INFO,"       Work on "+getNumber(cc)+" building.");
 				building=buildingsIter.next();
 				Enumeration<Integer> texGroupIDS= building.keys();
 				while(texGroupIDS.hasMoreElements()){
 					tmpKey= texGroupIDS.nextElement();
 					texGroup = building.get(tmpKey);
 					texGroup= (TexImageInfo4GMLFile) atlasGenerator.convert(texGroup);
-					System.out.println("LOG:"+atlasGenerator.getLOGInText());
+					log = atlasGenerator.getLOGInText();
+					if (log!=null){
+						Logger.getInstance().log(Logger.TYPE_ERROR,log.replaceAll("<", "       <"));
+						log=null;
+					}
+					
 					building.put(tmpKey, texGroup);
 					writeImageFiles(texGroup.getTexImages());
 				}
@@ -156,6 +174,7 @@ public class GMLModifier {
 			writeGMLFile(cityModel, outputGML);
 			
 		} catch (Exception e) {
+			Logger.getInstance().log(Logger.TYPE_ERROR,"Error in modification...\n"+e.getMessage());
 			e.printStackTrace();
 		}
 
@@ -346,6 +365,8 @@ public class GMLModifier {
 	 * @param texImage
 	 */
 	private void writeImageFiles(HashMap<String, TexImage> texImage){
+		if (texImage==null)
+			return;
 		BufferedImage bim;	
 		
 		String outPath;

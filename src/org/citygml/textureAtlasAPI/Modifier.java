@@ -103,6 +103,10 @@ public class Modifier {
 		BufferedImage tmp;
 		boolean is4Chanel=false;
 		double[] coordinate;
+		if (textUri==null){
+			System.err.println("----------------null in textURI");
+			return ti;
+			}
 		for (Object key : textUri.keySet()){
 			URI= textUri.get(key);
 
@@ -128,7 +132,7 @@ public class Modifier {
 			// The image was read before;
 			if((b=isImageAcceptable.get(URI))!=null){
 				if (!b.booleanValue()){
-					LOG.put(key,ErrorTypes.TARGET_PT_NOT_SUPPORTED);
+					//LOG.put(key,ErrorTypes.TARGET_PT_NOT_SUPPORTED);
 					continue;
 				}
 				// the coordinates should be added and then continue.
@@ -143,9 +147,9 @@ public class Modifier {
 		        	// just for complicated cases.
 		        	if (totalWidth<maxw)
 		        		maxw=totalWidth;
-		        	LOG.put(key,ErrorTypes.ERROR_IN_COORDINATES);
-		        	for (Object obj: uri2Object.get(URI))
-		        		LOG.put(obj,ErrorTypes.ERROR_IN_COORDINATES);
+//		        	LOG.put(key,ErrorTypes.ERROR_IN_COORDINATES);
+//		        	for (Object obj: uri2Object.get(URI))
+//		        		LOG.put(obj,ErrorTypes.ERROR_IN_COORDINATES);
 		        	continue;
 		        }
 				doubleCoordinateList.put(key, coordinate);

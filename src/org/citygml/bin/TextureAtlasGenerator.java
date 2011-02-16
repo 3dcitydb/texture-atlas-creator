@@ -40,7 +40,6 @@ public class TextureAtlasGenerator {
 	 * args[2]:Output(file/directory)|null
 	 */
 	public static void main(String[] args) {
-		System.out.print(System.currentTimeMillis());
 		TextureAtlasGenerator mt;
 		switch(args.length){
 		case 2:// without  Output atlas options

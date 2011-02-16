@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 
 
 import org.citygml.textureAtlasAPI.dataStructure.TexImage;
+import org.citygml.util.Logger;
 
 
 
@@ -32,7 +33,7 @@ public class ImageLoader {
 			
 			f= new File(path);
 			if (!f.exists()){
-				System.err.println("file is not available:"+path);
+				Logger.getInstance().log(Logger.TYPE_ERROR,"File not exists. ("+path+")");
 				return null;
 			}
 			if (path.lastIndexOf(".rgb")>0){
@@ -47,8 +48,8 @@ public class ImageLoader {
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.err.println("Problem with loading file:"+path);
+			//e.printStackTrace();
+			Logger.getInstance().log(Logger.TYPE_ERROR,"Error in loading image. ("+path+")");
 		}
 		f=null;
 		path=null;

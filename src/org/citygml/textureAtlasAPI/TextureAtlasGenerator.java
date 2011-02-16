@@ -103,7 +103,7 @@ public class TextureAtlasGenerator {
 	}
 	
 	public String getLOGInText(){
-		return "";/**
+		
 		HashMap<Object, ErrorTypes> LOG= modifier.getLOG();
 		StringBuffer sb = new StringBuffer();
 		for(Object key: LOG.keySet()){
@@ -114,6 +114,8 @@ public class TextureAtlasGenerator {
 			sb.append(">\r\n");
 		}
 		LOG=null;
-		return sb.toString();**/
+		if (sb.length()==0)
+			return null;
+		return sb.toString();
 	}
 }

@@ -9,6 +9,8 @@ import java.util.Stack;
 import javax.management.Notification;
 
 import org.citygml.Model.GMLModifier;
+import org.citygml.util.Logger;
+
 import javax.management.*;
 
 
@@ -71,7 +73,7 @@ public class Controller {
 	}
 	
 	public void start(){
-		
+		Logger.getInstance().log(Logger.TYPE_NESS,"TextureAtlas creator is started...");
 		File input =new File(inputPath);
 		
 		if (input.isDirectory()){ // input is a directory
@@ -79,9 +81,8 @@ public class Controller {
 		}else{// input is a file
 			gmlModifier.setProperties(inputPath, outputPath);
 			gmlModifier.modify();
-		}			
-		System.out.println("Complete!");
-		//System.out.println(System.currentTimeMillis());
+		}
+		Logger.getInstance().log(Logger.TYPE_NESS,"All the available GML files compiled.");
 	}
 	
 
@@ -115,16 +116,17 @@ public class Controller {
 			}
 			String path;
 			// do merge textures for each gml file.
-			System.out.println("Amount of GML files: "+gmlFiles.size());
+			Logger.getInstance().log(Logger.TYPE_NESS,gmlFiles.size()+(gmlFiles.size()>1?" GML files are found.":" GML file is found."));
+			Logger.getInstance().log(Logger.TYPE_INFO,"Start to modifying ...");
 			int counter=0;
 			while(!gmlFiles.empty()){			
 				path = gmlFiles.pop();
 				counter++;
-				System.out.println(counter+".Modifing "+path);
+				Logger.getInstance().log(Logger.TYPE_INFO,"   "+counter+")Modifying "+path);
 				String t =path.replaceFirst(inputPath, outputPath);
 				gmlModifier.setProperties(path, t);
 				gmlModifier.modify();
-				System.out.println("..................... OK");
+				Logger.getInstance().log(Logger.TYPE_INFO,"   Finished with current file.");
 			}
 						
 		}catch (Exception e){

@@ -154,7 +154,6 @@ public class RGBEncoder {
 			return null;
 		
 		RGBHeader header = readHeader(is);
-//		System.out.println(header.toString());
 		bi = new BufferedImage(header.xSize, header.ySize,
 				header.chanels==4?BufferedImage.TYPE_INT_ARGB:BufferedImage.TYPE_INT_RGB);
 
@@ -210,7 +209,6 @@ public class RGBEncoder {
 		is.close();
 		header=null;
 		is=null;
-//		System.out.println("finish");
 		return bi;
 	}
 
