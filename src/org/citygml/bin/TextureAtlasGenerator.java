@@ -111,7 +111,7 @@ public class TextureAtlasGenerator {
 	
 	private static void syntaxError(){
 		System.out.println(
-				
+				"\r\n"+
 				"Modify CityGML files by making atlases from textures of each building.\r\n"+
 				"\r\n"+
 				"TAC [/A algorithm] [/W max_width /H max_height] input output\r\n"+

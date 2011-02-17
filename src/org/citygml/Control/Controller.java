@@ -48,9 +48,16 @@ public class Controller {
 			return false;
 		
 		// ---- validate & set the image's format of the output texture atlas.
+		if (inputPath.startsWith("/")) 
+			inputPath=System.getProperty("user.dir")+inputPath;
+		if (outputPath.startsWith("/")) 
+			outputPath=System.getProperty("user.dir")+outputPath;
 		atlasOptions= atlasOptions.toLowerCase();
 		inputPath=inputPath.toLowerCase().replace('\\','/');
 		outputPath=outputPath.toLowerCase().replace('\\','/');
+		
+		
+				
 		
 //		if(atlasOptions.equals("-atlaspng"))
 //			gmlModifier.setAtlasTextureOutputFormat(GMLModifier.PNG);
@@ -77,6 +84,7 @@ public class Controller {
 	}
 	
 	public void start(){
+		System.out.println("\r\n");
 		Logger.getInstance().log(Logger.TYPE_NESS,"TextureAtlas creator is started...");
 		File input =new File(inputPath);
 		
@@ -87,6 +95,7 @@ public class Controller {
 			gmlModifier.modify();
 		}
 		Logger.getInstance().log(Logger.TYPE_NESS,"All the available GML files compiled.");
+		System.out.println("\r\n");
 	}
 	
 
