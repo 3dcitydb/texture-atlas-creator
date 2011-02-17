@@ -26,16 +26,20 @@ public class Controller {
 	
 	// path of NVIDIA AtlasTexture Generator --- @remove
 	String atlasCreationToolPath="E:/CityGML/atlasCreationTool.exe";
-	
+	private int texturePackerType,maxH,maxW;
 	public Controller(){
 		gmlModifier= new GMLModifier();
 		reset();
 	}
 	
-	public void setProperties(String atlasOptions, String input, String output){	
+	public void setProperties(String atlasOptions, String input, String output,int packingAlgo,int maxW, int maxH){
+		
 		this.atlasOptions = atlasOptions;
 		this.inputPath=input;
 		this.outputPath=output;
+		this.texturePackerType=packingAlgo;
+		this.maxH=maxH;
+		this.maxW=maxW;
 	}
 	
 	public boolean validateArguments(){
@@ -79,7 +83,7 @@ public class Controller {
 		if (input.isDirectory()){ // input is a directory
 			multiGMLFiles(input);
 		}else{// input is a file
-			gmlModifier.setProperties(inputPath, outputPath);
+			gmlModifier.setProperties(inputPath, outputPath,texturePackerType,maxW,maxH);
 			gmlModifier.modify();
 		}
 		Logger.getInstance().log(Logger.TYPE_NESS,"All the available GML files compiled.");
@@ -124,7 +128,7 @@ public class Controller {
 				counter++;
 				Logger.getInstance().log(Logger.TYPE_INFO,"   "+counter+")Modifying "+path);
 				String t =path.replaceFirst(inputPath, outputPath);
-				gmlModifier.setProperties(path, t);
+				gmlModifier.setProperties(path, t,texturePackerType,maxW,maxH);
 				gmlModifier.modify();
 				Logger.getInstance().log(Logger.TYPE_INFO,"   Finished with current file.");
 			}

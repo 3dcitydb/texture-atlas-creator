@@ -5,6 +5,7 @@ import javax.swing.JFrame;
 
 import org.citygml.Control.Controller;
 import org.citygml.GUI.UI;
+import org.citygml.util.Logger;
 
 public class TextureAtlasGenerator {
 	
@@ -16,22 +17,23 @@ public class TextureAtlasGenerator {
 		
 		frame.setVisible(true);
 	}
-	public TextureAtlasGenerator(String atlasOption,String inputPath,String outputPath){
+	public TextureAtlasGenerator(String atlasOption,String inputPath,String outputPath,int algorithm
+			, int w, int h){
+		controller = new Controller();
+		controller.setProperties(atlasOption, inputPath, outputPath,algorithm,w,h);
+		if (!controller.validateArguments())
+			Logger.getInstance().log(Logger.TYPE_ERROR, "Problem with input/output path. No file exist.");
+		else
+			controller.start();
+	}
+	/**public void run(String atlasOption,String inputPath,String outputPath){
 		controller = new Controller();
 		controller.setProperties(atlasOption, inputPath, outputPath);
 		if (!controller.validateArguments())
 			syntaxError();
 		else
 			controller.start();
-	}
-	public void run(String atlasOption,String inputPath,String outputPath){
-		controller = new Controller();
-		controller.setProperties(atlasOption, inputPath, outputPath);
-		if (!controller.validateArguments())
-			syntaxError();
-		else
-			controller.start();
-	}
+	}**/
 	/**
 	 * Note: do not use any space in the directory names.
 	 * @param args
@@ -40,7 +42,46 @@ public class TextureAtlasGenerator {
 	 * args[2]:Output(file/directory)|null
 	 */
 	public static void main(String[] args) {
+		String input="";
+		String output="";
+		int packing= org.citygml.textureAtlasAPI.TextureAtlasGenerator.TPIM;
+		int w=2000;
+		int h=2000;
+		if (args.length==0)
+			syntaxError();
+		try{
+		for (int i=0;i<args.length;i++){
+			if (args[i].equalsIgnoreCase("/A")){
+				i++;
+				packing= getAlgo(args[i]);
+				if (packing==-1){
+					syntaxError();
+					return;
+				}
+			}else 
+				if (args[i].equalsIgnoreCase("/W")){
+					i++;
+					w = Integer.parseInt(args[i]);
+					i++;
+					if (!args[i].equalsIgnoreCase("/H")){
+						syntaxError();
+						return;
+					}
+					i++;
+					h = Integer.parseInt(args[i]);	
+				}else{
+					input = args[i];
+					i++;
+					output= args[i];
+				}
+					
+		}
+		}catch(Exception e){
+			syntaxError();
+		}
 		TextureAtlasGenerator mt;
+		mt = new TextureAtlasGenerator("-atlasPNG",input,output,packing,w,h);
+		/**
 		switch(args.length){
 		case 2:// without  Output atlas options
 			mt = new TextureAtlasGenerator("-atlasPNG",args[0],args[1]);
@@ -49,34 +90,47 @@ public class TextureAtlasGenerator {
 			mt = new TextureAtlasGenerator(args[0],args[1],args[2]);
 			break;
 		default:
-//			syntaxError();
-			mt = new TextureAtlasGenerator();
+			syntaxError();
+//			mt = new TextureAtlasGenerator();
 			
-		}
+		}**/
 	}
-	
+	private static int getAlgo(String name){
+		if (name.equalsIgnoreCase("TPIM"))
+			return org.citygml.textureAtlasAPI.TextureAtlasGenerator.TPIM;
+		if (name.equalsIgnoreCase("TPIM_WOR"))
+			return org.citygml.textureAtlasAPI.TextureAtlasGenerator.TPIM_WITHOUT_ROTATION;
+		if (name.equalsIgnoreCase("SLEA"))
+			return org.citygml.textureAtlasAPI.TextureAtlasGenerator.SLEA;
+		if (name.equalsIgnoreCase("NFDH"))
+			return org.citygml.textureAtlasAPI.TextureAtlasGenerator.NFDH;
+		if (name.equalsIgnoreCase("FFDH"))
+			return org.citygml.textureAtlasAPI.TextureAtlasGenerator.FFDH;
+		return -1;
+	}
 	
 	private static void syntaxError(){
 		System.out.println(
-				"Usage:\r\n " +				
-				"java -jar TextureAtlasGenerator.jar [Output atlas options]  <Input(file/directory)>   <Output(file/directory)>"+
+				
+				"Modify CityGML files by making atlases from textures of each building.\r\n"+
+				"\r\n"+
+				"TAC [/A algorithm] [/W max_width /H max_height] input output\r\n"+
+				"\r\n"+
+				"[/A algorithm]  Choose a packing algorithm from following list. It will be used in atlas creation.\r\n"+
+				"algorithm\r\n"+
+				"        \t TPIM \t TPIM_WOR\r\n"+
+				"        \t SLEA \t NFDH\r\n"+
+				"        \t FFDH\r\n"+
+				"[/W max_width /H max_height] Maximum size of texture atlas.\r\n"+
+				"input	 \t input file or folder.\r\n"+
+				"output  \t output file or folder\r\n"+
 				"\r\n"+
 				"\r\n"+
-				"Output atlas options:"+"\r\n"+				
-				"-atlasPNG \t (Default)For all kinds of input texture images the texture atlas will be in the PNG image format."+"\r\n"+
-				"-atlasJPG \t For all kinds of input texture images the texture atlas will be in the JPEG image format."+"\r\n"+
-				"-atlasAuto \t Type of texture atlas depends on the input textures. For each building if there is any texture with PNG format, the texture atlas will be in PNG image format. Otherwise it will be in JPEG image format."+"\r\n"+
+				"Example:\r\n"+
+				"\t TAC /A TPIM /W 2048 /H 2048 c:/test_case c:/results\r\n"+
+				"\t TAC c:/test_case c:/results\r\n"+
 				"\r\n"+
-				"Input(file/directory):"+"\r\n"+
-				"File path \t Path of input GML file which contains one or more Building data."+"\r\n"+
-				"Folder path \t Path of the folder which contains one or more GML files. The folder and all of its subfolders will be scand to convert all GML files and convert them."+"\r\n"+
-				"\r\n"+
-				"Output(file/directory):"+"\r\n"+
-				"File path \t Path of output GML file which will be generated by this software and also its resources."+"\r\n"+
-				"Folder path \t Path of output Folder which will contain all of the output GML files. They will be generated by this software."+"\r\n"+
-				"\r\n"+
-				"Sample:"+"\r\n"+
-				"\tjava -jar TextureAtlasGenerator.jar -atlasJPG c:\\cityGML c:\\result"
+				"\r\n"				
 				);		
 				
 		System.exit(0);

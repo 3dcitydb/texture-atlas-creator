@@ -92,10 +92,13 @@ public class GMLModifier {
 	 * @param input --> /
 	 * @param output--> /
 	 */
-	public void setProperties(String input, String output){
+	public void setProperties(String input, String output,int packingAlgo, int maxw, int maxh){
 	
 		this.inputGML =input;
 		this.outputGML = output;
+		this.texturePackerType=packingAlgo;
+		this.maxImageH=maxh;
+		this.maxImageW=maxw;
 		initialize();
 		
 	}
@@ -103,8 +106,6 @@ public class GMLModifier {
 	private void initialize() {
 		if (atlasGenerator==null)
 			atlasGenerator = new TextureAtlasGenerator();
-		maxImageH=2048;
-		maxImageW=2048;
 		atlasGenerator.setImageMaxWidth(maxImageW);
 		atlasGenerator.setImageMaxHeight(maxImageH);
 		atlasGenerator.setPackingAlgorithm(texturePackerType);
