@@ -83,16 +83,7 @@ public class TexGeneralProperties {
 	
 	public boolean compareItTo(TexGeneralProperties t1) {
 		return Compare(this, t1);
-//		if(this.isFront==t1.isFront()&&
-//				this.textureType.compareTo(t1.getTextureType())==0&&
-//				this.wrapModeType.compareTo(t1.getWrapModeType())==0&&
-//				compareColorPlusOpacity(this.boarderColor,t1.getBoarderColor())&&
-//				(appearanceID!=null?this.appearanceID.equalsIgnoreCase(t1.getAppearanceID()):t1.getAppearanceID()==null)&&
-//				this.MIMEType!=null && t1.getMIMEType()!=null&&
-//				(this.isSupportedImageFormat()?(t1.isSupportedImageFormat()?true:false):this.MIMEType.equalsIgnoreCase(t1.getMIMEType())))
-//			return true;
-//			
-//		return false;
+
 	}
 
 	public static boolean Compare(TexGeneralProperties t1,TexGeneralProperties t2){

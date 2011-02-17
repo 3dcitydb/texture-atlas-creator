@@ -145,8 +145,8 @@ public class GMLModifier {
 			int cc=1;
 			String log;
 			while(buildingsIter.hasNext()){
-				if (cc==104)
-					System.out.println("hiiii 104");
+				if (cc==212)
+					System.out.println("hiiii 213");
 				Logger.getInstance().log(Logger.TYPE_INFO,"       Work on "+getNumber(cc)+" building.");
 				building=buildingsIter.next();
 				Enumeration<Integer> texGroupIDS= building.keys();
@@ -259,6 +259,7 @@ public class GMLModifier {
 				while (targets.hasNext()) {
 					TextureAssociation ta = targets.next();
 					// maybe it is TexCoordGen !?!?!? or not?
+					if (ta.getTextureParameterization() instanceof TexCoordList){
 					Iterator<TextureCoordinates> tcs = ((TexCoordList) (ta
 							.getTextureParameterization()))
 							.getTextureCoordinates().iterator();
@@ -266,7 +267,7 @@ public class GMLModifier {
 						TextureCoordinates tc = tcs.next();
 						texGroup.addAll(ta.getUri(), tc.getRing(), parameterizedTexture
 								.getImageURI(), double2String(tc.getValue()));
-					}
+					}}
 				}
 				
 				currentApp.unsetSurfaceDataMember((SurfaceDataProperty) parameterizedTexture.getParent());

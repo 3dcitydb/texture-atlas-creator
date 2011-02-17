@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
+import org.citygml.util.Logger;
 import org.citygml4j.builder.copy.DeepCopyBuilder;
 import org.citygml4j.factory.CityGMLFactory;
 import org.citygml4j.model.citygml.appearance.Appearance;
@@ -82,8 +83,12 @@ public class FeatureChanger extends FeatureWalker {
 			
 			HashMap<Object, String> texImageURIS=texAtlasGroup.getTexImageURIs();
 			HashMap<Object, String> texCoordinates=texAtlasGroup.getTexCoordinates();
-			
+			if (texImageURIS==null||texCoordinates==null){
+				Logger.getInstance().log(Logger.TYPE_ERROR, " texImageURIS or texCoordinates are null. Building id:"+arg0.getId());
+				continue;
+			}
 			// each URI refer to a parameterizedTexture
+			
 			Iterator<String> URIS= texImageURIS.values().iterator();
 			String URI;
 			
