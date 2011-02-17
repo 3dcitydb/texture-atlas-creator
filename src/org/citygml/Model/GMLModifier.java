@@ -145,8 +145,8 @@ public class GMLModifier {
 			int cc=1;
 			String log;
 			while(buildingsIter.hasNext()){
-				if (cc==212)
-					System.out.println("hiiii 213");
+//				if (cc==212)
+//					System.out.println("hiiii 213");
 				Logger.getInstance().log(Logger.TYPE_INFO,"       Work on "+getNumber(cc)+" building.");
 				building=buildingsIter.next();
 				Enumeration<Integer> texGroupIDS= building.keys();
