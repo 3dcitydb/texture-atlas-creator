@@ -3,9 +3,7 @@ package org.citygml.Model;
 
 import java.awt.Graphics2D;
 
-import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -29,6 +27,7 @@ import org.citygml4j.xml.io.reader.CityGMLReader;
 import org.citygml4j.xml.io.writer.CityGMLWriter;
 
 
+import org.citygml4j.commons.child.ChildInfo;
 import org.citygml4j.commons.gmlid.DefaultGMLIdManager;
 import org.citygml4j.commons.gmlid.GMLIdManager;
 
@@ -137,7 +136,7 @@ public class GMLModifier {
 			Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings=newCityModelScaner(cityModel);
 			Logger.getInstance().log(Logger.TYPE_INFO,"   Contains "+buildings.size()+" building(s).");
 						
-			Iterator<Hashtable<Integer,TexImageInfo4GMLFile>> buildingsIter =buildings.values().iterator();
+			//Iterator<Hashtable<Integer,TexImageInfo4GMLFile>> buildingsIter =buildings.values().iterator();
 			// for each building merge textures and modify the coordinates and other properties.
 			
 			Hashtable<Integer,TexImageInfo4GMLFile> building;
@@ -145,11 +144,10 @@ public class GMLModifier {
 			Integer tmpKey;
 			int cc=1;
 			String log;
-			while(buildingsIter.hasNext()){
-//				if (cc==212)
-//					System.out.println("hiiii 213");
-				Logger.getInstance().log(Logger.TYPE_INFO,"       Work on "+getNumber(cc)+" building.");
-				building=buildingsIter.next();
+			for(String buildingID: buildings.keySet()){
+
+				Logger.getInstance().log(Logger.TYPE_INFO,"       Work on "+getNumber(cc)+" building.("+buildingID+")");
+				building=buildings.get(buildingID);
 				Enumeration<Integer> texGroupIDS= building.keys();
 				while(texGroupIDS.hasMoreElements()){
 					tmpKey= texGroupIDS.nextElement();
@@ -213,28 +211,25 @@ public class GMLModifier {
 			TexGeneralProperties tmpProp=null;
 			int counter =0;
 			TexGeneralProperties genProp = null;
-			String currentAppID=null;
+
 			Appearance currentApp;
-			public void accept(Appearance ap) {
-				currentAppID= ap.getId();
-				currentApp=ap;
-				super.accept(ap);
-			}
+			ChildInfo ci = new ChildInfo();
+
 			
 			public void accept(ParameterizedTexture parameterizedTexture) {
-
+				currentApp= ci.getParentFeature(parameterizedTexture, Appearance.class);
 				if (genProp==null){
 					genProp = new TexGeneralProperties(parameterizedTexture
 							.getTextureType(), parameterizedTexture
 							.getWrapMode(), parameterizedTexture
 							.getBorderColor(), parameterizedTexture
-							.getIsFront(),currentAppID,parameterizedTexture.getMimeType());
+							.getIsFront(),currentApp.getTheme(),parameterizedTexture.getMimeType());
 					texGroup.setGeneralProp(genProp);
 				}else if(!genProp.compareItTo(tmpProp = new TexGeneralProperties (parameterizedTexture
 						.getTextureType(), parameterizedTexture
 						.getWrapMode(), parameterizedTexture
 						.getBorderColor(), parameterizedTexture
-						.getIsFront(),currentAppID,parameterizedTexture.getMimeType()))){
+						.getIsFront(),currentApp.getTheme(),parameterizedTexture.getMimeType()))){
 					// find corresponding texGroup
 					texGroup = findTextGroupInBuilding(tmpProp);
 					if (texGroup!=null){

@@ -12,7 +12,7 @@ public class TexGeneralProperties {
 	private WrapMode wrapModeType;
 	private ColorPlusOpacity boarderColor;
 	private boolean isFront;
-	private String appearanceID=null;
+	private String appearanceTheme=null;
 	private String MIMEType=null;
 	private boolean supportedImageFormat;
 
@@ -20,17 +20,17 @@ public class TexGeneralProperties {
 		set(null,null,null,false,null,null);
 	}
 	public TexGeneralProperties(TextureType textureType, WrapMode wrapMode,
-			ColorPlusOpacity boarderColor, boolean isFront, String appearanceID, String MIMEType) {
-		set(textureType,wrapMode,boarderColor,isFront,appearanceID,MIMEType);
+			ColorPlusOpacity boarderColor, boolean isFront, String appearanceTheme, String MIMEType) {
+		set(textureType,wrapMode,boarderColor,isFront,appearanceTheme,MIMEType);
 	}
 
 	public void set(TextureType textureType, WrapMode wrapMode,
-			ColorPlusOpacity boarderColor, boolean isFront, String appearanceID,String MIMEType) {
+			ColorPlusOpacity boarderColor, boolean isFront, String appearanceTheme,String MIMEType) {
 		this.textureType = textureType;
 		this.wrapModeType = wrapMode;
 		this.boarderColor = boarderColor;
 		this.isFront = isFront;
-		this.appearanceID=appearanceID;
+		this.appearanceTheme=appearanceTheme;
 		this.MIMEType = MIMEType;
 		this.supportedImageFormat=ImageLoader.isSupportedImageFormat(MIMEType);
 	}
@@ -50,8 +50,8 @@ public class TexGeneralProperties {
 	public boolean isFront() {
 		return isFront;
 	}
-	public String getAppearanceID(){
-		return this.appearanceID;
+	public String getAppearanceTheme(){
+		return this.appearanceTheme;
 	}
 	
 	public String getMIMEType(){
@@ -67,12 +67,12 @@ public class TexGeneralProperties {
 	}
 
 	public boolean compareItTo(TextureType textureType, WrapMode wrapMode,
-			ColorPlusOpacity boarderColor, boolean isFront,String appearanceID, String MIMEType) {
+			ColorPlusOpacity boarderColor, boolean isFront,String appearanceTheme, String MIMEType) {
 		if(this.isFront==isFront&&
 				this.textureType.compareTo(textureType)==0&&
 				this.wrapModeType.compareTo(wrapMode)==0&&
 				compareColorPlusOpacity(this.boarderColor,boarderColor)&&
-				(appearanceID!=null?this.appearanceID.equalsIgnoreCase(appearanceID):appearanceID==null)&&
+				(appearanceTheme!=null?this.appearanceTheme.equalsIgnoreCase(appearanceTheme):appearanceTheme==null)&&
 				this.MIMEType!=null && MIMEType!=null&&
 				(this.isSupportedImageFormat()?(ImageLoader.isSupportedImageFormat(MIMEType)?true:false):this.MIMEType.equalsIgnoreCase(MIMEType)))
 			return true;
@@ -91,7 +91,7 @@ public class TexGeneralProperties {
 				t1.getTextureType().compareTo(t2.getTextureType())==0&&
 				t1.getWrapModeType().compareTo(t2.getWrapModeType())==0&&
 				compareColorPlusOpacity(t1.getBoarderColor(),t2.getBoarderColor())&&
-				(t1.getAppearanceID()!=null?t1.getAppearanceID().equalsIgnoreCase(t2.getAppearanceID()):t2.getAppearanceID()==null)&&
+				(t1.getAppearanceTheme()!=null?t1.getAppearanceTheme().equalsIgnoreCase(t2.getAppearanceTheme()):t2.getAppearanceTheme()==null)&&
 				t1.getMIMEType()!=null&& t2.getMIMEType()!=null&&
 				(t1.isSupportedImageFormat()?(t2.isSupportedImageFormat()?true:false):t1.getMIMEType().equalsIgnoreCase(t2.getMIMEType())))
 			return true;
@@ -112,6 +112,6 @@ public class TexGeneralProperties {
 		wrapModeType=null;
 		boarderColor=null;	
 		MIMEType=null;
-		appearanceID=null;
+		appearanceTheme=null;
 	}
 }

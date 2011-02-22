@@ -27,17 +27,29 @@ public class Packer  {
     // in the case that using 2dB
     private int binHeight = 0;
     
+    private boolean fourChanel=false;
+    
     private int algorithm=TextureAtlasGenerator.FFDH;
+    
     
     private HeuristicBinPacking tpPacker;
     
-    public Packer(int width, int height,int algorithm){
+    public Packer(int width, int height,int algorithm,boolean is4Chanel){
     	items = new LinkedList<AbstractRect>();
     	this.algorithm=algorithm;
+    	this.fourChanel=is4Chanel;
     	setSize(width, height);
     }
 
-    public void setSize(int width, int height) {
+    public boolean isFourChanel() {
+		return fourChanel;
+	}
+
+	public void setFourChanel(boolean fourChanel) {
+		this.fourChanel = fourChanel;
+	}
+
+	public void setSize(int width, int height) {
     	this.binWidth= width;
     	this.binHeight=height;
     	
@@ -60,7 +72,12 @@ public class Packer  {
 	public void reset(){
 		items.clear();
 	}
-
+	public int getSize(){
+		if (items!=null)
+			return items.size();
+		else
+			return 0;
+	}
 	
 	public Atlas getResult() throws Exception {
 		Atlas res = new Atlas();
@@ -82,6 +99,7 @@ public class Packer  {
                 	tpPacker.init(binWidth, binHeight);
                 tpPacker.setUseRotation(true);
                 res= tpPacker.insert(items);
+                
                 break;
                 
             case TextureAtlasGenerator.TPIM_WITHOUT_ROTATION:
@@ -91,6 +109,7 @@ public class Packer  {
                 	tpPacker.init(binWidth, binHeight);
                 tpPacker.setUseRotation(false);
                 res= tpPacker.insert(items);
+            
                 break;
             /**case TextureAtlasGenerator.BOLE:
                 calcBOLE(res);
@@ -101,6 +120,7 @@ public class Packer  {
             default:
                 throw new Exception(algorithm + " is not supported.");
         }
+        res.setFourChanel(fourChanel);
 		return res;
 	}
 	

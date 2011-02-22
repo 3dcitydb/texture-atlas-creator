@@ -52,16 +52,14 @@ public class TexturePacker extends AbstractTexturePacker {
 				e.printStackTrace();
 				imgs[i]= new BufferedImage(0, 0, BufferedImage.TYPE_INT_RGB);
 			}			
-			if (imgsPath[i].indexOf("tex4047653.jpeg")>0)
-				System.out.println("here!");
+			
             widths[i] = imgs[i].getWidth();
             heights[i] = imgs[i].getHeight();
             if (heights[i]<ImageMaxHeight){
             	totalWidth+=widths[i];
             	if (heights[i]>maxHeigth)
                     maxHeigth = (int)heights[i];
-            }else
-            	System.out.println("OVEEEEEEEEEEER  "+imgsPath[i]);
+            }
             	
            
             
@@ -76,8 +74,7 @@ public class TexturePacker extends AbstractTexturePacker {
 		Hashtable<String, TexturePropertiesInAtlas> ht= new Hashtable<String, TexturePropertiesInAtlas>();
 		TexturePropertiesInAtlas ip;
 		for (int i = 0; i < imgs.length; i++) {
-			if (i==92)
-				System.out.print(i);
+
 			if (ImageMaxWidth<widths[order[i]]+w){
 				writeImage(isAnyTransparent,ImageMaxWidth,maxHeigth);
 				totalWidth-=w;

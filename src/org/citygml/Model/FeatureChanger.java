@@ -9,19 +9,17 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
-import org.citygml.util.Logger;
-import org.citygml4j.builder.copy.DeepCopyBuilder;
+import org.citygml4j.commons.child.ChildInfo;
 import org.citygml4j.factory.CityGMLFactory;
 import org.citygml4j.model.citygml.appearance.Appearance;
+import org.citygml4j.model.citygml.appearance.AppearanceProperty;
 import org.citygml4j.model.citygml.appearance.ParameterizedTexture;
 import org.citygml4j.model.citygml.appearance.SurfaceDataProperty;
 import org.citygml4j.model.citygml.appearance.TexCoordList;
 import org.citygml4j.model.citygml.appearance.TextureAssociation;
 import org.citygml4j.model.citygml.appearance.TextureCoordinates;
-import org.citygml4j.model.citygml.appearance.X3DMaterial;
 import org.citygml4j.model.citygml.building.AbstractBuilding;
 import org.citygml4j.visitor.walker.FeatureWalker;
-
 /**
  * it will clear the input data structure
  * @author babak naderi
@@ -32,32 +30,28 @@ public class FeatureChanger extends FeatureWalker {
 	private CityGMLFactory citygml;
 	private Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings;
 	private Hashtable<Integer,TexImageInfo4GMLFile> building;
-	
-	
-	int pcc = 0;
+	ChildInfo ci = new ChildInfo();
+	boolean isEmpty=false;
+	// Temporarily
 	
 	public void set(Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings, CityGMLFactory cityGML){
 		this.citygml =cityGML;
 		this.buildings = buildings;
-		pcc=0;
 	}
 	
-	
-	
-	@Override
-	public void accept(AbstractBuilding arg0) {
-		// TODO Auto-generated method stub
-		building= buildings.get(arg0.getId());
-		pcc=0;
-		super.accept(arg0);
-	}
 
 	
 	@Override
 	public void accept(Appearance arg0) {
-		this.appearance = arg0;		
-//		appearance.unsetSurfaceDataMember();
-
+		
+		this.appearance = arg0;
+		//		appearance.unsetSurfaceDataMember();
+		AbstractBuilding abstractBuilding= ci.getParentCityObject(arg0, AbstractBuilding.class);
+		if (buildings!=null)
+			building= buildings.get(abstractBuilding.getId());
+		else
+			super.accept(arg0);
+		
 		TextureCoordinates tc ;
 		TexCoordList tcl;
 		TextureAssociation ta ;
@@ -72,8 +66,9 @@ public class FeatureChanger extends FeatureWalker {
 		// each texture group will be a SurfaceDataMember&ParameterizedTexture
 		while(texGroupEnum.hasMoreElements()){
 			texAtlasGroup = texGroupEnum.nextElement();
-			if(arg0.getId()!=null)
-				if (!texAtlasGroup.getGeneralProp().getAppearanceID().equalsIgnoreCase(arg0.getId()))
+			
+			if(arg0.getTheme()!=null)
+				if (!texAtlasGroup.getGeneralProp().getAppearanceTheme().equalsIgnoreCase(arg0.getTheme()))
 					continue;
 				
 			
@@ -83,10 +78,9 @@ public class FeatureChanger extends FeatureWalker {
 			
 			HashMap<Object, String> texImageURIS=texAtlasGroup.getTexImageURIs();
 			HashMap<Object, String> texCoordinates=texAtlasGroup.getTexCoordinates();
-			if (texImageURIS==null||texCoordinates==null){
-				Logger.getInstance().log(Logger.TYPE_ERROR, " texImageURIS or texCoordinates are null. Building id:"+arg0.getId());
+			if (texImageURIS==null||texCoordinates==null)						
 				continue;
-			}
+			
 			// each URI refer to a parameterizedTexture
 			
 			Iterator<String> URIS= texImageURIS.values().iterator();
@@ -146,7 +140,10 @@ public class FeatureChanger extends FeatureWalker {
 			texAtlasGroup.clear();
 			TexCoordListHashMap.clear();
 		}
-	
+		if(arg0.getSurfaceDataMember().isEmpty()){
+			abstractBuilding.unsetAppearance((AppearanceProperty)arg0.getParent());
+		}
+			
 		super.accept(arg0);
 	}
 	

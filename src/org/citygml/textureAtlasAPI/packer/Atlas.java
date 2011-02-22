@@ -11,12 +11,21 @@ public class Atlas {
 	private Map <Integer,List<AbstractRect>> levelMap; 
 	private int bindingBoxHeight = 0;
 	private int bindingBoxWidth = 0;
+	private boolean fourChanel=false;
     
-    // Constructors
+
+
+	// Constructors
     public Atlas(){
     	levelMap=new HashMap<Integer,List<AbstractRect>>();
     }
-        
+    public boolean isFourChanel() {
+		return fourChanel;
+	}
+
+	public void setFourChanel(boolean fourChanel) {
+		this.fourChanel = fourChanel;
+	}      
     // set methods
     public void setBindingBox(int w,int h){
     	bindingBoxHeight=h;
