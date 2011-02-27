@@ -1,15 +1,13 @@
 package org.citygml.textureAtlasAPI;
 
 import java.awt.Graphics2D;
-import java.awt.Image;
+
 
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.math.BigDecimal;
-import java.math.MathContext;
 
 
 import java.util.ArrayList;
@@ -28,7 +26,7 @@ import org.citygml.textureAtlasAPI.imageIO.ImageScaling;
 import org.citygml.textureAtlasAPI.packer.AbstractRect;
 import org.citygml.textureAtlasAPI.packer.Atlas;
 import org.citygml.textureAtlasAPI.packer.Packer;
-import org.citygml.textureAtlasAPI.packer.Rect;
+import org.citygml.util.Logger;
 
 public class Modifier {
 	private int ImageMaxWidth;
@@ -106,12 +104,12 @@ public class Modifier {
 		boolean is4Chanel=false;
 		double[] coordinate;
 		if (textUri==null){
-			System.err.println("------ NO Texture");
+			//System.err.println("------ NO Texture");
 			return ti;
 		}
 		for (Object key : textUri.keySet()){
 			URI= textUri.get(key);
-
+		
 			//Check whether this URI is changed before.
 			if((tmpURI=URIDic.get(URI))!=null){
 				// this URI previously have been changed, so textImage should also be changed before.
@@ -119,7 +117,7 @@ public class Modifier {
 				URI=tmpURI;
 			}else{
 				tmpTextureImage= textImage.get(URI);
-				if (tmpTextureImage!=null){
+				if (tmpTextureImage!=null && tmpTextureImage.getBufferedImage()!=null ){
 					tmpURI= makeNewURI(URI, tmpTextureImage.getChanels());
 					textUri.put(key,tmpURI);
 					textImage.remove(URI);
@@ -349,7 +347,8 @@ public class Modifier {
 			ImageIO.write(bitext,"jpeg",new File("C:/test1.jpg"));
 		
 		}catch(Exception e){
-			e.printStackTrace();
+			if (Logger.SHOW_STACK_PRINT)
+				e.printStackTrace();
 		}
 	}
 	
@@ -373,6 +372,8 @@ public class Modifier {
 		try{
 			return msp.getResult();	
 		}catch(Exception e){
+			if (Logger.SHOW_STACK_PRINT)
+				e.printStackTrace();
 			return null;
 		}
 		

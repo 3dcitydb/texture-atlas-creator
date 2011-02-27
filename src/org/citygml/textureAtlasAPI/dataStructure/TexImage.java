@@ -1,12 +1,11 @@
 package org.citygml.textureAtlasAPI.dataStructure;
 
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.sql.SQLException;
-import javax.swing.ImageIcon;
 import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
+import org.citygml.util.Logger;
+
 import oracle.ord.im.OrdImage;
 
 /**
@@ -24,16 +23,14 @@ public class TexImage {
 	private static ImageLoader imageLoader = new ImageLoader();
 	private int chanels=3;
 
-//	public TexImage(Image bi, int chanels) {
-//		this.image = bi;
-//		this.type = IMAGE;
-//		this.chanels= chanels;
-//	}
-	
+
 	public TexImage(BufferedImage bi){
 		this.image=bi;
 		this.type=IMAGE;
-		this.chanels = (bi.getType()==(BufferedImage.TYPE_4BYTE_ABGR)||(bi.getType()==BufferedImage.TYPE_INT_ARGB)?4:3);	
+		if (bi!=null)
+			this.chanels = getChanel(bi.getType());	
+		else
+			this.chanels =-1;
 	}
 		
 	
@@ -56,17 +53,11 @@ public class TexImage {
 						.getMimeType(), mb.length);
 				mb=null;
 				this.chanels=imageLoader.getChanels();
-			} catch (SQLException e) {
-
-				e.printStackTrace();
+			} catch (Exception e) {
+				if (Logger.SHOW_STACK_PRINT)
+					e.printStackTrace();
 				e = null;
 				return null;
-			}catch (OutOfMemoryError e) {
-
-				e.printStackTrace();
-			} catch (IOException e) {
-
-				e.printStackTrace();
 			}
 		}
 		return this.image;
@@ -94,7 +85,10 @@ public class TexImage {
 
 	public void setImage(BufferedImage bImage) {
 		this.image = bImage;
-		this.chanels = (bImage.getType()==(BufferedImage.TYPE_4BYTE_ABGR)||(bImage.getType()==BufferedImage.TYPE_INT_ARGB)?4:3);
+		if (bImage!=null)
+			this.chanels = getChanel(bImage.getType());
+		else
+			this.chanels = -1;
 	}
 
 	public void setImage(OrdImage ordImage) {
@@ -106,6 +100,20 @@ public class TexImage {
 		return this.chanels;
 	}
 	
+	public int getChanel(int BuffImageType){
+		switch(BuffImageType){
+		case BufferedImage.TYPE_BYTE_GRAY:
+			return 1;
+		case BufferedImage.TYPE_INT_ARGB:
+		case BufferedImage.TYPE_INT_ARGB_PRE:
+		case BufferedImage.TYPE_4BYTE_ABGR:
+		case BufferedImage.TYPE_4BYTE_ABGR_PRE:
+			return 4;
+		default:
+			return 3;
+		}
+	}
+	
 	public void freeMemory(){
 		// how to finalize it!?
 		ordImage=null;
@@ -113,6 +121,6 @@ public class TexImage {
 			image.flush();
 			image=null;
 		}
-			
+		
 	}
 }

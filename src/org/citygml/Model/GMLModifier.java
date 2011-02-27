@@ -38,6 +38,7 @@ import org.citygml4j.model.citygml.appearance.TexCoordList;
 import org.citygml4j.model.citygml.appearance.TextureAssociation;
 import org.citygml4j.model.citygml.appearance.TextureCoordinates;
 import org.citygml4j.model.citygml.building.AbstractBuilding;
+import org.citygml4j.model.citygml.building.Building;
 
 import org.citygml4j.model.module.citygml.CityGMLVersion;
 import org.citygml4j.model.module.citygml.CoreModule;
@@ -114,10 +115,12 @@ public class GMLModifier {
 	}
 	
 	private String getNumber(int c){
-		switch(c){
-		case 1: return "1st";
-		case 2: return "2nd";
-		case 3: return "3rd";
+		if (c<14 && c>10 )
+			return c+"th";
+		switch(c%10){
+		case 1: return c+"st";
+		case 2: return c+"nd";
+		case 3: return c+"rd";
 		default: return c+"th";
 		}
 	}
@@ -132,6 +135,7 @@ public class GMLModifier {
 		try {
 			// Load a cityGML file
 			CityModel cityModel = readGMLFile(inputGML);
+			
 			// scan the cityModel object to obtain all surface data of each building separately.
 			Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings=newCityModelScaner(cityModel);
 			Logger.getInstance().log(Logger.TYPE_INFO,"   Contains "+buildings.size()+" building(s).");
@@ -146,7 +150,7 @@ public class GMLModifier {
 			String log;
 			for(String buildingID: buildings.keySet()){
 
-				Logger.getInstance().log(Logger.TYPE_INFO,"       Work on "+getNumber(cc)+" building.("+buildingID+")");
+				Logger.getInstance().log(Logger.TYPE_INFO,"       Working on "+getNumber(cc)+" building.("+buildingID+")");
 				building=buildings.get(buildingID);
 				Enumeration<Integer> texGroupIDS= building.keys();
 				while(texGroupIDS.hasMoreElements()){
@@ -155,7 +159,7 @@ public class GMLModifier {
 					texGroup= (TexImageInfo4GMLFile) atlasGenerator.convert(texGroup);
 					log = atlasGenerator.getLOGInText();
 					if (log!=null){
-						Logger.getInstance().log(Logger.TYPE_ERROR,log.replaceAll("<", "       <"));
+						Logger.getInstance().log(Logger.TYPE_ERROR,log.replaceAll("<", "                  <").replaceFirst("                  <",  "       <"));
 						log=null;
 					}
 					
@@ -174,7 +178,8 @@ public class GMLModifier {
 			
 		} catch (Exception e) {
 			Logger.getInstance().log(Logger.TYPE_ERROR,"Error in modification...\n"+e.getMessage());
-			e.printStackTrace();
+			if (Logger.SHOW_STACK_PRINT)
+				e.printStackTrace();
 		}
 
 	}
@@ -209,27 +214,47 @@ public class GMLModifier {
 			Hashtable<Integer,TexImageInfo4GMLFile> building;
 			TexImageInfo4GMLFile texGroup = null;
 			TexGeneralProperties tmpProp=null;
-			int counter =0;
+			
 			TexGeneralProperties genProp = null;
 
 			Appearance currentApp;
+			Building currentBuilding;
 			ChildInfo ci = new ChildInfo();
 
 			
 			public void accept(ParameterizedTexture parameterizedTexture) {
+				// cityGML structure
 				currentApp= ci.getParentFeature(parameterizedTexture, Appearance.class);
+				// cityGML structure
+				currentBuilding= ci.getParentCityObject(parameterizedTexture, Building.class);
+				// my structure
+				building =buildings.get(currentBuilding.getId());
+				if (building==null){
+					addNewBuilding(currentBuilding.getId());
+				}else  if (building.size()!=0){
+					texGroup = building.get(new Integer(building.size()-1));
+					genProp=texGroup.getGeneralProp();
+				}else{
+					//else not possible
+					texGroup = new TexImageInfo4GMLFile();
+					building.put(new Integer(building.size()), texGroup);
+					genProp = null;
+				}
+
 				if (genProp==null){
 					genProp = new TexGeneralProperties(parameterizedTexture
 							.getTextureType(), parameterizedTexture
 							.getWrapMode(), parameterizedTexture
 							.getBorderColor(), parameterizedTexture
-							.getIsFront(),currentApp.getTheme(),parameterizedTexture.getMimeType());
+							.getIsFront(),currentApp.getTheme(),
+							parameterizedTexture.getMimeType(),currentBuilding.getId());
 					texGroup.setGeneralProp(genProp);
 				}else if(!genProp.compareItTo(tmpProp = new TexGeneralProperties (parameterizedTexture
 						.getTextureType(), parameterizedTexture
 						.getWrapMode(), parameterizedTexture
 						.getBorderColor(), parameterizedTexture
-						.getIsFront(),currentApp.getTheme(),parameterizedTexture.getMimeType()))){
+						.getIsFront(),currentApp.getTheme(),
+						parameterizedTexture.getMimeType(),currentBuilding.getId()))){
 					// find corresponding texGroup
 					texGroup = findTextGroupInBuilding(tmpProp);
 					if (texGroup!=null){
@@ -241,10 +266,9 @@ public class GMLModifier {
 						// there is not any similar texture in this building.
 						genProp =tmpProp;
 						tmpProp=null;
-						counter++;
 						texGroup = new TexImageInfo4GMLFile();
 						texGroup.setGeneralProp(genProp);
-						building.put(new Integer(counter), texGroup);
+						building.put(new Integer(building.size()), texGroup);
 					}
 					
 				}
@@ -271,14 +295,25 @@ public class GMLModifier {
 			}
 
 			public void accept(AbstractBuilding abstractBuilding) {
-				building = new Hashtable<Integer,TexImageInfo4GMLFile>();
-				texGroup = new TexImageInfo4GMLFile();
-				counter=0;
-				building.put(new Integer(counter), texGroup);
-				genProp = null;
-				
-				buildings.put(abstractBuilding.getId(), building);
+				if ((building=buildings.get(abstractBuilding.getId()))!=null ){
+					if (building.size()>0){
+						texGroup= building.get(new Integer(building.size()-1));
+						genProp = texGroup.getGeneralProp();
+					}else{
+						texGroup = new TexImageInfo4GMLFile();
+						building.put(new Integer(building.size()), texGroup);
+						genProp = null;
+					}
+				}else
+					addNewBuilding(abstractBuilding.getId());
 				super.accept(abstractBuilding);
+			}
+			private void addNewBuilding(String gId){
+					building = new Hashtable<Integer,TexImageInfo4GMLFile>();
+					texGroup = new TexImageInfo4GMLFile();
+					building.put(new Integer(building.size()), texGroup);
+					genProp = null;
+					buildings.put(gId, building);			
 			}
 			
 			private TexImageInfo4GMLFile findTextGroupInBuilding(TexGeneralProperties genP){
@@ -399,7 +434,8 @@ public class GMLModifier {
 				
 
 			}catch(Exception e){
-				e.printStackTrace();
+				if (Logger.SHOW_STACK_PRINT)
+					e.printStackTrace();
 			}
 			outPath=null;
 
@@ -437,8 +473,8 @@ public class GMLModifier {
 				fin=null;
 				
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				if (Logger.SHOW_STACK_PRINT)
+					e.printStackTrace();
 			}
 			
 		}

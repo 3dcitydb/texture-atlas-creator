@@ -2,7 +2,6 @@ package org.citygml.textureAtlasAPI.packer;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 public class HeuristicBinPacking {

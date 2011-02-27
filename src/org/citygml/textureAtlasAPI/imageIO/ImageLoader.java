@@ -30,10 +30,9 @@ public class ImageLoader {
 	
 	private BufferedImage loadImage(String path){
 		try {
-			
 			f= new File(path);
 			if (!f.exists()){
-				Logger.getInstance().log(Logger.TYPE_ERROR,"File not exists. ("+path+")");
+//				Logger.getInstance().log(Logger.TYPE_ERROR,"File not exists. ("+path+")");
 				return null;
 			}
 			if (path.lastIndexOf(".rgb")>0){
@@ -44,11 +43,14 @@ public class ImageLoader {
 				b= ImageIO.read(f);
 			if (b!=null){
 				chanelDetector(b);
-			}else chanels=0;
+			}else {
+				chanels=0;
+				Logger.getInstance().log(Logger.TYPE_ERROR,"Error in loading image. ("+path+")");
+			}
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			if (Logger.SHOW_STACK_PRINT)
+				e.printStackTrace();
 			Logger.getInstance().log(Logger.TYPE_ERROR,"Error in loading image. ("+path+")");
 		}
 		f=null;
@@ -71,7 +73,8 @@ public class ImageLoader {
 			} else
 				chanels = 0;
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (Logger.SHOW_STACK_PRINT)
+				e.printStackTrace();
 		}
 		return b;
 	}	
@@ -80,6 +83,8 @@ public class ImageLoader {
 	
 	private void chanelDetector(BufferedImage bImage){
 		switch(bImage.getType()){
+		case BufferedImage.TYPE_BYTE_GRAY:
+			this.chanels=1;break;
 		case BufferedImage.TYPE_INT_ARGB:
 		case BufferedImage.TYPE_INT_ARGB_PRE:
 		case BufferedImage.TYPE_4BYTE_ABGR:

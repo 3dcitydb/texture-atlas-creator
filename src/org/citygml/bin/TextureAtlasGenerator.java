@@ -37,16 +37,14 @@ public class TextureAtlasGenerator {
 	/**
 	 * Note: do not use any space in the directory names.
 	 * @param args
-	 * args[0]:Output atlas options | Input(file/directory)
-	 * args[1]:Input(file/directory)| Output(file/directory)
-	 * args[2]:Output(file/directory)|null
 	 */
 	public static void main(String[] args) {
+
 		String input="";
 		String output="";
 		int packing= org.citygml.textureAtlasAPI.TextureAtlasGenerator.TPIM;
-		int w=2000;
-		int h=2000;
+		int w=2048;
+		int h=2048;
 		if (args.length==0)
 			syntaxError();
 		try{
@@ -78,22 +76,11 @@ public class TextureAtlasGenerator {
 		}
 		}catch(Exception e){
 			syntaxError();
+			if (Logger.SHOW_STACK_PRINT)
+				e.printStackTrace();
 		}
 		TextureAtlasGenerator mt;
 		mt = new TextureAtlasGenerator("-atlasPNG",input,output,packing,w,h);
-		/**
-		switch(args.length){
-		case 2:// without  Output atlas options
-			mt = new TextureAtlasGenerator("-atlasPNG",args[0],args[1]);
-			break;
-		case 3:
-			mt = new TextureAtlasGenerator(args[0],args[1],args[2]);
-			break;
-		default:
-			syntaxError();
-//			mt = new TextureAtlasGenerator();
-			
-		}**/
 	}
 	private static int getAlgo(String name){
 		if (name.equalsIgnoreCase("TPIM"))
@@ -121,7 +108,9 @@ public class TextureAtlasGenerator {
 				"        \t TPIM \t TPIM_WOR\r\n"+
 				"        \t SLEA \t NFDH\r\n"+
 				"        \t FFDH\r\n"+
+				"        \t (Default algorithm is TPIM)\r\n \r\n"+
 				"[/W max_width /H max_height] Maximum size of texture atlas.\r\n"+
+				"                             (Default size  width:2048 height:2048)\r\n \r\n"+
 				"input	 \t input file or folder.\r\n"+
 				"output  \t output file or folder\r\n"+
 				"\r\n"+

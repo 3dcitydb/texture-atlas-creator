@@ -9,6 +9,7 @@ import java.util.Hashtable;
 
 import javax.imageio.ImageIO;
 import org.citygml.Model.DataStructures.TexturePropertiesInAtlas;
+import org.citygml.util.Logger;
 
 public class TexturePacker extends AbstractTexturePacker {
 	public  static int ImageMaxWidth=2048;
@@ -48,8 +49,8 @@ public class TexturePacker extends AbstractTexturePacker {
 			try {
 				imgs[i]=ImageIO.read(new File(imgsPath[i]));
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				if (Logger.SHOW_STACK_PRINT)
+					e.printStackTrace();
 				imgs[i]= new BufferedImage(0, 0, BufferedImage.TYPE_INT_RGB);
 			}			
 			
@@ -90,8 +91,8 @@ public class TexturePacker extends AbstractTexturePacker {
 				try {
 					ImageIO.write(imgs[order[i]],getAtlasFormat(isAnyTransparent), file);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					if (Logger.SHOW_STACK_PRINT)
+						e.printStackTrace();
 				}
 			// fill the object.
 				ip= new TexturePropertiesInAtlas();
@@ -146,7 +147,8 @@ public class TexturePacker extends AbstractTexturePacker {
 		g.clearRect(0, 0, ImageMaxWidth, ImageMaxHeight);
 		overBorder=false;
 		}catch(Exception e){
-			e.printStackTrace();
+			if (Logger.SHOW_STACK_PRINT)
+				e.printStackTrace();
 		}
 	}
 	

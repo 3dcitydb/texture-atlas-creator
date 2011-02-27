@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
+import org.citygml.util.Logger;
 import org.citygml4j.commons.child.ChildInfo;
 import org.citygml4j.factory.CityGMLFactory;
 import org.citygml4j.model.citygml.appearance.Appearance;
@@ -156,7 +157,8 @@ public class FeatureChanger extends FeatureWalker {
 			try{
 			list.add(new Double(ls[i]));
 			}catch(Exception e){
-				
+				if (Logger.SHOW_STACK_PRINT)
+					e.printStackTrace();
 			}
 			ls[i]=null;
 		}

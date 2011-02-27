@@ -6,6 +6,7 @@ import java.util.Calendar;
 
 
 public class Logger {
+	public final static boolean SHOW_STACK_PRINT=false;
 	public final static int TYPE_INFO=1;
 	public final static int TYPE_ERROR=2;
 	public final static int TYPE_NESS=3;
@@ -45,7 +46,7 @@ public class Logger {
 		if ((type==TYPE_INFO && this.showDetail)|| type==TYPE_NESS)
 			System.out.println(getPrefix()+log);
 		else if (type==TYPE_ERROR){
-			System.err.println(getPrefix()+log);
+			System.out.println(getPrefix()+log);
 		}
 	}
 	

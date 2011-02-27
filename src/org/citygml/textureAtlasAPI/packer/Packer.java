@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Stack;
 
 import org.citygml.textureAtlasAPI.TextureAtlasGenerator;
+import org.citygml.util.Logger;
 
 
 public class Packer  {
@@ -302,7 +303,8 @@ public class Packer  {
 	                    right.push(x + item.width);
 	                    
 	                } catch (EmptyStackException e) {
-	                    
+	                	if (Logger.SHOW_STACK_PRINT)
+	        				e.printStackTrace();
 	                }              // das dürfte eh nicht passieren ...
 	            }
 	            item.setPOS(x, y, new Integer(0));

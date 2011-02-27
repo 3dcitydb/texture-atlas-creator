@@ -1,9 +1,9 @@
 package org.citygml.Control;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
+/**import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryUsage;
+import java.lang.management.MemoryUsage;**/
 import java.util.Stack;
 
 import javax.management.Notification;
@@ -11,7 +11,7 @@ import javax.management.Notification;
 import org.citygml.Model.GMLModifier;
 import org.citygml.util.Logger;
 
-import javax.management.*;
+//import javax.management.*;
 
 
 public class Controller {
@@ -85,7 +85,7 @@ public class Controller {
 	
 	public void start(){
 		System.out.println("\r\n");
-		Logger.getInstance().log(Logger.TYPE_NESS,"TextureAtlas creator is started...");
+		Logger.getInstance().log(Logger.TYPE_NESS,"Texture Atlas Creator is started...");
 		File input =new File(inputPath);
 		
 		if (input.isDirectory()){ // input is a directory
@@ -94,7 +94,7 @@ public class Controller {
 			gmlModifier.setProperties(inputPath, outputPath,texturePackerType,maxW,maxH);
 			gmlModifier.modify();
 		}
-		Logger.getInstance().log(Logger.TYPE_NESS,"All the available GML files compiled.");
+		Logger.getInstance().log(Logger.TYPE_NESS,"All available GML files compiled.");
 		System.out.println("\r\n");
 	}
 	
@@ -143,7 +143,8 @@ public class Controller {
 			}
 						
 		}catch (Exception e){
-			e.printStackTrace();
+			if (Logger.SHOW_STACK_PRINT)
+				e.printStackTrace();
 			
 		}	
 		

@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.citygml.util.Logger;
+
 
 public class RGBEncoder {
 
@@ -47,7 +49,15 @@ public class RGBEncoder {
 		// if reset, clear the data.
 		max = start + len;
 		rCounter = 0;
-
+		if (header.chanels==1){
+			while (start < max) {
+				tmp=allData[start++]& 0xff;
+//				tmp = (int)(((tmp-header.pimin)*255)/header.pSize);
+				result[rCounter] = (tmp << 16) | (tmp << 8) | tmp;
+				rCounter++;
+			}
+			return;
+		}
 		if (!reset) {
 			while (start < max) {
 				tmp = allData[start++] & 0xff;
@@ -134,7 +144,7 @@ public class RGBEncoder {
 	}
 
 	byte[][] ChannelsShifts = { {},// free
-			{},// B/W
+			{0},// B/W
 			{},// ?
 			{ 16, 8, 0 },// RGB
 			{ 16, 8, 0, 24 } // RGBA
@@ -148,14 +158,25 @@ public class RGBEncoder {
 		return readRGB(new FileInputStream(file),(int)file.length());
 		
 	}
-	
+	RGBHeader header;
 	public BufferedImage readRGB(InputStream is, int fileLength)throws Exception {
 		if (is==null)
 			return null;
 		
-		RGBHeader header = readHeader(is);
-		bi = new BufferedImage(header.xSize, header.ySize,
-				header.chanels==4?BufferedImage.TYPE_INT_ARGB:BufferedImage.TYPE_INT_RGB);
+		header = readHeader(is);
+		if (header.BPC==2 || // 2 byte per pixel 
+				!header.isMagic ||// it is not RGB
+				header.dimension==1 // one row of data
+				){
+			// not supported
+			return null;
+		}
+		switch(header.chanels){
+		case 1:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_BYTE_GRAY);break;
+		case 3:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_INT_RGB);break;
+		case 4:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_INT_ARGB);break;
+		default: return null;
+		}
 
 		
 		int tmp = 0;
@@ -227,12 +248,18 @@ public class RGBEncoder {
 			header.xSize = getShort(headerR, count);
 			header.ySize = getShort(headerR, count+2);
 			header.chanels = getShort(headerR, count+4);
-			count+=98;// skip Pixmin, pixmax, dummy, name
+			count+=6;
+			header.pimin=getLong(headerR, count);
+			header.pimax=getLong(headerR, count+4);
+			header.pSize=header.pimax-header.pimin;
+			count+=84;// dummy, name
+//			count+=98;// skip Pixmin, pixmax, dummy, name
 			header.colorMap = getLong(headerR, count);
 			headerR = null;
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			if (Logger.SHOW_STACK_PRINT)
+				e.printStackTrace();
 			return null;
 		}
 		return header;
@@ -250,7 +277,9 @@ class RGBHeader {
 	int xSize, ySize;
 	int chanels;
 	long colorMap;
-
+	long pimin;
+	long pimax;
+	long pSize;
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("isMagic:");
