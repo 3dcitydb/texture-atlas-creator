@@ -48,7 +48,7 @@ public class FeatureChanger extends FeatureWalker {
 		this.appearance = arg0;
 		//		appearance.unsetSurfaceDataMember();
 		AbstractBuilding abstractBuilding= ci.getParentCityObject(arg0, AbstractBuilding.class);
-		if (buildings!=null)
+		if (buildings!=null&&abstractBuilding!=null)
 			building= buildings.get(abstractBuilding.getId());
 		else
 			super.accept(arg0);

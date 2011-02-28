@@ -227,6 +227,12 @@ public class GMLModifier {
 				currentApp= ci.getParentFeature(parameterizedTexture, Appearance.class);
 				// cityGML structure
 				currentBuilding= ci.getParentCityObject(parameterizedTexture, Building.class);
+				if (currentBuilding==null){
+					// just take them in acount to copy them.
+					building =buildings.get("UNKNOWN");
+					if (building==null)
+						addNewBuilding("UNKNOWN");
+				}else{
 				// my structure
 				building =buildings.get(currentBuilding.getId());
 				if (building==null){
@@ -271,7 +277,7 @@ public class GMLModifier {
 						building.put(new Integer(building.size()), texGroup);
 					}
 					
-				}
+				}}
 				texGroup.addTexImages(parameterizedTexture.getImageURI(), getCompliteImagePath(parameterizedTexture.getImageURI()));
 				
 				Iterator<TextureAssociation> targets = parameterizedTexture
@@ -289,8 +295,9 @@ public class GMLModifier {
 								.getImageURI(), double2String(tc.getValue()));
 					}}
 				}
-				
-				currentApp.unsetSurfaceDataMember((SurfaceDataProperty) parameterizedTexture.getParent());
+				// in the case of landuse,...
+				if (currentBuilding!=null)
+					currentApp.unsetSurfaceDataMember((SurfaceDataProperty) parameterizedTexture.getParent());
 				super.accept(parameterizedTexture);
 			}
 
