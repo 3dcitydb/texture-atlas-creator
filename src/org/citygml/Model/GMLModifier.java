@@ -22,6 +22,7 @@ import org.citygml4j.builder.jaxb.JAXBBuilder;
 import org.citygml4j.factory.CityGMLFactory;
 
 import org.citygml4j.model.citygml.core.CityModel;
+import org.citygml4j.model.citygml.core.CityObject;
 import org.citygml4j.xml.io.CityGMLInputFactory;
 import org.citygml4j.xml.io.reader.CityGMLReader;
 import org.citygml4j.xml.io.writer.CityGMLWriter;
@@ -173,6 +174,7 @@ public class GMLModifier {
 			myFeatureWalker.set(buildings,citygml);
 			cityModel.visit(myFeatureWalker);
 			myFeatureWalker=null;
+			Logger.getInstance().log(Logger.TYPE_INFO,"   Writing the output on file...");
 			writeGMLFile(cityModel, outputGML);
 			
 		} catch (Exception e) {
@@ -217,7 +219,8 @@ public class GMLModifier {
 			TexGeneralProperties genProp = null;
 
 			Appearance currentApp;
-			Building currentBuilding;
+//			Building currentBuilding;
+			CityObject parentCityObject;
 			ChildInfo ci = new ChildInfo();
 
 			
@@ -225,12 +228,22 @@ public class GMLModifier {
 				// cityGML structure
 				currentApp= ci.getParentFeature(parameterizedTexture, Appearance.class);
 				// cityGML structure
-				currentBuilding= ci.getParentCityObject(parameterizedTexture, Building.class);
-				if (currentBuilding==null)
-					buildingID = "UNKNOWN";
-				else
-					buildingID=currentBuilding.getId();
+//				currentBuilding= ci.getParentCityObject(parameterizedTexture, Building.class);
+//				if (currentBuilding==null)
+//					buildingID = "UNKNOWN";
+//				else
+//					buildingID=currentBuilding.getId();
 
+				
+				parentCityObject= ci.getParentCityObject(parameterizedTexture);
+				if (parentCityObject==null){
+					buildingID = "UNKNOWN";
+				
+				}
+				else
+					buildingID=parentCityObject.getId();
+				
+				
 				// my structure
 				building =buildings.get(buildingID);
 				if (building==null){
@@ -251,14 +264,14 @@ public class GMLModifier {
 							.getWrapMode(), parameterizedTexture
 							.getBorderColor(), parameterizedTexture
 							.getIsFront(),currentApp.getTheme(),
-							parameterizedTexture.getMimeType(),buildingID);
+							parameterizedTexture.getMimeType(),buildingID,getExtension(parameterizedTexture.getImageURI()));
 					texGroup.setGeneralProp(genProp);
 				}else if(!genProp.compareItTo(tmpProp = new TexGeneralProperties (parameterizedTexture
 						.getTextureType(), parameterizedTexture
 						.getWrapMode(), parameterizedTexture
 						.getBorderColor(), parameterizedTexture
 						.getIsFront(),currentApp.getTheme(),
-						parameterizedTexture.getMimeType(),buildingID))){
+						parameterizedTexture.getMimeType(),buildingID,getExtension(parameterizedTexture.getImageURI())))){
 					// find corresponding texGroup
 					texGroup = findTextGroupInBuilding(tmpProp);
 					if (texGroup!=null){
@@ -294,7 +307,7 @@ public class GMLModifier {
 					}}
 				}
 				// in the case of land use, Appearences without model..
-				if (currentBuilding!=null)
+				if (parentCityObject!=null)
 					currentApp.unsetSurfaceDataMember((SurfaceDataProperty) parameterizedTexture.getParent());
 				super.accept(parameterizedTexture);
 			}
@@ -336,6 +349,12 @@ public class GMLModifier {
 				tmp=null;
 				return null;
 			}
+			
+			private String getExtension(String path){
+				if (path!=null)
+					return path.substring(path.lastIndexOf('.')+1,path.length());
+				return null;
+			}
 
 		};
 
@@ -367,9 +386,12 @@ public class GMLModifier {
  * @throws Exception
  */
 	public void writeGMLFile(CityModel cityModel,String path)throws Exception{
+		File file = new File(path);
+		if (!file.exists() &&file.getParent()!=null)
+			file.getParentFile().mkdirs();
 		
 		CityGMLOutputFactory out = builder.createCityGMLOutputFactory(CityGMLVersion.v1_0_0);
-		CityGMLWriter writer = out.createCityGMLWriter(new File(path));
+		CityGMLWriter writer = out.createCityGMLWriter(file);
 		writer.setPrefixes(CityGMLVersion.v1_0_0);
 		writer.setDefaultNamespace(CoreModule.v1_0_0);
 		writer.setSchemaLocations(CityGMLVersion.v1_0_0);
@@ -412,6 +434,7 @@ public class GMLModifier {
 		Graphics2D g=bi.createGraphics();
 		for(String path: texImage.keySet()){
 			
+		
 			bim= texImage.get(path).getBufferedImage();
 			chanels=texImage.get(path).getChanels();
 			

@@ -58,8 +58,8 @@ public class ImageLoader {
 		return b;
 	}
 	
-	public BufferedImage loadImage(InputStream is, String MIME_Type, int size){
-		if (!isSupportedImageFormat(MIME_Type))
+	public BufferedImage loadImage(InputStream is, String MIME_Type,String estension, int size){
+		if (!isSupportedImageFormat(MIME_Type,estension))
 			return null;
 		try {
 			if (MIME_Type.lastIndexOf("rgb") > 0) {
@@ -118,15 +118,19 @@ public class ImageLoader {
 		return texImages ;
 	}
 	
-	public static boolean isSupportedImageFormat(String MIMEType){
+	public static boolean isSupportedImageFormat(String MIMEType,String extension){
 		if (SupportedImageMIMETypes==null)
 			loadSupportedImageList();
-		if (MIMEType==null)
+		if (MIMEType==null){
+			if (extension!=null)
+				return SupportedImageExtensions.contains(extension.toUpperCase());
 			return false;
+		}
 		return SupportedImageMIMETypes.contains(MIMEType.toUpperCase());
 	}
 	
 	private static ArrayList<String> SupportedImageMIMETypes=null;
+	private static ArrayList<String> SupportedImageExtensions=null;
 	private static void loadSupportedImageList(){
 		SupportedImageMIMETypes= new ArrayList<String>();
 		String[] st= ImageIO.getReaderMIMETypes();
@@ -136,6 +140,12 @@ public class ImageLoader {
 		}
 		SupportedImageMIMETypes.add("IMAGE/RGB");
 		SupportedImageMIMETypes.add("IMAGE/X-RGB");
+		SupportedImageExtensions = new ArrayList<String>();
+		SupportedImageExtensions.add("JPG");
+		SupportedImageExtensions.add("JPEG");
+		SupportedImageExtensions.add("RGB");
+		SupportedImageExtensions.add("PNG");
+		SupportedImageExtensions.add("GIF");
 		
 		st=null;
 	}

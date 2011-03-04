@@ -50,14 +50,26 @@ public class FeatureChanger extends FeatureWalker {
 		
 		this.appearance = arg0;
 		//		appearance.unsetSurfaceDataMember();
-		AbstractBuilding abstractBuilding= ci.getParentCityObject(arg0, AbstractBuilding.class);
+//		AbstractBuilding abstractBuilding= ci.getParentCityObject(arg0, AbstractBuilding.class);
 		
-		//CityObject co= ci.getParentCityObject(arg0);
+		CityObject parentCityObject= ci.getParentCityObject(arg0);
 		
-		if (buildings!=null&&abstractBuilding!=null)
-			building= buildings.get(abstractBuilding.getId());
+//		if (buildings!=null&&abstractBuilding!=null)
+//			building= buildings.get(abstractBuilding.getId());
+//		else
+//			super.accept(arg0);
+
+		
+		if (buildings!=null&&parentCityObject!=null)
+			building= buildings.get(parentCityObject.getId());
 		else
+			building= buildings.get("UNKNOWN");
+		
+		if (building==null){
+			System.out.println("Test!");
 			super.accept(arg0);
+			return;
+		}
 		
 		TextureCoordinates tc ;
 		TexCoordList tcl;
@@ -151,8 +163,8 @@ public class FeatureChanger extends FeatureWalker {
 			texAtlasGroup.clear();
 			TexCoordListHashMap.clear();
 		}
-		if(abstractBuilding !=null && arg0.getSurfaceDataMember().isEmpty()){
-			abstractBuilding.unsetAppearance((AppearanceProperty)arg0.getParent());
+		if(parentCityObject !=null && arg0.getSurfaceDataMember().isEmpty()){
+			parentCityObject.unsetAppearance((AppearanceProperty)arg0.getParent());
 		}
 			
 		super.accept(arg0);

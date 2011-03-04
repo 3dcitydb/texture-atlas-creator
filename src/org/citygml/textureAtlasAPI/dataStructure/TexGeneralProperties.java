@@ -18,25 +18,25 @@ public class TexGeneralProperties {
 	private String buildingID=null;
 	
 	public TexGeneralProperties(){
-		set(null,null,null,false,null,null,null);
+		set(null,null,null,false,null,null,null,null);
 	}
 	public TexGeneralProperties(TextureType textureType, WrapMode wrapMode,
-			ColorPlusOpacity boarderColor, boolean isFront, String appearanceTheme, String MIMEType,String buildingID) {
-		set(textureType,wrapMode,boarderColor,isFront,appearanceTheme,MIMEType,buildingID);
+			ColorPlusOpacity boarderColor, boolean isFront, String appearanceTheme, String MIMEType,String buildingID,String extension) {
+		set(textureType,wrapMode,boarderColor,isFront,appearanceTheme,MIMEType,buildingID,extension);
 	}
 
 	public String getBuildingID() {
 		return buildingID;
 	}
 	public void set(TextureType textureType, WrapMode wrapMode,
-			ColorPlusOpacity boarderColor, boolean isFront, String appearanceTheme,String MIMEType,String buildingID) {
+			ColorPlusOpacity boarderColor, boolean isFront, String appearanceTheme,String MIMEType,String buildingID,String extension) {
 		this.textureType = textureType;
 		this.wrapModeType = wrapMode;
 		this.boarderColor = boarderColor;
 		this.isFront = isFront;
 		this.appearanceTheme=appearanceTheme;
 		this.MIMEType = MIMEType;
-		this.supportedImageFormat=ImageLoader.isSupportedImageFormat(MIMEType);
+		this.supportedImageFormat=ImageLoader.isSupportedImageFormat(MIMEType,extension);
 		this.buildingID=buildingID;
 	}
 	
@@ -72,8 +72,8 @@ public class TexGeneralProperties {
 	}
 
 	public boolean compareItTo(TextureType textureType, WrapMode wrapMode,
-			ColorPlusOpacity boarderColor, boolean isFront,String appearanceTheme, String MIMEType,String buildingID) {		
-		return Compare(this, new TexGeneralProperties(textureType, wrapMode, boarderColor, isFront, appearanceTheme, MIMEType, buildingID));
+			ColorPlusOpacity boarderColor, boolean isFront,String appearanceTheme, String MIMEType,String buildingID,String extension) {		
+		return Compare(this, new TexGeneralProperties(textureType, wrapMode, boarderColor, isFront, appearanceTheme, MIMEType, buildingID,extension));
 
 	}
 	
@@ -115,7 +115,7 @@ public class TexGeneralProperties {
 		if (t1.getMIMEType()!=null)
 			result = result && (t1.isSupportedImageFormat()?(t2.isSupportedImageFormat()?true:false):t1.getMIMEType().equalsIgnoreCase(t2.getMIMEType()));
 		else
-			result= result && t2.getMIMEType()!=null ;
+			result= result && t2.getMIMEType()==null ;
 		
 		return result;
 				

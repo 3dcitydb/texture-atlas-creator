@@ -50,7 +50,7 @@ public class TexImage {
 				byte[] mb=ordImage.getDataInByteArray();
 			
 				this.image= imageLoader.loadImage(ordImage.getDataInStream(), ordImage
-						.getMimeType(), mb.length);
+						.getMimeType(),null, mb.length);
 				mb=null;
 				this.chanels=imageLoader.getChanels();
 			} catch (Exception e) {
