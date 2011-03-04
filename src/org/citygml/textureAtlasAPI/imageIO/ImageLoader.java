@@ -45,7 +45,7 @@ public class ImageLoader {
 				chanelDetector(b);
 			}else {
 				chanels=0;
-				Logger.getInstance().log(Logger.TYPE_ERROR,"Error in loading image. ("+path+")");
+				Logger.getInstance().log(Logger.TYPE_ERROR,"Error in loading an image. ("+path+")");
 			}
 			
 		} catch (Exception e) {
@@ -83,8 +83,10 @@ public class ImageLoader {
 	
 	private void chanelDetector(BufferedImage bImage){
 		switch(bImage.getType()){
+		case BufferedImage.TYPE_BYTE_INDEXED:
 		case BufferedImage.TYPE_BYTE_GRAY:
 			this.chanels=1;break;
+		
 		case BufferedImage.TYPE_INT_ARGB:
 		case BufferedImage.TYPE_INT_ARGB_PRE:
 		case BufferedImage.TYPE_4BYTE_ABGR:

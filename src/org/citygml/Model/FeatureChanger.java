@@ -12,6 +12,7 @@ import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
 import org.citygml.util.Logger;
 import org.citygml4j.commons.child.ChildInfo;
 import org.citygml4j.factory.CityGMLFactory;
+import org.citygml4j.jaxb.citygml.core._1.AbstractCityObjectType;
 import org.citygml4j.model.citygml.appearance.Appearance;
 import org.citygml4j.model.citygml.appearance.AppearanceProperty;
 import org.citygml4j.model.citygml.appearance.ParameterizedTexture;
@@ -20,6 +21,8 @@ import org.citygml4j.model.citygml.appearance.TexCoordList;
 import org.citygml4j.model.citygml.appearance.TextureAssociation;
 import org.citygml4j.model.citygml.appearance.TextureCoordinates;
 import org.citygml4j.model.citygml.building.AbstractBuilding;
+import org.citygml4j.model.citygml.core.CityObject;
+import org.citygml4j.model.gml.AbstractFeature;
 import org.citygml4j.visitor.walker.FeatureWalker;
 /**
  * it will clear the input data structure
@@ -48,6 +51,9 @@ public class FeatureChanger extends FeatureWalker {
 		this.appearance = arg0;
 		//		appearance.unsetSurfaceDataMember();
 		AbstractBuilding abstractBuilding= ci.getParentCityObject(arg0, AbstractBuilding.class);
+		
+		//CityObject co= ci.getParentCityObject(arg0);
+		
 		if (buildings!=null&&abstractBuilding!=null)
 			building= buildings.get(abstractBuilding.getId());
 		else
@@ -56,7 +62,6 @@ public class FeatureChanger extends FeatureWalker {
 		TextureCoordinates tc ;
 		TexCoordList tcl;
 		TextureAssociation ta ;
-		
 
 		SurfaceDataProperty sdpt;
 		ParameterizedTexture parameterizedTexture;
@@ -68,9 +73,14 @@ public class FeatureChanger extends FeatureWalker {
 		while(texGroupEnum.hasMoreElements()){
 			texAtlasGroup = texGroupEnum.nextElement();
 			
-			if(arg0.getTheme()!=null)
+			if (texAtlasGroup.getGeneralProp()==null){
+				building.remove(texAtlasGroup);
+				continue;
+			}
+			if(arg0.getTheme()!=null && texAtlasGroup.getGeneralProp().getAppearanceTheme()!=null)
 				if (!texAtlasGroup.getGeneralProp().getAppearanceTheme().equalsIgnoreCase(arg0.getTheme()))
 					continue;
+		
 				
 			
 			sdpt = citygml.createSurfaceDataProperty();
@@ -141,7 +151,7 @@ public class FeatureChanger extends FeatureWalker {
 			texAtlasGroup.clear();
 			TexCoordListHashMap.clear();
 		}
-		if(arg0.getSurfaceDataMember().isEmpty()){
+		if(abstractBuilding !=null && arg0.getSurfaceDataMember().isEmpty()){
 			abstractBuilding.unsetAppearance((AppearanceProperty)arg0.getParent());
 		}
 			

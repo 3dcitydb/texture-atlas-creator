@@ -161,8 +161,7 @@ public class GMLModifier {
 					if (log!=null){
 						Logger.getInstance().log(Logger.TYPE_ERROR,log.replaceAll("<", "                  <").replaceFirst("                  <",  "       <"));
 						log=null;
-					}
-					
+					}	
 					building.put(tmpKey, texGroup);
 					writeImageFiles(texGroup.getTexImages());
 				}
@@ -214,7 +213,7 @@ public class GMLModifier {
 			Hashtable<Integer,TexImageInfo4GMLFile> building;
 			TexImageInfo4GMLFile texGroup = null;
 			TexGeneralProperties tmpProp=null;
-			
+			String buildingID=null;
 			TexGeneralProperties genProp = null;
 
 			Appearance currentApp;
@@ -227,16 +226,15 @@ public class GMLModifier {
 				currentApp= ci.getParentFeature(parameterizedTexture, Appearance.class);
 				// cityGML structure
 				currentBuilding= ci.getParentCityObject(parameterizedTexture, Building.class);
-				if (currentBuilding==null){
-					// just take them in acount to copy them.
-					building =buildings.get("UNKNOWN");
-					if (building==null)
-						addNewBuilding("UNKNOWN");
-				}else{
+				if (currentBuilding==null)
+					buildingID = "UNKNOWN";
+				else
+					buildingID=currentBuilding.getId();
+
 				// my structure
-				building =buildings.get(currentBuilding.getId());
+				building =buildings.get(buildingID);
 				if (building==null){
-					addNewBuilding(currentBuilding.getId());
+					addNewBuilding(buildingID);
 				}else  if (building.size()!=0){
 					texGroup = building.get(new Integer(building.size()-1));
 					genProp=texGroup.getGeneralProp();
@@ -253,14 +251,14 @@ public class GMLModifier {
 							.getWrapMode(), parameterizedTexture
 							.getBorderColor(), parameterizedTexture
 							.getIsFront(),currentApp.getTheme(),
-							parameterizedTexture.getMimeType(),currentBuilding.getId());
+							parameterizedTexture.getMimeType(),buildingID);
 					texGroup.setGeneralProp(genProp);
 				}else if(!genProp.compareItTo(tmpProp = new TexGeneralProperties (parameterizedTexture
 						.getTextureType(), parameterizedTexture
 						.getWrapMode(), parameterizedTexture
 						.getBorderColor(), parameterizedTexture
 						.getIsFront(),currentApp.getTheme(),
-						parameterizedTexture.getMimeType(),currentBuilding.getId()))){
+						parameterizedTexture.getMimeType(),buildingID))){
 					// find corresponding texGroup
 					texGroup = findTextGroupInBuilding(tmpProp);
 					if (texGroup!=null){
@@ -277,7 +275,7 @@ public class GMLModifier {
 						building.put(new Integer(building.size()), texGroup);
 					}
 					
-				}}
+				}
 				texGroup.addTexImages(parameterizedTexture.getImageURI(), getCompliteImagePath(parameterizedTexture.getImageURI()));
 				
 				Iterator<TextureAssociation> targets = parameterizedTexture
@@ -295,7 +293,7 @@ public class GMLModifier {
 								.getImageURI(), double2String(tc.getValue()));
 					}}
 				}
-				// in the case of landuse,...
+				// in the case of land use, Appearences without model..
 				if (currentBuilding!=null)
 					currentApp.unsetSurfaceDataMember((SurfaceDataProperty) parameterizedTexture.getParent());
 				super.accept(parameterizedTexture);
@@ -413,7 +411,7 @@ public class GMLModifier {
 		BufferedImage bi = new BufferedImage(maxImageW, maxImageH, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g=bi.createGraphics();
 		for(String path: texImage.keySet()){
-
+			
 			bim= texImage.get(path).getBufferedImage();
 			chanels=texImage.get(path).getChanels();
 			
@@ -455,6 +453,7 @@ public class GMLModifier {
 	
 	private void copyFile(String pathIn, String pathOut){
 		int size;
+		
 		File fin=new File(pathIn);
 		if (fin.exists()&& fin.canRead()){
 			File fout =new File(pathOut);

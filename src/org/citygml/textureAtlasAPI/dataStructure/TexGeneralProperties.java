@@ -72,18 +72,9 @@ public class TexGeneralProperties {
 	}
 
 	public boolean compareItTo(TextureType textureType, WrapMode wrapMode,
-			ColorPlusOpacity boarderColor, boolean isFront,String appearanceTheme, String MIMEType,String buildingID) {
-		return(this.buildingID.equalsIgnoreCase(buildingID)&&
-				this.isFront==isFront&&
-				this.textureType.compareTo(textureType)==0&&
-				this.wrapModeType.compareTo(wrapMode)==0&&
-				compareColorPlusOpacity(this.boarderColor,boarderColor)&&
-				(appearanceTheme!=null?this.appearanceTheme.equalsIgnoreCase(appearanceTheme):appearanceTheme==null)&&
-				this.MIMEType!=null && MIMEType!=null&&
-				(this.isSupportedImageFormat()?(ImageLoader.isSupportedImageFormat(MIMEType)?true:false):this.MIMEType.equalsIgnoreCase(MIMEType)));
-			
-			
-		
+			ColorPlusOpacity boarderColor, boolean isFront,String appearanceTheme, String MIMEType,String buildingID) {		
+		return Compare(this, new TexGeneralProperties(textureType, wrapMode, boarderColor, isFront, appearanceTheme, MIMEType, buildingID));
+
 	}
 	
 	
@@ -93,20 +84,47 @@ public class TexGeneralProperties {
 	}
 
 	public static boolean Compare(TexGeneralProperties t1,TexGeneralProperties t2){
-		if(t1.getBuildingID().equalsIgnoreCase(t2.getBuildingID())&&
-				t1.isFront()==t2.isFront&&
-				t1.getTextureType().compareTo(t2.getTextureType())==0&&
-				t1.getWrapModeType().compareTo(t2.getWrapModeType())==0&&
-				compareColorPlusOpacity(t1.getBoarderColor(),t2.getBoarderColor())&&
-				(t1.getAppearanceTheme()!=null?t1.getAppearanceTheme().equalsIgnoreCase(t2.getAppearanceTheme()):t2.getAppearanceTheme()==null)&&
-				t1.getMIMEType()!=null&& t2.getMIMEType()!=null&&
-				(t1.isSupportedImageFormat()?(t2.isSupportedImageFormat()?true:false):t1.getMIMEType().equalsIgnoreCase(t2.getMIMEType())))
-			return true;
+		boolean result =true;
+		// parent buildingid
+		if (t1.getBuildingID()!=null)
+			result= result && t1.getBuildingID().equalsIgnoreCase(t2.getBuildingID());
+		else
+			result= result &&t1.getBuildingID()==null;
+
+		// isFront
+		result= result && t1.isFront()==t2.isFront;
 		
-		return false;
+		// texture type
+		if (t1.getTextureType()!=null)
+			result = result && t1.getTextureType().compareTo(t2.getTextureType())==0;
+		else
+			result= result && t2.getTextureType()==null ;
+
+		if (t1.getWrapModeType()!=null)
+			result = result &&t1.getWrapModeType().compareTo(t2.getWrapModeType())==0 ;
+		else
+			result= result && t2.getWrapModeType()==null;
+		
+		if (t1.getAppearanceTheme()!=null)
+			result = result && t1.getAppearanceTheme().equalsIgnoreCase(t2.getAppearanceTheme());
+		else
+			result= result && t2.getAppearanceTheme()==null;
+		
+		result= result &&compareColorPlusOpacity(t1.getBoarderColor(),t2.getBoarderColor());
+		
+		if (t1.getMIMEType()!=null)
+			result = result && (t1.isSupportedImageFormat()?(t2.isSupportedImageFormat()?true:false):t1.getMIMEType().equalsIgnoreCase(t2.getMIMEType()));
+		else
+			result= result && t2.getMIMEType()!=null ;
+		
+		return result;
+				
+		
 	}
 	
 	private static boolean compareColorPlusOpacity(ColorPlusOpacity c1,ColorPlusOpacity c2){
+		if (c1==null)
+			return c2==null;
 		if (c1.getBlue().equals(c2.getBlue())&&
 				c1.getGreen().equals(c2.getGreen())&&
 				c1.getOpacity().equals(c2.getOpacity())&&

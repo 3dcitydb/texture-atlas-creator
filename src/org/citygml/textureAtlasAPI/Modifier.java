@@ -19,6 +19,7 @@ import java.util.Vector;
 import javax.imageio.ImageIO;
 
 import org.citygml.textureAtlasAPI.dataStructure.ErrorTypes;
+import org.citygml.textureAtlasAPI.dataStructure.TexGeneralProperties;
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo;
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
 import org.citygml.textureAtlasAPI.dataStructure.TexImage;
@@ -166,8 +167,7 @@ public class Modifier {
 			}
 			
 			
-			if (completeAtlasPath==null)
-				completeAtlasPath= URI.substring(0,URI.lastIndexOf('.'))+"_%1d.";
+			
 			
 			// report bug
 			if ((tmp= textImage.get(URI).getBufferedImage())==null){
@@ -196,6 +196,9 @@ public class Modifier {
 	        	LOG.put(key,ErrorTypes.ERROR_IN_COORDINATES);
 	        	continue;
 	        }
+	        if (completeAtlasPath==null)
+				completeAtlasPath= URI.substring(0,URI.lastIndexOf('.'))+"_%1d.";
+	        
 	        doubleCoordinateList.put(key, coordinate);
             if (is4Chanel){
             	packer4C.addItem(URI, width, height);
@@ -321,8 +324,11 @@ public class Modifier {
 				 frame.clear();
 			}
 			
-			if (ti instanceof TexImageInfo4GMLFile)
+			if (ti instanceof TexImageInfo4GMLFile){
+				if (((TexImageInfo4GMLFile) ti).getGeneralProp()==null)
+					((TexImageInfo4GMLFile) ti).setGeneralProp(new TexGeneralProperties());
 				((TexImageInfo4GMLFile) ti).getGeneralProp().setMIMEType(is4Chanel?"image/png":"image/jpeg");
+			}
 			bi=null;
 			g.dispose();
 			g=null;
