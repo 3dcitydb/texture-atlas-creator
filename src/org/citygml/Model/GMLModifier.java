@@ -22,15 +22,16 @@ import org.citygml4j.builder.jaxb.JAXBBuilder;
 import org.citygml4j.factory.CityGMLFactory;
 
 import org.citygml4j.model.citygml.core.CityModel;
-import org.citygml4j.model.citygml.core.CityObject;
+
+
+import org.citygml4j.model.citygml.core.AbstractCityObject;
+
 import org.citygml4j.xml.io.CityGMLInputFactory;
 import org.citygml4j.xml.io.reader.CityGMLReader;
 import org.citygml4j.xml.io.writer.CityGMLWriter;
 
 
-import org.citygml4j.commons.child.ChildInfo;
-import org.citygml4j.commons.gmlid.DefaultGMLIdManager;
-import org.citygml4j.commons.gmlid.GMLIdManager;
+import org.citygml4j.util.child.ChildInfo;
 
 import org.citygml4j.model.citygml.appearance.Appearance;
 import org.citygml4j.model.citygml.appearance.ParameterizedTexture;
@@ -43,7 +44,7 @@ import org.citygml4j.model.citygml.building.Building;
 
 import org.citygml4j.model.module.citygml.CityGMLVersion;
 import org.citygml4j.model.module.citygml.CoreModule;
-import org.citygml4j.visitor.walker.FeatureWalker;
+import org.citygml4j.util.walker.FeatureWalker;
 
 import org.citygml4j.xml.io.CityGMLOutputFactory;
 
@@ -75,11 +76,11 @@ public class GMLModifier {
 	// cityGML4j components
 	private CityGMLContext ctx = new CityGMLContext();
 	private JAXBBuilder builder;
-	final GMLIdManager gmlIdManager = DefaultGMLIdManager.getInstance();
 	final CityGMLFactory citygml = new CityGMLFactory();
 	
 	
 	private int maxImageH,maxImageW;
+	public final static String unknowBuildingID="UNKNOWN";
 	
 	public GMLModifier(){
 		
@@ -139,7 +140,10 @@ public class GMLModifier {
 			
 			// scan the cityModel object to obtain all surface data of each building separately.
 			Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings=newCityModelScaner(cityModel);
-			Logger.getInstance().log(Logger.TYPE_INFO,"   Contains "+buildings.size()+" building(s).");
+			int bildingSize = buildings.size();
+			if (buildings.containsKey(unknowBuildingID))
+				bildingSize--;
+			Logger.getInstance().log(Logger.TYPE_INFO,"   Contains "+bildingSize+" building(s).");
 						
 			//Iterator<Hashtable<Integer,TexImageInfo4GMLFile>> buildingsIter =buildings.values().iterator();
 			// for each building merge textures and modify the coordinates and other properties.
@@ -150,8 +154,12 @@ public class GMLModifier {
 			int cc=1;
 			String log;
 			for(String buildingID: buildings.keySet()){
-
-				Logger.getInstance().log(Logger.TYPE_INFO,"       Working on "+getNumber(cc)+" building.("+buildingID+")");
+				if (buildingID.equals(unknowBuildingID)){
+					Logger.getInstance().log(Logger.TYPE_INFO,"       Working on general appearances.");
+					cc--;
+				}
+				else
+					Logger.getInstance().log(Logger.TYPE_INFO,"       Working on "+getNumber(cc)+" building.("+buildingID+")");
 				building=buildings.get(buildingID);
 				Enumeration<Integer> texGroupIDS= building.keys();
 				while(texGroupIDS.hasMoreElements()){
@@ -172,7 +180,8 @@ public class GMLModifier {
 			// write new result based for each building
 			FeatureChanger myFeatureWalker = new FeatureChanger();
 			myFeatureWalker.set(buildings,citygml);
-			cityModel.visit(myFeatureWalker);
+			cityModel.accept(myFeatureWalker);
+
 			myFeatureWalker=null;
 			Logger.getInstance().log(Logger.TYPE_INFO,"   Writing the output on file...");
 			writeGMLFile(cityModel, outputGML);
@@ -220,11 +229,11 @@ public class GMLModifier {
 
 			Appearance currentApp;
 //			Building currentBuilding;
-			CityObject parentCityObject;
+			AbstractCityObject parentCityObject;
 			ChildInfo ci = new ChildInfo();
 
 			
-			public void accept(ParameterizedTexture parameterizedTexture) {
+			public void visit(ParameterizedTexture parameterizedTexture) {
 				// cityGML structure
 				currentApp= ci.getParentFeature(parameterizedTexture, Appearance.class);
 				// cityGML structure
@@ -237,7 +246,7 @@ public class GMLModifier {
 				
 				parentCityObject= ci.getParentCityObject(parameterizedTexture);
 				if (parentCityObject==null){
-					buildingID = "UNKNOWN";
+					buildingID = unknowBuildingID;
 				
 				}
 				else
@@ -307,12 +316,13 @@ public class GMLModifier {
 					}}
 				}
 				// in the case of land use, Appearences without model..
-				if (parentCityObject!=null)
+				//if (parentCityObject!=null)
+				if (currentApp!=null && parameterizedTexture.getParent()!=null)
 					currentApp.unsetSurfaceDataMember((SurfaceDataProperty) parameterizedTexture.getParent());
-				super.accept(parameterizedTexture);
+				super.visit(parameterizedTexture);
 			}
 
-			public void accept(AbstractBuilding abstractBuilding) {
+			public void visit(AbstractBuilding abstractBuilding) {
 				if ((building=buildings.get(abstractBuilding.getId()))!=null ){
 					if (building.size()>0){
 						texGroup= building.get(new Integer(building.size()-1));
@@ -324,7 +334,7 @@ public class GMLModifier {
 					}
 				}else
 					addNewBuilding(abstractBuilding.getId());
-				super.accept(abstractBuilding);
+				super.visit(abstractBuilding);
 			}
 			private void addNewBuilding(String gId){
 					building = new Hashtable<Integer,TexImageInfo4GMLFile>();
@@ -359,7 +369,7 @@ public class GMLModifier {
 		};
 
 		// pars to get information is a structured data format.
-		citymodel.visit(loader);
+		citymodel.accept(loader);
 		return buildings;
 
 	}
