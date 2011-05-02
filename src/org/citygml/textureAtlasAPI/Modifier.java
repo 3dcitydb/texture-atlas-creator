@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -26,6 +27,8 @@ import org.citygml.textureAtlasAPI.dataStructure.TexImage;
 import org.citygml.textureAtlasAPI.imageIO.ImageScaling;
 import org.citygml.textureAtlasAPI.packer.AbstractRect;
 import org.citygml.textureAtlasAPI.packer.Atlas;
+import org.citygml.textureAtlasAPI.packer.sort.StartHeightComparator;
+
 import org.citygml.textureAtlasAPI.packer.Packer;
 import org.citygml.util.Logger;
 
@@ -110,7 +113,7 @@ public class Modifier {
 		}
 		for (Object key : textUri.keySet()){
 			URI= textUri.get(key);
-		
+			
 			//Check whether this URI is changed before.
 			if((tmpURI=URIDic.get(URI))!=null){
 				// this URI previously have been changed, so textImage should also be changed before.
@@ -251,13 +254,17 @@ public class Modifier {
 			Vector<AbstractRect> frame = new Vector<AbstractRect>();
 			
 			//going in side of Result
-			Iterator<AbstractRect> all= mr.getAllItems().iterator();
-			AbstractRect item;
+			ArrayList<AbstractRect>  allItems=mr.getAllItems();			
+			Collections.sort(allItems, new StartHeightComparator());			
+			Iterator<AbstractRect> all= allItems.iterator();
+			
+			AbstractRect item=null;
 			
 			int currentLevel=0;
 			while(all.hasNext()){
-	
+			
 				item = all.next();		
+			
 				if (item.rotated){
 					// just for test mode.
 					BufferedImage bif = textImage.get(item.getURI()).getBufferedImage();
@@ -348,6 +355,7 @@ public class Modifier {
 	private String makeNewURI(String prevURI, int chanel){
 		return prevURI.substring(0, prevURI.lastIndexOf('.'))+(chanel==3?".jpeg":".png");
 	}
+	
 	private void testImageWriter(BufferedImage bitext){
 		try{
 			ImageIO.write(bitext,"jpeg",new File("C:/test1.jpg"));

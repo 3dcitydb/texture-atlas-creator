@@ -69,6 +69,7 @@ public class Atlas {
             Integer level = (Integer) lIter.next();
             all.addAll(levelMap.get(level));            
         }
+        
         lIter=null;
         sortedKeys=null;
     	return all;
