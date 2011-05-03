@@ -1,10 +1,8 @@
 package org.citygml.textureAtlasAPI.dataStructure;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.sql.SQLException;
 import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
-import org.citygml.util.Logger;
+//import org.citygml.util.Logger;
 
 import oracle.ord.im.OrdImage;
 
@@ -55,8 +53,8 @@ public class TexImage {
 				mb=null;
 				this.chanels=imageLoader.getChanels();
 			} catch (Exception e) {
-				if (Logger.SHOW_STACK_PRINT)
-					e.printStackTrace();
+//				if (Logger.SHOW_STACK_PRINT)
+//					e.printStackTrace();
 				e = null;
 				return null;
 			}

@@ -269,23 +269,6 @@ public class HeuristicBinPacking {
 	}
 
 	void pruneFreeList() {
-		/*
-		 * /// Would be nice to do something like this, to avoid a Theta(n^2)
-		 * loop through each pair. /// But unfortunately it doesn't quite cut
-		 * it, since we also want to detect containment. /// Perhaps there's
-		 * another way to do this faster than Theta(n^2).
-		 * 
-		 * if (freeRectangles.size() > 0)
-		 * clb::sort::QuickSort(&freeRectangles[0], freeRectangles.size(),
-		 * NodeSortCmp);
-		 * 
-		 * for(size_t i = 0; i < freeRectangles.size()-1; ++i) if
-		 * (freeRectangles[i].x == freeRectangles[i+1].x && freeRectangles[i].y
-		 * == freeRectangles[i+1].y && freeRectangles[i].width ==
-		 * freeRectangles[i+1].width && freeRectangles[i].height ==
-		 * freeRectangles[i+1].height) {
-		 * freeRectangles.erase(freeRectangles.begin() + i); --i; }
-		 */
 
 		// / Go through each pair and remove any rectangle that is redundant.
 		int i = 0;

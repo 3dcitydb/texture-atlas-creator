@@ -7,7 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.citygml.util.Logger;
+//import org.citygml.util.Logger;
 
 
 public class RGBEncoder {
@@ -258,8 +258,8 @@ public class RGBEncoder {
 			headerR = null;
 
 		} catch (IOException e) {
-			if (Logger.SHOW_STACK_PRINT)
-				e.printStackTrace();
+//			if (Logger.SHOW_STACK_PRINT)
+//				e.printStackTrace();
 			return null;
 		}
 		return header;

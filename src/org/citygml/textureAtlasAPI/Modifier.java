@@ -30,7 +30,7 @@ import org.citygml.textureAtlasAPI.packer.Atlas;
 import org.citygml.textureAtlasAPI.packer.StartHeightComparator;
 
 import org.citygml.textureAtlasAPI.packer.Packer;
-import org.citygml.util.Logger;
+//import org.citygml.util.Logger;
 
 public class Modifier {
 	private int ImageMaxWidth;
@@ -362,8 +362,8 @@ public class Modifier {
 			ImageIO.write(bitext,"png",new File("C:/TMP/"+name));
 		
 		}catch(Exception e){
-			if (Logger.SHOW_STACK_PRINT)
-				e.printStackTrace();
+//			if (Logger.SHOW_STACK_PRINT)
+//				e.printStackTrace();
 		}
 	}
 	
@@ -387,8 +387,8 @@ public class Modifier {
 		try{
 			return msp.getResult();	
 		}catch(Exception e){
-			if (Logger.SHOW_STACK_PRINT)
-				e.printStackTrace();
+//			if (Logger.SHOW_STACK_PRINT)
+//				e.printStackTrace();
 			return null;
 		}
 		

@@ -13,7 +13,7 @@ import javax.imageio.ImageIO;
 
 
 import org.citygml.textureAtlasAPI.dataStructure.TexImage;
-import org.citygml.util.Logger;
+//import org.citygml.util.Logger;
 
 
 
@@ -45,13 +45,13 @@ public class ImageLoader {
 				chanelDetector(b);
 			}else {
 				chanels=0;
-				Logger.getInstance().log(Logger.TYPE_ERROR,"Error in loading an image. ("+path+")");
+				//Logger.getInstance().log(Logger.TYPE_ERROR,"Error in loading an image. ("+path+")");
 			}
 			
 		} catch (Exception e) {
-			if (Logger.SHOW_STACK_PRINT)
-				e.printStackTrace();
-			Logger.getInstance().log(Logger.TYPE_ERROR,"Error in loading image. ("+path+")");
+//			if (Logger.SHOW_STACK_PRINT)
+//				e.printStackTrace();
+//			Logger.getInstance().log(Logger.TYPE_ERROR,"Error in loading image. ("+path+")");
 		}
 		f=null;
 		path=null;
@@ -73,8 +73,8 @@ public class ImageLoader {
 			} else
 				chanels = 0;
 		} catch (Exception e) {
-			if (Logger.SHOW_STACK_PRINT)
-				e.printStackTrace();
+			//if (Logger.SHOW_STACK_PRINT)
+//				e.printStackTrace();
 		}
 		return b;
 	}	
