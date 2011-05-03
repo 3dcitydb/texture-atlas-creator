@@ -1,4 +1,4 @@
-package org.citygml.textureAtlasAPI.packer.sort;
+package org.citygml.textureAtlasAPI.packer;
 
 import java.util.Comparator;
 

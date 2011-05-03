@@ -27,7 +27,7 @@ import org.citygml.textureAtlasAPI.dataStructure.TexImage;
 import org.citygml.textureAtlasAPI.imageIO.ImageScaling;
 import org.citygml.textureAtlasAPI.packer.AbstractRect;
 import org.citygml.textureAtlasAPI.packer.Atlas;
-import org.citygml.textureAtlasAPI.packer.sort.StartHeightComparator;
+import org.citygml.textureAtlasAPI.packer.StartHeightComparator;
 
 import org.citygml.textureAtlasAPI.packer.Packer;
 import org.citygml.util.Logger;
@@ -113,7 +113,7 @@ public class Modifier {
 		}
 		for (Object key : textUri.keySet()){
 			URI= textUri.get(key);
-			
+							
 			//Check whether this URI is changed before.
 			if((tmpURI=URIDic.get(URI))!=null){
 				// this URI previously have been changed, so textImage should also be changed before.
@@ -128,6 +128,7 @@ public class Modifier {
 					textImage.put(tmpURI, tmpTextureImage);
 					URIDic.put(URI, tmpURI);
 					URI=tmpURI;
+					
 				}
 			}
 			tmpURI=null;
@@ -356,9 +357,9 @@ public class Modifier {
 		return prevURI.substring(0, prevURI.lastIndexOf('.'))+(chanel==3?".jpeg":".png");
 	}
 	
-	private void testImageWriter(BufferedImage bitext){
+	private void testImageWriter(BufferedImage bitext,String name){
 		try{
-			ImageIO.write(bitext,"jpeg",new File("C:/test1.jpg"));
+			ImageIO.write(bitext,"png",new File("C:/TMP/"+name));
 		
 		}catch(Exception e){
 			if (Logger.SHOW_STACK_PRINT)

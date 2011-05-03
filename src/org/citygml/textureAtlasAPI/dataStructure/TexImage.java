@@ -20,7 +20,7 @@ public class TexImage {
 	private int type;
 	private BufferedImage image;
 	private OrdImage ordImage;
-	private static ImageLoader imageLoader = new ImageLoader();
+	private ImageLoader imageLoader;
 	private int chanels=3;
 
 
@@ -48,7 +48,8 @@ public class TexImage {
 				return null;
 			try {	
 				byte[] mb=ordImage.getDataInByteArray();
-			
+				if (imageLoader==null)
+					imageLoader= new ImageLoader();
 				this.image= imageLoader.loadImage(ordImage.getDataInStream(), ordImage
 						.getMimeType(),null, mb.length);
 				mb=null;
@@ -59,7 +60,9 @@ public class TexImage {
 				e = null;
 				return null;
 			}
+			imageLoader=null;
 		}
+		
 		return this.image;
 //		if (image==null)
 //			return null;
