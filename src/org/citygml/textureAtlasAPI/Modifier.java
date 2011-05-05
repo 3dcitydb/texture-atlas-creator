@@ -25,9 +25,9 @@ import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo;
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
 import org.citygml.textureAtlasAPI.dataStructure.TexImage;
 import org.citygml.textureAtlasAPI.imageIO.ImageScaling;
-import org.citygml.textureAtlasAPI.packer.AbstractRect;
+import org.citygml.textureAtlasAPI.packer.Rect;
 import org.citygml.textureAtlasAPI.packer.Atlas;
-import org.citygml.textureAtlasAPI.packer.StartHeightComparator;
+
 
 import org.citygml.textureAtlasAPI.packer.Packer;
 //import org.citygml.util.Logger;
@@ -149,14 +149,14 @@ public class Modifier {
 		        	
 		        	// remove Item from list
 		        	
-		        	if (packer3C.removeItem(URI)){
+		        	if (packer3C.removeRect(URI)){
 			        	totalWidth3c-=width;
 			        	// just for complicated cases.
 			        	if (totalWidth3c<maxw3c)
 			        		maxw3c=totalWidth3c;
 		        		
 		        	}
-		        	if(packer4C.removeItem(URI)){
+		        	if(packer4C.removeRect(URI)){
 			        	totalWidth4c-=width;
 			        	// just for complicated cases.
 			        	if (totalWidth4c<maxw4c)
@@ -205,12 +205,12 @@ public class Modifier {
 	        
 	        doubleCoordinateList.put(key, coordinate);
             if (is4Chanel){
-            	packer4C.addItem(URI, width, height);
+            	packer4C.addRect(URI, width, height);
             	if (width>maxw4c)
     	        	maxw4c=width;	
                 totalWidth4c+=width;
             }else{
-            	packer3C.addItem(URI, width, height);
+            	packer3C.addRect(URI, width, height);
             	if (width>maxw3c)
     	        	maxw3c=width;	
                 totalWidth3c+=width;
@@ -252,14 +252,14 @@ public class Modifier {
 			int x,y, prevH=0;
 			int atlasW=0,atlasH=0;
 			// list of all items which will be drawn in a same atlas.
-			Vector<AbstractRect> frame = new Vector<AbstractRect>();
+			Vector<Rect> frame = new Vector<Rect>();
 			
 			//going in side of Result
-			ArrayList<AbstractRect>  allItems=mr.getAllItems();			
-			Collections.sort(allItems, new StartHeightComparator());			
-			Iterator<AbstractRect> all= allItems.iterator();
+			ArrayList<Rect>  allItems=mr.getAllItems();			
+						
+			Iterator<Rect> all= allItems.iterator();
 			
-			AbstractRect item=null;
+			Rect item=null;
 			
 			int currentLevel=0;
 			while(all.hasNext()){
@@ -385,7 +385,7 @@ public class Modifier {
 		else
 			msp.setSize(Math.min((totalw-maxw)/2+maxw,ImageMaxWidth),ImageMaxHeight);
 		try{
-			return msp.getResult();	
+			return msp.pack();	
 		}catch(Exception e){
 //			if (Logger.SHOW_STACK_PRINT)
 //				e.printStackTrace();
@@ -434,9 +434,9 @@ public class Modifier {
 		}**/
 	}
 	
-	private void modifyNewCorrdinates(Vector<AbstractRect> items, HashMap<Object, String> coordinatesHashMap,HashMap<Object, double[]>doubleCoordinateList,HashMap<String,ArrayList<Object>> URI2OBJ, int atlasWidth, int atlasHeigth){
-		Iterator<AbstractRect> itr= items.iterator();
-		AbstractRect mit;
+	private void modifyNewCorrdinates(Vector<Rect> items, HashMap<Object, String> coordinatesHashMap,HashMap<Object, double[]>doubleCoordinateList,HashMap<String,ArrayList<Object>> URI2OBJ, int atlasWidth, int atlasHeigth){
+		Iterator<Rect> itr= items.iterator();
+		Rect mit;
 		while(itr.hasNext()){
 			mit = itr.next();
 			for(Object obj:URI2OBJ.get(mit.getURI())){
@@ -448,9 +448,9 @@ public class Modifier {
 		itr=null;
 	}
 	
-	private void analyzeOccupation(Vector<AbstractRect> items,int atlasW,int atlasH){
-		Iterator<AbstractRect> itr= items.iterator();
-		AbstractRect mit;
+	private void analyzeOccupation(Vector<Rect> items,int atlasW,int atlasH){
+		Iterator<Rect> itr= items.iterator();
+		Rect mit;
 		int sumArea=0;
 		int num=0;
 		while(itr.hasNext()){

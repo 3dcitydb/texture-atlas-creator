@@ -20,8 +20,7 @@ public class TextureAtlasGenerator {
 	public static  final int FFDH = 0;
 	public static  final int NFDH = 1;
 	public static  final int SLEA = 2;
-	/**public static  final int BOLE = 3;
-	public static  final int STBG = 4;**/
+
 	//Touching Perimeter+ improved
 	public static  final int TPIM = 5;
 	public static  final int TPIM_WITHOUT_ROTATION = 6;

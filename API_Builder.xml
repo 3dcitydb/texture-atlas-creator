@@ -1,28 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="main">
-	 <path id="classpath">
-	        <fileset dir="lib" includes="**/*.jar"/>
-	    </path>
-    <target name="clean">
-        <delete dir="API"/>
-    </target>
-	<target name="compile">
-			<mkdir dir="API"/>
-			<mkdir dir="API/build"/>
-	        <mkdir dir="API/build/classes"/>
-	        <javac classpathref="classpath" srcdir="src/org/citygml/textureAtlasAPI" destdir="API/build/classes"/>
-	</target>
-    <target name="jar">
-        <mkdir dir="API/jar"/>
-        <jar destfile="API/jar/textureAtlas.jar" basedir="API/build/classes">
- 
+<project default="create_run_jar" name="Create Runnable Jar for Project TextureAtlas with Jar-in-Jar Loader">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+    <target name="create_run_jar">
+        <jar destfile="C:/CityGML/standaloneCG2TA/tmp/TAC.jar">
+            <manifest>
+                <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
+                <attribute name="Rsrc-Main-Class" value="org.citygml.bin.TextureAtlasGenerator"/>
+                <attribute name="Class-Path" value="."/>
+                <attribute name="Rsrc-Class-Path" value="./ activation.jar jaxb-api.jar jsr173_1.0_api.jar jaxb-impl.jar jaxb-xjc.jar sjsxp.jar citygml4j.jar ordim.jar"/>
+            </manifest>
+            <zipfileset src="jar-in-jar-loader.zip"/>
+            <fileset dir="C:/Users/babak/workspace/TextureAtlas/bin"/>
+            <zipfileset dir="C:\Users\babak\workspace\TextureAtlas\lib" includes="activation.jar"/>
+            <zipfileset dir="C:\Users\babak\workspace\TextureAtlas\lib" includes="jaxb-api.jar"/>
+            <zipfileset dir="C:\Users\babak\workspace\TextureAtlas\lib" includes="jsr173_1.0_api.jar"/>
+            <zipfileset dir="C:\Users\babak\workspace\TextureAtlas\lib" includes="jaxb-impl.jar"/>
+            <zipfileset dir="C:\Users\babak\workspace\TextureAtlas\lib" includes="jaxb-xjc.jar"/>
+            <zipfileset dir="C:\Users\babak\workspace\TextureAtlas\lib" includes="sjsxp.jar"/>
+            <zipfileset dir="C:\Users\babak\workspace\TextureAtlas\lib" includes="citygml4j.jar"/>
+            <zipfileset dir="C:\Users\babak\workspace\TextureAtlas\lib" includes="ordim.jar"/>
         </jar>
     </target>
-	<target name="main" depends="clean,compile,jar"/>
-
 </project>
-
-
-
-
-    

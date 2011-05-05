@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.citygml.textureAtlasAPI.packer.comparator.AreaComparator;
+
 public class HeuristicBinPacking {
 	int binWidth;
 	int binHeight;
@@ -49,14 +51,14 @@ public class HeuristicBinPacking {
 		maxH=0;maxW=0;
 	}
 
-	Atlas insert(List<AbstractRect> rects) {
+	Atlas insert(List<Rect> rects) {
 		
-		Collections.sort(rects);
+		Collections.sort(rects,new AreaComparator());
 		Atlas res= new Atlas();
 		Integer level = new Integer(0);
 		
 		List<Rect> dst = new ArrayList<Rect>();
-		AbstractRect selectedNode;
+		Rect selectedNode;
 		int bestScore1 = Integer.MAX_VALUE;
 		int bestRectIndex = -1;
 		
@@ -119,7 +121,7 @@ public class HeuristicBinPacking {
 		usedRectangles.add(node);
 	}
 
-	void scoreRect(AbstractRect rect) {
+	void scoreRect(Rect rect) {
 		if (touchingPerimeter(rect))
 			rect.score1 = -1 * rect.score1;
 		else{
@@ -173,7 +175,7 @@ public class HeuristicBinPacking {
 	 * @param height
 	 * @return
 	 */
-	boolean touchingPerimeter(AbstractRect rect) {
+	boolean touchingPerimeter(Rect rect) {
 		
 		boolean isRotated=false;
 		int nodeID=-1;
