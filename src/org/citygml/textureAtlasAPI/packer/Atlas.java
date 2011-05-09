@@ -1,9 +1,7 @@
 package org.citygml.textureAtlasAPI.packer;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
-import org.citygml.textureAtlasAPI.packer.comparator.StartHeightComparator;
 
 public class Atlas { 
 	private ArrayList<Rect> allData;
@@ -40,12 +38,12 @@ public class Atlas {
     	return bindingBoxWidth;
     }
 
-    public void addItem(Rect item){
-    	allData.add(item);
+    public void addRect(Rect rect){
+    	allData.add(rect);
     }
     
     public ArrayList<Rect> getAllItems(){
-        Collections.sort(allData, new StartHeightComparator());
+       
     	return allData;
     }
     

@@ -8,9 +8,9 @@ public class StartHeightComparator implements Comparator<Rect> {
 
 	@Override
 	public int compare(Rect o1, Rect o2) {
-		if (o1.getYPos()>o2.getYPos())
+		if (o1.y>o2.y)
 			return 1;
-		if (o1.getYPos()<o2.getYPos())
+		if (o1.y<o2.y)
 			return -1;
 		return 0;
 	}

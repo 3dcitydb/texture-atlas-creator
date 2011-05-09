@@ -1,7 +1,16 @@
 package org.citygml.textureAtlasAPI.packer;
 
-public class Rect implements Comparable<Rect> {
-
+/**
+ * For packing algorithms each texture will represent as a object of this class.
+ * As a result of packing process these variables should be set: x,y, level, and rotated.
+ * Because of optimization SET/GET methods are neglected and variables defined in public domain.
+ * 
+ * @author babak
+ *
+ */
+public class Rect {
+	
+	// it is equal to URI of texture
 	public String id;
     public int width;
     public int height;
@@ -9,13 +18,14 @@ public class Rect implements Comparable<Rect> {
     public int x;
     public int y;
     public boolean rotated=false;
+    // In the case that packing algorithm score the current position of rectangle
+    // score1 is in normal, and score2 is 90d rotated. 
     int score1=Integer.MAX_VALUE, score2=Integer.MAX_VALUE;
-    
-    public Integer level;
+    // in the case that algorithms is level base
+    public short level;
     
     public void clear(){
     	id=null;
-    	level=null;
     }
   
 	public Rect(String URI, int width, int height) {
@@ -43,6 +53,12 @@ public class Rect implements Comparable<Rect> {
   		
   	}
 	
+	public Rect clone(){
+		Rect r = new Rect();
+		r.x=this.x;
+		return r;
+	}
+	
 	public void rotate(){
 		int tmp=width;
 		width=height;
@@ -55,47 +71,17 @@ public class Rect implements Comparable<Rect> {
 			&& a.x+a.width <= b.x+b.width 
 			&& a.y+a.height <= b.y+b.height;
 	}
-	
-	public void setPOS(int x, int y, Integer level){
+	// setPOS 
+	public void setPosition(int x, int y, short level){
     	this.x=x;
     	this.y=y;
     	this.level=level;
     }
 
-    public void setYPos(int y){
-    	this.y=y;
-    }
-    public void setLevel(Integer l){
-        level=l;
-    }
-
     public String getURI(){
         return id;
     } 
-    
-    public int getWidth(){
-        return width;
-    }
-    
-    public int getHeight(){
-        return height;
-    }
-    
-    public int getArea(){
-        return area;
-    }
-    public int getXPos(){
-        return x;
-    }
-    
-    public int getYPos(){
-        return y;
-    }
-    
-    public Integer getLevel(){
-        return level;
-    }
-
+    // id or URI of each textureatlas should be unique.
     public boolean equals(Object obj) {
     	if (obj instanceof Rect){
     		if (((Rect)obj).getURI()!=null&&((Rect)obj).getURI().equalsIgnoreCase(this.id))
@@ -104,10 +90,9 @@ public class Rect implements Comparable<Rect> {
 		return false;
 	}
 
-	@Override
-	public int compareTo(Rect o) {
-		// TODO Auto-generated method stub
-		return 0;
+	protected void finalize() throws Throwable {
+		super.finalize();
+		this.id=null;
 	}
-
+    
 }

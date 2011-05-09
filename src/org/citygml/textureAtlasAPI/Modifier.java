@@ -30,6 +30,7 @@ import org.citygml.textureAtlasAPI.packer.Atlas;
 
 
 import org.citygml.textureAtlasAPI.packer.Packer;
+import org.citygml.textureAtlasAPI.packer.comparator.StartHeightComparator;
 //import org.citygml.util.Logger;
 
 public class Modifier {
@@ -205,12 +206,12 @@ public class Modifier {
 	        
 	        doubleCoordinateList.put(key, coordinate);
             if (is4Chanel){
-            	packer4C.addRect(URI, width, height);
+            	packer4C.addRect(URI,width, height);
             	if (width>maxw4c)
     	        	maxw4c=width;	
                 totalWidth4c+=width;
             }else{
-            	packer3C.addRect(URI, width, height);
+            	packer3C.addRect(URI, width,height);
             	if (width>maxw3c)
     	        	maxw3c=width;	
                 totalWidth3c+=width;
@@ -229,10 +230,7 @@ public class Modifier {
             }
 
 		}
-		
-		
 
-		
 		ArrayList<Atlas> atlasMR = new ArrayList<Atlas>();
 		if (packer3C.getSize()!=0)
 			atlasMR.add(iterativePacker(packer3C, maxw3c,totalWidth3c));
@@ -256,7 +254,9 @@ public class Modifier {
 			
 			//going in side of Result
 			ArrayList<Rect>  allItems=mr.getAllItems();			
-						
+			if (this.packingAlgorithm!= TextureAtlasGenerator.TPIM&&
+					this.packingAlgorithm!= TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)
+				Collections.sort(allItems, new StartHeightComparator());
 			Iterator<Rect> all= allItems.iterator();
 			
 			Rect item=null;
@@ -280,9 +280,9 @@ public class Modifier {
 			        bif=null;
 				}
 				
-	        	 x= item.getXPos();
-	        	 y= item.getYPos();
-	        	 if (y-prevH+item.getHeight()>ImageMaxHeight||((this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)&&currentLevel!=item.getLevel().intValue())){
+	        	 x= item.x;
+	        	 y= item.y;
+	        	 if (y-prevH+item.height>ImageMaxHeight||((this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)&&currentLevel!=item.level)){
 	        		 // set Image in Hashmap and write it to file.
 	//        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi),is4Chanel?4:3));
 	        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi)));
@@ -303,18 +303,18 @@ public class Modifier {
 	        		 atlasW=0;
 	        		 atlasH=0;
 	        		 prevH=y;
-	        		 currentLevel=item.getLevel().intValue();
+	        		 currentLevel=item.level;
 	        		 if(this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)
 	        			 prevH=0; 
 	        	 }
 	        	 g.drawImage(textImage.get(item.getURI()).getBufferedImage(), x, y-prevH, null);
 	        	 textImage.remove(item.getURI()).freeMemory();
-	        	 item.setYPos(y-prevH);
+	        	 item.y=(y-prevH);
 	        	 frame.add(item);
-	        	 if (atlasW<x+item.getWidth())
-	        		 atlasW=x+item.getWidth();
-	        	 if (atlasH<y-prevH+item.getHeight())
-	        		 atlasH=y-prevH+item.getHeight();
+	        	 if (atlasW<x+item.width)
+	        		 atlasW=x+item.width;
+	        	 if (atlasH<y-prevH+item.height)
+	        		 atlasH=y-prevH+item.height;
 	        	 
 	        	 // set the properties.
 	        	 // set the URI
@@ -381,9 +381,9 @@ public class Modifier {
 	
 	private Atlas iterativePacker(Packer msp, int maxw, int totalw){
 		if (this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)
-			msp.setSize(ImageMaxWidth,ImageMaxHeight);
+			msp.setBinSize(ImageMaxWidth,ImageMaxHeight);
 		else
-			msp.setSize(Math.min((totalw-maxw)/2+maxw,ImageMaxWidth),ImageMaxHeight);
+			msp.setBinSize(Math.min((totalw-maxw)/2+maxw,ImageMaxWidth),ImageMaxHeight);
 		try{
 			return msp.pack();	
 		}catch(Exception e){
@@ -440,7 +440,7 @@ public class Modifier {
 		while(itr.hasNext()){
 			mit = itr.next();
 			for(Object obj:URI2OBJ.get(mit.getURI())){
-				coordinatesHashMap.put(obj,getCoordinate(doubleCoordinateList.get(obj),mit.getXPos(),mit.getYPos(), mit.getWidth(),mit.getHeight(),atlasWidth, atlasHeigth,mit.rotated));
+				coordinatesHashMap.put(obj,getCoordinate(doubleCoordinateList.get(obj),mit.x,mit.y, mit.width,mit.height,atlasWidth, atlasHeigth,mit.rotated));
 //				coordinatesHashMap.put(obj,getCoordinate2(doubleCoordinateList.get(obj),mit.getXPos(),mit.getYPos(), mit.getWidth(),mit.getHeight(),atlasWidth, atlasHeigth,mit.rotated));
 			}
 			mit.clear();

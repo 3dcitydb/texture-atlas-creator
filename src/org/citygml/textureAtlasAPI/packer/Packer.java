@@ -1,10 +1,8 @@
 package org.citygml.textureAtlasAPI.packer;
 
-import java.util.ArrayList;
+
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 
 import org.citygml.textureAtlasAPI.TextureAtlasGenerator;
@@ -14,23 +12,18 @@ import org.citygml.textureAtlasAPI.packer.comparator.HeightComparator;
 
 public class Packer  {
 	
-	private List <Rect> items;
-	// Can be used just for 2D Strip Packers also
+	private LinkedList <Rect> rects;
     private int binWidth = 0;
-    // in the case that using 2dB
     private int binHeight = 0;
-    
     private boolean fourChanel=false;
-    
     private int algorithm=TextureAtlasGenerator.FFDH;
-
-    private HeuristicBinPacking tpPacker;
+    private TouchingPerimeterPacking tpPacker;
     
-    public Packer(int width, int height,int algorithm,boolean is4Chanel){
-    	items = new LinkedList<Rect>();
+    public Packer(int binWidth, int binHeight,int algorithm,boolean is4Chanel){
+    	rects = new LinkedList<Rect>();
     	this.algorithm=algorithm;
     	this.fourChanel=is4Chanel;
-    	setSize(width, height);
+    	setBinSize(binWidth, binHeight);
     }
 
     public boolean isFourChanel() {
@@ -41,210 +34,250 @@ public class Packer  {
 		this.fourChanel = fourChanel;
 	}
 
-	public void setSize(int width, int height) {
+	public void setBinSize(int width, int height) {
     	this.binWidth= width;
     	this.binHeight=height;
 	}
     
-	public boolean addRect(String URI, int width, int height) {
-			return items.add(new Rect(URI, width, height));
+	public boolean addRect(String URI, int width, int  height) {
+		return rects.add(new Rect(URI, width, height));
 	}
 	
 	public boolean addRect(Rect mi){
-		return items.add(mi);
+		return rects.add(mi);
 	}
 	
 	public boolean removeRect(String URI){
-		return items.remove(new Rect(URI,0,0));
+		return rects.remove(new Rect(URI,0,0));
 	}
 	
 	public void reset(){
-		items.clear();
+		rects.clear();
 	}
 	
 	public int getSize(){
-		if (items!=null)
-			return items.size();
-		else
-			return 0;
+		return rects!=null?rects.size():0;
 	}
 	
-	public Atlas pack() throws Exception {
-		Atlas res = new Atlas();
-		res.setBindingBoxWidth(binWidth);
+	public Atlas pack() {
+		Atlas atlas;
         switch (algorithm){
-            case TextureAtlasGenerator.FFDH:
-            	FFDH(res);
-                break;
-            case TextureAtlasGenerator.NFDH:
-                NFDH(res);
+        case TextureAtlasGenerator.NFDH:
+        	atlas=NFDH(binWidth);
+            break;
+        case TextureAtlasGenerator.FFDH:
+            	atlas=FFDH(binWidth);
                 break;
             case TextureAtlasGenerator.SLEA:
-                SLEA(res);
+            	atlas=SLEA(binWidth);
                 break;
             case TextureAtlasGenerator.TPIM:
                 if (tpPacker==null)
-                	tpPacker= new HeuristicBinPacking(binWidth,binHeight);
+                	tpPacker= new TouchingPerimeterPacking(binWidth,binHeight);
                 else
                 	tpPacker.init(binWidth, binHeight);
                 tpPacker.setUseRotation(true);
-                res= tpPacker.insert(items);
-                
+                atlas= tpPacker.insert(rects);
                 break;
                 
             case TextureAtlasGenerator.TPIM_WITHOUT_ROTATION:
                 if (tpPacker==null)
-                	tpPacker= new HeuristicBinPacking(binWidth,binHeight);
+                	tpPacker= new TouchingPerimeterPacking(binWidth,binHeight);
                 else
                 	tpPacker.init(binWidth, binHeight);
                 tpPacker.setUseRotation(false);
-                res= tpPacker.insert(items);
-            
+                atlas= tpPacker.insert(rects);
                 break;
           
             default:
-                throw new Exception(algorithm + " is not supported.");
+            	// Type of algorithm is not correctly set.
+                return null;
         }
-        res.setFourChanel(fourChanel);
-		return res;
+        atlas.setFourChanel(fourChanel);
+		return atlas;
 	}
-	
-	private void FFDH(Atlas res) {
-		List <Integer> levels = new ArrayList<Integer>();
-        List <Integer> levelFill = new ArrayList<Integer>();
-        int topLev = 0;
-        int nextTopLev = 0;       // der nächste level wird bei dieser höhe beginnen
+	/**
+	 * <I>The Next-Fit Decreasing Height (NFDH) algorithm packs the next item, left justified, 
+	 * on the current level (initially, the bottom of the strip), if it fits. Otherwise, 
+	 * the level is “closed”, a new current level is created (as a horizontal line drawn on 
+	 * the top of the tallest item packed on the current level), and the item is packed, left 
+	 * justified, on it.</I>
+	 * 
+	 * Lodi, Andrea, Martello, Silvano and Monaci, Michele, (2002), Two-dimensional packing 
+	 * problems: A survey, European Journal of Operational Research, 141, issue 2, p. 241-252
+	 *  
+	 * @param bindingBoxWidth
+	 * @return
+	 */
+	private Atlas NFDH(int bindingBoxWidth) {
+		int levelWidth = 0;
+		int levelFloor = 0;
+		int levelRoof = 0;
+		short currentLevelNum=0;
+		
+		Atlas atlas = new Atlas();
+		atlas.setBindingBoxWidth(bindingBoxWidth);
+		
+		// sort the rectangles in "Decreasing Height"
+		Collections.sort(rects, new HeightComparator());
+		
+		
+		if (rects.size()>0)
+			levelRoof=rects.getFirst().height;
+		
+		
+		for (Rect rect : rects) {
+			if (levelWidth + rect.width > bindingBoxWidth) {
+				// new level is necessary
+				currentLevelNum++;
+				levelWidth = 0;
+				levelFloor = levelRoof;
+				levelRoof+=rect.height;
+			}
+			
+			rect.setPosition(levelWidth, levelFloor, currentLevelNum);
+			atlas.addRect(rect);
+			levelWidth += rect.width;
+			
+		}
+		atlas.setBindingBoxHeight(levelRoof);
+		return atlas;
+	}
 
-        Collections.sort(items, new HeightComparator());    
-        Collections.reverse(items);     //da sort() aufsteigend sortiert
-        Iterator <Rect> iter=items.iterator();
-
-        levels.add(new Integer(0));    // die starthöhen der jeweiligen level
-        levelFill.add(new Integer(0)); // die füllstände der level
-
-        if (iter.hasNext()){
-        	Rect i = iter.next();
-            nextTopLev = i.getHeight();
-            levelFill.set(0,Integer.valueOf(i.getWidth()) );
-            i.setPOS(0, 0, new Integer(0));
-            res.addItem(i);
-            
-        }
-        while (iter.hasNext()){
-        	Rect i = iter.next();
-            int itemWidth = i.getWidth();
-            int curLev;
-            for (curLev = 0; curLev <= topLev; curLev++){   // versuche das item in einen möglichst niedrigen level zu packen
-                int curFill;
-                if ((curFill = levelFill.get(curLev)) <= (binWidth - itemWidth)){
-                	i.setPOS(curFill, levels.get(curLev).intValue(), new Integer(curLev));
-                	res.addItem(i);
-                    levelFill.set(curLev, new Integer(curFill + itemWidth));
+	/**
+	 * <I>The First-Fit Decreasing Height (FFDH) algorithm packs the next item, left justified, 
+	 * on the first level where it fits, if any. If no level can accommodate it, a new level 
+	 * is created as in NFDH. 
+	 * 
+	 * Lodi, Andrea, Martello, Silvano and Monaci, Michele, (2002), Two-dimensional packing 
+	 * problems: A survey, European Journal of Operational Research, 141, issue 2, p. 241-252
+	 * 
+	 * @param bindingBoxWidth
+	 * @return
+	 */
+	private Atlas FFDH(int bindingBoxWidth) {
+		
+		int binRoof = 0;
+		short numLevels=1;
+		
+		int[] levelsRemainSpace =new int[10];
+		int[] levelsFloor =new int[10];
+		
+		Atlas atlas = new Atlas();
+		atlas.setBindingBoxWidth(bindingBoxWidth);
+		
+		// initialization
+		levelsRemainSpace[0]=bindingBoxWidth;
+		levelsFloor[0]=0;
+			
+		// sort the rectangles in "Decreasing Height"
+        Collections.sort(rects, new HeightComparator());    
+        
+        
+        if (rects.size()>0)
+        	binRoof=rects.getFirst().height;
+        
+        short counter;
+        boolean found;
+        for (Rect rect:rects){
+        	found=false;
+        	for (counter=0;counter<numLevels;counter++){
+        		if (levelsRemainSpace[counter]>=rect.width){
+        			rect.setPosition(bindingBoxWidth-levelsRemainSpace[counter], 
+        					levelsFloor[counter],counter);
+        			atlas.addRect(rect);
+        			levelsRemainSpace[counter]-=rect.width;
+        			found=true;
                     break;
-                }
-            }
-            if (curLev > topLev) {  // neuen level anlegen
-                topLev = topLev + 1;
-                levelFill.add(i.getWidth());
-                levels.add(new Integer(nextTopLev));
-                i.setPOS(0, nextTopLev, new Integer(topLev));
-                res.addItem(i);
-                nextTopLev = i.getHeight() + nextTopLev;
-            }
-        }
-        res.setBindingBoxHeight(nextTopLev);    // die max. packungshöhe
+        		}
+        	}
+        	if (!found){		
+        		if (numLevels>=levelsRemainSpace.length){
+        			int[] tmpLRS =new int[numLevels*2];
+        			int[] tmpLF =new int[numLevels*2];
+        			System.arraycopy(levelsRemainSpace, 0, tmpLRS, 0, levelsRemainSpace.length);
+        			System.arraycopy(levelsFloor, 0, tmpLF, 0, levelsFloor.length);
+        			levelsRemainSpace=tmpLRS;
+        			levelsFloor=tmpLF;
+        			tmpLF=null;tmpLRS=null;
+        		}
+        		levelsRemainSpace[numLevels]=bindingBoxWidth;
+        		levelsFloor[numLevels]=binRoof;
+        		
+    			rect.setPosition(0, 
+    					levelsFloor[numLevels],numLevels);
+    			atlas.addRect(rect);
+    			levelsRemainSpace[numLevels]-=rect.width;
+    			binRoof+=rect.height;
+    			numLevels++;        		
+        	}
+        }        
+        atlas.setBindingBoxHeight(binRoof); 
+        levelsRemainSpace=null;
+		levelsFloor=null;
+        return atlas;
 	}
 
-	private void NFDH(Atlas res) {
-	     Integer levelCount = new Integer(0);
-	        int levelFill = 0;     // die bereits ausgefüllte breite des strips auf dem akt. level
-	        int currLevel = 0;     // die untere grenze des akt. levels
-	        int nextLevel = 0;     // die untere grenze des nächsten levels
+	/**
+	 * Step 1. Stack all the pieces of width greater than 4 on top of one another in the bottom of the bin.
+	 * 
+	 * @param bindingBoxWidth
+	 * @return
+	 */
+	private Atlas SLEA(int bindingBoxWidth) {
+		LinkedList<Rect> smallerThanHalfRects = new LinkedList<Rect>();
+		int levelRoof = 0;
+		short currentLevel = 0;
+		int threshold = bindingBoxWidth / 2;
 
-	        Collections.sort(items,new HeightComparator());    //TODO: woanders hinstecken
-	        Collections.reverse(items);     //da sort() aufsteigend sortiert
-	        Iterator <Rect> iter = items.iterator();
-
-	        if (iter.hasNext()){    // das erste item passt immer, da der strip leer ist und die items nicht breiter als der strip sind
-	        	Rect i = iter.next();
-	            i.setPOS(levelFill, currLevel, levelCount);
-	            res.addItem(i);
-	            levelFill = i.getWidth();
-	            nextLevel = i.getHeight();
-	        }
-	        while (iter.hasNext()){
-	        	Rect i = iter.next();
-	            if (levelFill + i.getWidth() > binWidth){   // das neue item ist zu breit für den level
-	                levelCount = levelCount + 1;
-	                levelFill = 0;
-	                currLevel = nextLevel;
-	                nextLevel = currLevel + i.getHeight();
-	            }
-	            i.setPOS(levelFill, currLevel, levelCount);
-	            res.addItem(i);
-	            levelFill = levelFill + i.getWidth();
-	        }
-	        res.setBindingBoxHeight(nextLevel);
-	}
-
-	private void SLEA(Atlas res) {
-		 LinkedList <Rect> smallerItems = new LinkedList<Rect>();
-	        Iterator <Rect> iter = items.iterator();
-	        int nextX = 0, nextY = 0;
-	        Integer level = new Integer(0);
-	        
-	        while (iter.hasNext()){     // grundlinie, d.h. die breiten items
-	        	Rect item = iter.next();
-	            int iWidth = item.getWidth();
-	            if (iWidth > (0.5 * binWidth)){  // es wird natürlich vorausgesetzt, dass 0 <= iWidth <= stripWidth gilt
-	            	item.setPOS(nextX, nextY, level);
-	                res.addItem(item);
-	                nextY= nextY + item.getHeight();
-	            } else {
-	                smallerItems.add(item);
-	            }
-	        }
-	        res.setBindingBoxHeight(nextY);
-	        
-	        Collections.sort(smallerItems,new HeightComparator()); //TODO: war vielleicht eh schon sortiert (wahr, wenn, die anderen TODOs erledigt sind)
-	        Collections.reverse(smallerItems);
-	        
-	        iter = smallerItems.iterator();
-	        if (iter.hasNext()){
-	        	Rect item = iter.next();
-	            level++;
-	            int nextLeftLevel = nextY + item.getHeight();    // entspr. h0 + h1
-	            assert nextX == 0;
-	            item.setPOS(nextX, nextY, level);
-	            res.addItem(item);    // erstes item auf h0
-	            nextX = item.getWidth();
-	            while (iter.hasNext() && (nextX < 0.5 * binWidth)){    // auf h0 bis min. halbe breite füllen
-	                item = iter.next();
-	                item.setPOS(nextX, nextY, level);
-	                res.addItem(item);
-	                nextX = nextX + item.getWidth();
-	            }
-	            int nextRightLevel = nextY + item.getHeight();   // entspr. h0 + d1
-	            while (iter.hasNext()){
-	                item = iter.next();
-	                int width = item.getWidth();
-	                if (nextX < (0.5 * binWidth) && (nextX + width) >= (0.5 * binWidth)){   // wahr, wenn das item zu breit für die akt. linke Spalte ist
-	                    nextX = binWidth/2;
-	                    nextY = nextRightLevel;
-	                    nextRightLevel = nextY + item.getHeight();
-	                    level++;
-	                } else if (nextX >= (0.5 * binWidth) && (nextX + width) >= binWidth){   //     ""   ... rechte Spalte
-	                    nextX = 0;
-	                    nextY = nextLeftLevel;
-	                    nextLeftLevel = nextY + item.getHeight();
-	                    level++;
-	                }
-	                item.setPOS(nextX, nextY, level);
-	                res.addItem(item);
-	                nextX = nextX + item.getWidth();
-	            }
-	            res.setBindingBoxHeight((nextRightLevel > nextLeftLevel) ? nextRightLevel : nextLeftLevel);
-	        }
+		Atlas atlas = new Atlas();
+		atlas.setBindingBoxWidth(bindingBoxWidth);
+		// step 1. Stack all the pieces of width greater than 4 on top of one
+		// another in the bottom of the bin.
+		for (Rect rect : rects) {
+			if (rect.width > threshold) {
+				rect.setPosition( 0, levelRoof, currentLevel);
+				atlas.addRect(rect);
+				levelRoof += rect.height;
+			} else
+				smallerThanHalfRects.add(rect);
+		}
+		// as a result h0:levelRoof
+		
+		// sort the remaining rectangles in "Decreasing Height"
+		Collections.sort(smallerThanHalfRects, new HeightComparator());
+		     
+	    
+		currentLevel++;
+		int leftRoof,leftFloor,rightRoof,rightFloor;
+		int levelWidth=0,levelFloor;
+		leftFloor=rightFloor=levelFloor=rightRoof=leftRoof=levelRoof;
+		if (smallerThanHalfRects.size()>0){
+			leftRoof=(leftFloor+smallerThanHalfRects.getFirst().height);
+		}
+		for (Rect rect : smallerThanHalfRects) {
+			 if ( levelWidth< threshold && (levelWidth + rect.width) >= threshold){
+				 // should be set in half of right hand side. 
+				 levelWidth = threshold;
+				 rightFloor = rightRoof;
+				 levelFloor=rightFloor;
+				 rightRoof += rect.height;
+             } else if (levelWidth >= threshold && levelWidth+rect.width >= bindingBoxWidth){
+            	 // new level should be added and this rect should be placed on left hand side half.
+            	 levelWidth = 0;
+            	 leftFloor = leftRoof;
+            	 levelFloor= leftFloor;
+            	 leftRoof+=rect.height;
+            	 currentLevel++;
+             }
+			 rect.setPosition(levelWidth,levelFloor,currentLevel);
+			 atlas.addRect(rect);
+             levelWidth+=rect.width;
+             
+		}
+		atlas.setBindingBoxHeight(Math.max(leftRoof, rightRoof));
+		smallerThanHalfRects.clear();
+	    return atlas;
 	}
  
 }
