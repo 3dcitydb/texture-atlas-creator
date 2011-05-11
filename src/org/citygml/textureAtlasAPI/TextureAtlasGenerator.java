@@ -21,6 +21,7 @@ public class TextureAtlasGenerator {
 	public static  final int NFDH = 1;
 	public static  final int SLEA = 2;
 
+	
 	//Touching Perimeter+ improved
 	public static  final int TPIM = 5;
 	public static  final int TPIM_WITHOUT_ROTATION = 6;
@@ -91,6 +92,9 @@ public class TextureAtlasGenerator {
 				
 			}
 		}
+		if (tii instanceof TexImageInfo && tii!=null)
+			imageLoader.setImageLoader(tii.getTexImages());
+			
 		this.PackingAlgorithm=PackingAlgorithm;
 		// check tii.isImagesReady()
 		modifier.setGeneralSettings(this.PackingAlgorithm, this.ImageMaxWidth, this.ImageMaxHeight);

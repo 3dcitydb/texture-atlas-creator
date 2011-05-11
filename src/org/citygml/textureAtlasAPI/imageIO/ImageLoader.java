@@ -58,8 +58,8 @@ public class ImageLoader {
 		return b;
 	}
 	
-	public BufferedImage loadImage(InputStream is, String MIME_Type,String estension, int size){
-		if (!isSupportedImageFormat(MIME_Type,estension))
+	public BufferedImage loadImage(InputStream is, String MIME_Type,String extension, int size){
+		if (!isSupportedImageFormat(MIME_Type,extension))
 			return null;
 		try {
 			if (MIME_Type.lastIndexOf("rgb") > 0) {
@@ -79,7 +79,16 @@ public class ImageLoader {
 		return b;
 	}	
 	
-
+	public void setImageLoader(HashMap<String, TexImage> basic){
+		if (basic==null)
+			return ;
+		if (basic.values()!=null){
+		Iterator<TexImage> tximag=basic.values().iterator();
+			while(tximag.hasNext()){
+				tximag.next().setImageLoader(this);
+			}
+		}
+	}
 	
 	private void chanelDetector(BufferedImage bImage){
 		switch(bImage.getType()){

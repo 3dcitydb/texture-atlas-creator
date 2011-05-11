@@ -1,6 +1,8 @@
 package org.citygml.textureAtlasAPI.packer;
 
-
+/**
+ * For implementation sample code of Jukka Jylänki is used, which published for public use.
+ */
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,8 +71,7 @@ public class TouchingPerimeterPacking {
 				}
 				// compute score of rect.
 				scoreRect(rect);
-				if (rect.score1 > bestScore1
-						|| (rect.score1 == bestScore1 && rect.score2 < bestScore1)) {
+				if (rect.score1 > bestScore1) {
 					bestScore1 = rect.score1;				
 					bestRectIndex = i;					
 						
@@ -106,21 +107,28 @@ public class TouchingPerimeterPacking {
 	 * @param rec
 	 */
 	private void putRect(Rect rect) {	
-		for (Rect freeArea:freeRectangles){
-			if (isAffected(freeArea,rect))
-				freeRectangles.remove(freeArea);
+		for (int i=0;i<freeRectangles.size();i++){	
+			if (isAffected(freeRectangles.get(i),rect)){
+				freeRectangles.remove(i);
+				i--;
+			}
 		}
 		removeDuplicate();
 		usedRectangles.add(rect);
 	}
 
-	void scoreRect(Rect rect) {
-		if (findBestFreePosition(rect))
-			rect.score1 = rect.score1;
-		else{
+	private void scoreRect(Rect rect) {
+		if (!findBestFreePosition(rect)){
 			rect.score1 = Integer.MIN_VALUE;
-			rect.score2 = Integer.MIN_VALUE;
+			
 		}
+
+//		if (findBestFreePosition(rect))
+//			rect.score1 = rect.score1;
+//		else{
+//			rect.score1 = Integer.MIN_VALUE;
+//			rect.score2 = Integer.MIN_VALUE;
+//		}
 	}
 
 
@@ -214,16 +222,16 @@ public class TouchingPerimeterPacking {
 	}
 		
 	private boolean isAffected(Rect freeRect, Rect newRect) {
-		// Test with SAT if the rectangles even intersect.
+		// check whether they are intersecting
 		if (newRect.x >= freeRect.x + freeRect.width
 				|| newRect.x + newRect.width <= freeRect.x
 				|| newRect.y >= freeRect.y + freeRect.height
 				|| newRect.y + newRect.height <= freeRect.y)
 			return false;
-
+		// intersecting in x direction.
 		if (newRect.x < freeRect.x + freeRect.width
 				&& newRect.x + newRect.width > freeRect.x) {
-			// New node at the top side of the used node.
+			// new rectangle is in the top side of free existing rectangle.
 			if (newRect.y > freeRect.y
 					&& newRect.y < freeRect.y + freeRect.height) {
 				Rect newNode = new Rect(freeRect) ;
@@ -231,7 +239,7 @@ public class TouchingPerimeterPacking {
 				freeRectangles.add(newNode);
 			}
 
-			// New node at the bottom side of the used node.
+			// new rectangle is in the bottom side of existing free rectangle.
 			if (newRect.y + newRect.height < freeRect.y + freeRect.height) {
 				Rect newNode = new Rect(freeRect) ;
 				newNode.y = newRect.y + newRect.height;
@@ -240,7 +248,7 @@ public class TouchingPerimeterPacking {
 				freeRectangles.add(newNode);
 			}
 		}
-
+		// intersecting in y direction
 		if (newRect.y < freeRect.y + freeRect.height
 				&& newRect.y + newRect.height > freeRect.y) {
 			// New node at the left side of the used node.
@@ -264,26 +272,38 @@ public class TouchingPerimeterPacking {
 		return true;
 	}
 
+	/**
+	 * may be in intersection part, duplicated rectangles are added.
+	 * remove them in here.
+	 */
 	private void removeDuplicate() {
 		int i = 0;
 		int j;
 		while (i < freeRectangles.size()){
 			j = i + 1;
 			while(j < freeRectangles.size()) {
-				if (Rect.isContainedIn(freeRectangles.get(i), freeRectangles
-						.get(j))) {
+				if (BcontainsA (freeRectangles.get(i),freeRectangles.get(j))){
 					freeRectangles.remove(i);
-					--i;
+					i--;
 					break;
 				}
-				if (Rect.isContainedIn(freeRectangles.get(j), freeRectangles
-						.get(i))) {
+				if (BcontainsA (freeRectangles.get(j),freeRectangles.get(i))){
 					freeRectangles.remove(j);
-					--j;
+					j--;
 				}
 				j++;
 			}
 			i++;
 		}
+	}
+	/**
+	 * Does this rectangle contains rectangle a?
+	 * @param a
+	 * @return
+	 */
+	private boolean BcontainsA(Rect a,Rect b){
+		return a.x >= b.x && a.y >=b.y 
+			&& a.x+a.width <= b.x+b.width 
+			&& a.y+a.height <= b.y+b.height;
 	}
 }

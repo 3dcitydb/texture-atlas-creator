@@ -6,9 +6,6 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.math.BigDecimal;
-
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,14 +13,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import java.util.Vector;
-
-import javax.imageio.ImageIO;
-
 import org.citygml.textureAtlasAPI.dataStructure.ErrorTypes;
 import org.citygml.textureAtlasAPI.dataStructure.TexGeneralProperties;
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo;
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
 import org.citygml.textureAtlasAPI.dataStructure.TexImage;
+
 import org.citygml.textureAtlasAPI.imageIO.ImageScaling;
 import org.citygml.textureAtlasAPI.packer.Rect;
 import org.citygml.textureAtlasAPI.packer.Atlas;
@@ -33,11 +28,12 @@ import org.citygml.textureAtlasAPI.packer.Packer;
 import org.citygml.textureAtlasAPI.packer.comparator.StartHeightComparator;
 //import org.citygml.util.Logger;
 
+
 public class Modifier {
 	private int ImageMaxWidth;
 	private int ImageMaxHeight;
 	private int packingAlgorithm;
-
+	
 	
 //	BufferedImage bi;
 //	BufferedImage tmp;
@@ -50,6 +46,7 @@ public class Modifier {
 	public Modifier(int PackingAlg,  int atlasMaxWidth, int atlasMaxHeight){
 		setGeneralSettings(PackingAlg, atlasMaxWidth, atlasMaxHeight);
 	}
+	
 	
 	public void setGeneralSettings(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight){
 		this.packingAlgorithm = PackingAlg;
@@ -356,7 +353,7 @@ public class Modifier {
 	private String makeNewURI(String prevURI, int chanel){
 		return prevURI.substring(0, prevURI.lastIndexOf('.'))+(chanel==3?".jpeg":".png");
 	}
-	
+	/**
 	private void testImageWriter(BufferedImage bitext,String name){
 		try{
 			ImageIO.write(bitext,"png",new File("C:/TMP/"+name));
@@ -365,7 +362,7 @@ public class Modifier {
 //			if (Logger.SHOW_STACK_PRINT)
 //				e.printStackTrace();
 		}
-	}
+	}**/
 	
 	/**
 	 * also can add the textures.
@@ -441,13 +438,13 @@ public class Modifier {
 			mit = itr.next();
 			for(Object obj:URI2OBJ.get(mit.getURI())){
 				coordinatesHashMap.put(obj,getCoordinate(doubleCoordinateList.get(obj),mit.x,mit.y, mit.width,mit.height,atlasWidth, atlasHeigth,mit.rotated));
-//				coordinatesHashMap.put(obj,getCoordinate2(doubleCoordinateList.get(obj),mit.getXPos(),mit.getYPos(), mit.getWidth(),mit.getHeight(),atlasWidth, atlasHeigth,mit.rotated));
+
 			}
 			mit.clear();
 		}
 		itr=null;
 	}
-	
+	/**
 	private void analyzeOccupation(Vector<Rect> items,int atlasW,int atlasH){
 		Iterator<Rect> itr= items.iterator();
 		Rect mit;
@@ -461,8 +458,8 @@ public class Modifier {
 		itr=null;
 		
 		System.out.println(num+","+(float)(sumArea)/(atlasH*atlasW));
-		
-	}
+	}**/
+	
 	private String getCoordinate(double[]coordinates, double posX, double posY, double imW,double imH ,double atlasw, double atlasH, boolean rotated){		
 		StringBuffer sb = new StringBuffer(coordinates.length*15);
 		double tmp;
@@ -490,7 +487,7 @@ public class Modifier {
 //		System.out.println("#"+sb.substring(0, sb.length()-1));
 		return sb.substring(0, sb.length()-1);
 	}
-	
+	/**
 	private String getCoordinate2(double[]coordinates, double posX, double posY, double imW,double imH ,double atlasw, double atlasH, boolean rotated){
 		StringBuffer sb = new StringBuffer(coordinates.length*15);
 		
@@ -556,7 +553,7 @@ public class Modifier {
 		//return null;
 		
 	}
-	
+	**/
 	public void reset(){
 /**
 		if(bi!=null){

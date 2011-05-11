@@ -30,15 +30,15 @@ public class TexImage {
 		else
 			this.chanels =-1;
 	}
-		
-	
-	
 	
 	public TexImage(OrdImage ordImage) {
 		this.ordImage = ordImage;
 		this.type = ORD_IMAGE;
 	}
 
+	public void setImageLoader(ImageLoader imgLoader){
+		this.imageLoader=imgLoader;
+	}
 	
 	public BufferedImage getBufferedImage(){
 		if (this.image == null){
@@ -122,6 +122,17 @@ public class TexImage {
 			image.flush();
 			image=null;
 		}
-		
+		imageLoader=null;		
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		ordImage=null;
+		if (image!=null){
+			image.flush();
+			image=null;
+		}
+		imageLoader=null;
 	}
 }

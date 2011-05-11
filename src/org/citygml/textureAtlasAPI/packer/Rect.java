@@ -18,9 +18,8 @@ public class Rect {
     public int x;
     public int y;
     public boolean rotated=false;
-    // In the case that packing algorithm score the current position of rectangle
-    // score1 is in normal, and score2 is 90d rotated. 
-    int score1=Integer.MAX_VALUE, score2=Integer.MAX_VALUE;
+    // In the case that packing algorithm score the current position of rectangle 
+    int score1=Integer.MIN_VALUE;
     // in the case that algorithms is level base
     public short level;
     
@@ -42,7 +41,7 @@ public class Rect {
 		this.width=r.width;
 		this.height=r.height;
 		this.score1=r.score1;
-		this.score2=r.score2;
+		
 		this.rotated=r.rotated;
 	}
 	Rect(){
@@ -65,12 +64,7 @@ public class Rect {
 		height=tmp;
 		rotated=true;
 	}
-	
-	public static boolean isContainedIn(Rect a, Rect b){
-		return a.x >= b.x && a.y >= b.y 
-			&& a.x+a.width <= b.x+b.width 
-			&& a.y+a.height <= b.y+b.height;
-	}
+
 	// setPOS 
 	public void setPosition(int x, int y, short level){
     	this.x=x;
