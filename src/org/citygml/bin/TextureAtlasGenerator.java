@@ -1,21 +1,13 @@
 package org.citygml.bin;
-import oracle.ord.im.OrdImage;
-
-import javax.swing.JFrame;
 
 import org.citygml.Control.Controller;
-import org.citygml.GUI.UI;
 import org.citygml.util.Logger;
 
 public class TextureAtlasGenerator {
 	
 	Controller controller;
-	UI frame;
 	public TextureAtlasGenerator(){
-		frame = new UI(this);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		frame.setVisible(true);
+
 	}
 	public TextureAtlasGenerator(String atlasOption,String inputPath,String outputPath,int algorithm
 			, int w, int h){

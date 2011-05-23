@@ -99,7 +99,7 @@ public class Packer  {
 	/**
 	 * <I>The Next-Fit Decreasing Height (NFDH) algorithm packs the next item, left justified, 
 	 * on the current level (initially, the bottom of the strip), if it fits. Otherwise, 
-	 * the level is “closed”, a new current level is created (as a horizontal line drawn on 
+	 * the level is 'closed', a new current level is created (as a horizontal line drawn on 
 	 * the top of the tallest item packed on the current level), and the item is packed, left 
 	 * justified, on it.</I>
 	 * 

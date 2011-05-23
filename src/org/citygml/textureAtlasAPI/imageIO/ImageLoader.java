@@ -62,7 +62,7 @@ public class ImageLoader {
 		if (!isSupportedImageFormat(MIME_Type,extension))
 			return null;
 		try {
-			if (MIME_Type.lastIndexOf("rgb") > 0) {
+			if (MIME_Type.lastIndexOf(".rgb") > 0) {
 				b = rgbEncoder.readRGB(is, size);
 				rgbEncoder.freeMemory();
 			} else
