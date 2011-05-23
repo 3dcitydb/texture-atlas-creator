@@ -1,0 +1,165 @@
+============================================ NOT FINALIZED
+Texture Atlas API v0.5 
+
+  This library makes one or more atlases from textures. 
+  This library is free software and comes WITHOUT ANY WARRANTY. 
+  See the file LICENSE for more details.
+  
+0. Index
+--------
+
+1. License
+2. Copyright
+3. About
+4. System requirements
+5. How to use it
+6. Developers
+7. Contact
+8. Websites
+
+
+1. License
+----------
+
+The textureAtlas Java class library is free software under
+the GNU Lesser General Public License Version 3.0. See the file LICENSE 
+for more details. For a copy of the GNU Lesser General Public License see 
+the files COPYING and COPYING.LESSER or visit http://www.gnu.org/licenses/.
+
+
+2. Copyright
+------------
+
+(c) 2010 - 2011
+Institute for Geodesy and Geoinformation Science (IGG)
+Technische Universitaet Berlin, Germany
+http://www.igg.tu-berlin.de/
+
+
+3. About
+--------
+textureAtlas is a Java class library and API for compacting several
+texture images together into one or several atlases (depending on 
+atlas' size settings) and adapting texture coordinates accordingly. 
+
+As a result the overall size of the resources will be significantly decreased.
+ 
+Feature list:
+	* In each run, group textures, which have similar properties,
+	to one or more texture atlases.
+	* Maximum atlas size as an input.
+	* Five different packing algorithms.
+	* Different image formats as input like RGB, JPEG, PNG. Oracle's OrdImage 
+	is also supported.
+	* Different image output formats based on transparency of its content.
+
+Different packing algorithms:
+	TPIM:
+		TPIM is customized version of Touching Perimeter algorithm 
+		as a heuristic two-dimensional bin packing with support of rotation. 
+		During tests 83.35% of result atlas was occupied. This algorithm is 
+		based on source code developed and released to the public by Jukka Jyl�nki.
+					
+		TPIM starts by sorting the items according to nonincreasing area and 
+		their normal orientation. It initializes a bin with maximume acceptable 
+		size and packs one item at a time. In the case that it is not possible 
+		to add a new item to the current bin, a new bin will be initialized. The first 
+		item packed in a bin is always placed in the bottom left corner. However 
+		in the result atlas the origin will be in the top left corner. Each item is 
+		packed in a way that its bottom and left edges touching either the the bin 
+		or the edge of another item.
+
+		Each potential position for the new item will be scored as the amount 
+		of its touching edges. Touching the bin edges is more valuable to avoid 
+		inhomogeneous shape of bin. For each candidate (position) the score will be 
+		calculated twice (normal orientation and 90 degree rotated) and the highest 
+		value will be taken.
+		 
+		For more information about Touching Perimeter algorithm please refer to:
+		Lodi A, Martello S, Vigo D. Heuristic and Metaheuristic Approaches 
+		for a Class of Two-Dimensional Bin Packing Problems. INFORMS J on 
+		Computing 1999;11:345-357.
+		
+	TPIM_WITHOUT_ROTATION:
+		It is an extension of TPIM algorithm which does not rotate textures.
+			
+	SLEA:
+		Sleator's algorithm is a two-dimentional bin packing. It starts by packing
+		all the items which has a width greater than half of the bin's width on top of
+		each other. Then the remaining items will be sorted according to nonincreasing
+		height. 
+		The bin will be split to two halves. Next items will be placed from left to right 
+		in the left half and when it can not accommodate, the left half will be close and items 
+		will be placed in right half. Next level of halves, will be started with different 
+		bottom height according to maximum height in previous level of left and right side.
+
+		For more information please refer to:
+		D. Sleator , A 2.5 times optimal algorithm for packing in two
+		dimensions. Information Processing Letters 10 (1980), pp. 37-40.
+
+	NFDH:
+		The Next-Fit Decreasing Height (NFDH) algorithm starts by sorting items according 
+		to nonincreasing height. Then it packs a next item, left side, 
+		on the current level if it fits. Otherwise, the level will be closed, and a new level 
+		will be created (as a horizontal line drawn on the top of the tallest item packed 
+		on the current level), and the item is packed, left justified, on it.
+		
+		Given from:
+		Lodi, Andrea, Martello, Silvano and Monaci, Michele, (2002), Two-dimensional packing 
+	 	problems: A survey, European Journal of Operational Research, 141, issue 2, p. 241-252
+	 
+	FFDH:
+		The First-Fit Decreasing Height (FFDH) algorithm starts by sorting items according 
+		to nonincreasing height. It packs the next item, left justified, on the first level 
+		where it fits. If there is not any level to accommodate it, a new level is created
+		as in NFDH.
+		
+		Given from:
+		Lodi, Andrea, Martello, Silvano and Monaci, Michele, (2002), Two-dimensional packing 
+		problems: A survey, European Journal of Operational Research, 141, issue 2, p. 241-252
+
+RGB Endocder:
+	The SGI RGB Image format is supported by this API. An encoder is developed based on file format
+	specification version 1.00 written by Paul Haeberli from Silicon Graphics Computer Systems.
+	The encoder supports most of RGB images, but not all of them. For more information about the
+	file format please refer to http://paulbourke.net/dataformats/sgirgb/sgiversion.html (active 
+	in 2011).
+	
+4. System requirements
+----------------------
+
+* Java JRE or JDK >= 1.5
+* Oracle ordim Java library. Found under ORACLE_HOME\ord\jlib. It is also available in the same
+ directory with textureAtlas Java library.
+
+
+5. How to use it
+----------------
+
+Simply modify your Java classpath to include textureAtlas 
+Java library file and ordim Java library file.
+
+   
+6. Developers
+-------------
+
+Babak Naderi <b.naderi@mailbox.tu-berlin.de>
+
+
+7. Contact
+----------
+
+b.naderi@mailbox.tu-berlin.de
+
+
+8. Websites
+-----------
+
+Official citygml4j website: 
+http://www.igg.tu-berlin.de/software
+
+Related websites:
+http://www.igg.tu-berlin.de/
+http://www.citygml.org/
+http://www.citygmlwiki.org/
+http://www.opengeospatial.org/standards/citygml
