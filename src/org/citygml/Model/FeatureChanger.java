@@ -1,3 +1,27 @@
+/*******************************************************************************
+ * This file is part of the Texture Atlas Generation Tool.
+ * Copyright (c) 2010 - 2011
+ * Institute for Geodesy and Geoinformation Science
+ * Technische Universitaet Berlin, Germany
+ * http://www.gis.tu-berlin.de/
+ * 
+ * The Texture Atlas Generation Tool is free software:
+ * you can redistribute it and/or modify it under the terms of the
+ * GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program. If not, see
+ * <http://www.gnu.org/licenses/>.
+ * 
+ * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
+ ******************************************************************************/
 package org.citygml.Model;
 
 import java.util.ArrayList;
@@ -12,7 +36,6 @@ import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
 import org.citygml.util.Logger;
 import org.citygml4j.util.child.ChildInfo;
 import org.citygml4j.factory.CityGMLFactory;
-import org.citygml4j.jaxb.citygml.core._1.AbstractCityObjectType;
 import org.citygml4j.model.citygml.appearance.Appearance;
 import org.citygml4j.model.citygml.appearance.AppearanceProperty;
 import org.citygml4j.model.citygml.appearance.ParameterizedTexture;
@@ -20,12 +43,10 @@ import org.citygml4j.model.citygml.appearance.SurfaceDataProperty;
 import org.citygml4j.model.citygml.appearance.TexCoordList;
 import org.citygml4j.model.citygml.appearance.TextureAssociation;
 import org.citygml4j.model.citygml.appearance.TextureCoordinates;
-import org.citygml4j.model.citygml.building.AbstractBuilding;
 import org.citygml4j.model.citygml.core.AbstractCityObject;
-import org.citygml4j.model.gml.feature.AbstractFeature;
 import org.citygml4j.util.walker.FeatureWalker;
 /**
- * it will clear the input data structure
+ * It will modify the cityModel with new configuration of ParameterizedTexture.
  * @author babak naderi
  *
  */
@@ -63,7 +84,7 @@ public class FeatureChanger extends FeatureWalker {
 		
 		if (buildings!=null&&parentCityObject!=null)
 			building= buildings.get(parentCityObject.getId());
-		else
+		else // it should be a global appearance 
 			building= buildings.get(GMLModifier.unknowBuildingID);
 		
 		if (building==null){
@@ -196,80 +217,7 @@ public class FeatureChanger extends FeatureWalker {
 			return "image/png";
 		return generalMIMEType;
 	}
-	/**
-	@Override
-	public void visit(ParameterizedTexture parameterizedTexture) {
-		
-		if (pcc == 0) {
-			
-			appearance.unsetSurfaceDataMember();
-			parameterizedTexture.unsetTarget();
-			
-			
-			// write all data
-			TextureCoordinates tc ;
-			TexCoordList tcl;
-			TextureAssociation ta ;
-			
-			SurfaceDataProperty sdpt = citygml
-			.createSurfaceDataProperty();
-			
-			// for all textures
-			SimpleSurfaceDataMember simpleSDM=null;
-			Iterator<SimpleSurfaceDataMember> data = currentBuildingData
-					.iterator();
-		
-			String imgURL=null;
-			String mimeType=null;
-			
-			
-			while (data.hasNext()) {
-				
-				simpleSDM = (SimpleSurfaceDataMember) data.next();
-				if (imgURL==null){
-					imgURL=simpleSDM.getImageURI();
-					mimeType=simpleSDM.getImageMIMEType();
-				}
-				
-				if (!imgURL.equals(simpleSDM.getImageURI())){
-					parameterizedTexture.setImageURI(simpleSDM==null?"":imgURL);
-					parameterizedTexture.setMimeType(simpleSDM==null?"":mimeType);					
-					sdpt.setSurfaceData(parameterizedTexture);
-					appearance.addSurfaceDataMember(sdpt);
 
-					parameterizedTexture = citygml.createParameterizedTexture();
-					sdpt=citygml.createSurfaceDataProperty();
-					
-					imgURL=simpleSDM.getImageURI();
-					mimeType=simpleSDM.getImageMIMEType();					
-				}
-								
-				tc = citygml.createTextureCoordinates();
-				tc.setRing(simpleSDM.getRing());
-				tc.setValue(simpleSDM.getDoubleCoordinates());
-				
-				tcl = citygml.createTexCoordList();
-				tcl.addTextureCoordinates(tc);
-				
-				ta = citygml.createTextureAssociation();
-				ta.setUri(simpleSDM.getTargetURI());
-				ta.setTextureParameterization(tcl);
-				
-				
-				parameterizedTexture.addTarget(ta);
-				
-			}
-			parameterizedTexture.setImageURI(simpleSDM==null?"":imgURL);
-			parameterizedTexture.setMimeType(simpleSDM==null?"":mimeType);
-			
-			sdpt.setSurfaceData(parameterizedTexture);
-			
-			
-			appearance.addSurfaceDataMember(sdpt);
-			pcc++;
-		}
-		super.visit(parameterizedTexture);
-	}**/
 
 	
 }

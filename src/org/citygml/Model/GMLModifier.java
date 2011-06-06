@@ -1,3 +1,27 @@
+/*******************************************************************************
+ * This file is part of the Texture Atlas Generation Tool.
+ * Copyright (c) 2010 - 2011
+ * Institute for Geodesy and Geoinformation Science
+ * Technische Universitaet Berlin, Germany
+ * http://www.gis.tu-berlin.de/
+ * 
+ * The Texture Atlas Generation Tool is free software:
+ * you can redistribute it and/or modify it under the terms of the
+ * GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program. If not, see
+ * <http://www.gnu.org/licenses/>.
+ * 
+ * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
+ ******************************************************************************/
 package org.citygml.Model;
 
 
@@ -55,13 +79,6 @@ import org.citygml.util.Logger;
 
 public class GMLModifier {
 	
-//	public final static int PNG=1;
-//	public final static int JPG=2;
-////set JPEG. just change it to PNG if there is a alpha value in the input.
-//	public final static int AUTO=3;// it is not supported yet!
-//	
-//	private int atlasTextureOutputFormat;
-	
 	private int texturePackerType=org.citygml.textureAtlasAPI.TextureAtlasGenerator.TPIM;
 	private TextureAtlasGenerator atlasGenerator;
 	
@@ -86,7 +103,6 @@ public class GMLModifier {
 		
 		inputGML=null;
 		outputGML=null;
-//		atlasTextureOutputFormat= GMLModifier.PNG;
 	}
 	
 	/**
@@ -139,20 +155,21 @@ public class GMLModifier {
 			CityModel cityModel = readGMLFile(inputGML);
 			
 			// scan the cityModel object to obtain all surface data of each building separately.
+			// each gml file may contain more than one building.
+			// each building may need more than one textureatlas.
 			Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings=newCityModelScaner(cityModel);
 			int bildingSize = buildings.size();
 			if (buildings.containsKey(unknowBuildingID))
 				bildingSize--;
 			Logger.getInstance().log(Logger.TYPE_INFO,"   Contains "+bildingSize+" building(s).");
-						
-			//Iterator<Hashtable<Integer,TexImageInfo4GMLFile>> buildingsIter =buildings.values().iterator();
-			// for each building merge textures and modify the coordinates and other properties.
-			
+
 			Hashtable<Integer,TexImageInfo4GMLFile> building;
 			TexImageInfo4GMLFile texGroup;
 			Integer tmpKey;
+			// simple counter
 			int cc=1;
 			String log;
+			// for all buildings in the current cityGML file
 			for(String buildingID: buildings.keySet()){
 				if (buildingID.equals(unknowBuildingID)){
 					Logger.getInstance().log(Logger.TYPE_INFO,"       Working on general appearances.");
@@ -162,28 +179,37 @@ public class GMLModifier {
 					Logger.getInstance().log(Logger.TYPE_INFO,"       Working on "+getNumber(cc)+" building.("+buildingID+")");
 				building=buildings.get(buildingID);
 				Enumeration<Integer> texGroupIDS= building.keys();
+				// for each potential group of textures: 
 				while(texGroupIDS.hasMoreElements()){
 					tmpKey= texGroupIDS.nextElement();
 					texGroup = building.get(tmpKey);
+					// using the TextureAtlas API
 					texGroup= (TexImageInfo4GMLFile) atlasGenerator.convert(texGroup);
 					log = atlasGenerator.getLOGInText();
 					if (log!=null){
 						Logger.getInstance().log(Logger.TYPE_ERROR,log.replaceAll("<", "                  <").replaceFirst("                  <",  "       <"));
 						log=null;
-					}	
+					}
+					// gml file file modify at the end.
 					building.put(tmpKey, texGroup);
+					// But images will be written immediately. 
 					writeImageFiles(texGroup.getTexImages());
 				}
 				cc++;
 			
 			}
-			// write new result based for each building
+			
+			/* After finishing with all buildings inside of current citygml file
+			 * modifies the citygml file.
+			 */
+			
 			FeatureChanger myFeatureWalker = new FeatureChanger();
 			myFeatureWalker.set(buildings,citygml);
 			cityModel.accept(myFeatureWalker);
 
 			myFeatureWalker=null;
 			Logger.getInstance().log(Logger.TYPE_INFO,"   Writing the output on file...");
+			// write the citygml file.
 			writeGMLFile(cityModel, outputGML);
 			
 		} catch (Exception e) {
@@ -195,11 +221,10 @@ public class GMLModifier {
 	}
 
 	/**
-	 * !!!OK
 	 * @param fileAddress
 	 * @return
 	 */
-	public String getDirectory(String fileAddress){
+	private String getDirectory(String fileAddress){
 		int idx;
 		return fileAddress.substring(0,(idx=fileAddress.lastIndexOf('/'))>0?idx:0);
 		
@@ -213,10 +238,10 @@ public class GMLModifier {
 	 * @param citymodel
 	 * @return
 	 */
-	public Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> newCityModelScaner(
+	private Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> newCityModelScaner(
 			CityModel citymodel) {
 
-		// Each element refer to a group of ParametrizedTexture in a building which share all of the features
+		// Each element refer to a group of ParametrizedTexture in a CityObject(e.g. building) which share same features
 		// instead of imageURI and coordinates.
 		final Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>> buildings = new Hashtable<String, Hashtable<Integer,TexImageInfo4GMLFile>>();
 		// imagine all text have a same properties.
@@ -228,27 +253,16 @@ public class GMLModifier {
 			TexGeneralProperties genProp = null;
 
 			Appearance currentApp;
-//			Building currentBuilding;
 			AbstractCityObject parentCityObject;
 			ChildInfo ci = new ChildInfo();
 
 			
 			public void visit(ParameterizedTexture parameterizedTexture) {
 				// cityGML structure
-				currentApp= ci.getParentFeature(parameterizedTexture, Appearance.class);
-				// cityGML structure
-//				currentBuilding= ci.getParentCityObject(parameterizedTexture, Building.class);
-//				if (currentBuilding==null)
-//					buildingID = "UNKNOWN";
-//				else
-//					buildingID=currentBuilding.getId();
-
-				
+				currentApp= ci.getParentFeature(parameterizedTexture, Appearance.class);			
 				parentCityObject= ci.getParentCityObject(parameterizedTexture);
-				if (parentCityObject==null){
+				if (parentCityObject==null)
 					buildingID = unknowBuildingID;
-				
-				}
 				else
 					buildingID=parentCityObject.getId();
 				
@@ -261,12 +275,13 @@ public class GMLModifier {
 					texGroup = building.get(new Integer(building.size()-1));
 					genProp=texGroup.getGeneralProp();
 				}else{
-					//else not possible
+					//else is impossible
 					texGroup = new TexImageInfo4GMLFile();
 					building.put(new Integer(building.size()), texGroup);
 					genProp = null;
 				}
-
+				// find (or make) corresponding TexImageInfo4GMLFile which share a same GeneralProperties with 
+				// current parameterizedTexture.
 				if (genProp==null){
 					genProp = new TexGeneralProperties(parameterizedTexture
 							.getTextureType(), parameterizedTexture
@@ -315,8 +330,7 @@ public class GMLModifier {
 								.getImageURI(), double2String(tc.getValue()));
 					}}
 				}
-				// in the case of land use, Appearences without model..
-				//if (parentCityObject!=null)
+				// in the case of land use, Appearances without model..
 				if (currentApp!=null && parameterizedTexture.getParent()!=null)
 					currentApp.unsetSurfaceDataMember((SurfaceDataProperty) parameterizedTexture.getParent());
 				super.visit(parameterizedTexture);
@@ -375,12 +389,12 @@ public class GMLModifier {
 	}
 	
 	/**
-	 * !!OK
+	 * Load cityGML file completely (not efficient in the case of extremely huge file). 
 	 * @param path
 	 * @return
 	 * @throws Exception
 	 */
-	public CityModel readGMLFile(String path) throws Exception{
+	private CityModel readGMLFile(String path) throws Exception{
 		
 		builder = ctx.createJAXBBuilder();
 		CityGMLInputFactory in = builder.createCityGMLInputFactory();
@@ -389,13 +403,13 @@ public class GMLModifier {
 		reader.close();
 		return cityModel;
 	}
-/**
- * !!!OK
- * @param cityModel
- * @param path
- * @throws Exception
- */
-	public void writeGMLFile(CityModel cityModel,String path)throws Exception{
+
+	/**
+	 * @param cityModel
+	 * @param path
+	 * @throws Exception
+	 */
+	private void writeGMLFile(CityModel cityModel,String path)throws Exception{
 		File file = new File(path);
 		if (!file.exists() &&file.getParent()!=null)
 			file.getParentFile().mkdirs();
@@ -411,11 +425,11 @@ public class GMLModifier {
 		writer.close();
 	}
 	
-	public String getCompliteImagePath(String path){
+	private String getCompliteImagePath(String path){
 		return inputParentPath+(inputParentPath==null||inputParentPath.length()==0?"":"/")+path.replace('\\', '/');
 	}
 	
-	public String double2String(List<Double> coordinates){
+	private String double2String(List<Double> coordinates){
 		if (coordinates==null)
 			return null;
 		StringBuffer sb= new StringBuffer(coordinates.size()*20);
@@ -428,9 +442,10 @@ public class GMLModifier {
 		coordinates=null;
 		return sb.toString();
 	}
+	
 	/**
 	 * write all the images in the correct place with respect to output GML address. 
-	 * NOTE: It will remove all objects
+	 * NOTE: It will clear texImage. 
 	 * @param texImage
 	 */
 	private void writeImageFiles(HashMap<String, TexImage> texImage){
@@ -484,6 +499,12 @@ public class GMLModifier {
 		texImage.clear();
 	}
 	
+	/**
+	 * In the case that an image format is not supported, it will directly copy from input folder
+	 * to output folder. 
+	 * @param pathIn
+	 * @param pathOut
+	 */
 	private void copyFile(String pathIn, String pathOut){
 		int size;
 		

@@ -1,3 +1,27 @@
+/*******************************************************************************
+ * This file is part of the Texture Atlas Generation Tool.
+ * Copyright (c) 2010 - 2011
+ * Institute for Geodesy and Geoinformation Science
+ * Technische Universitaet Berlin, Germany
+ * http://www.gis.tu-berlin.de/
+ * 
+ * The Texture Atlas Generation Tool is free software:
+ * you can redistribute it and/or modify it under the terms of the
+ * GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program. If not, see
+ * <http://www.gnu.org/licenses/>.
+ * 
+ * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
+ ******************************************************************************/
 package org.citygml.Control;
 
 import java.io.File;
@@ -5,27 +29,26 @@ import java.io.File;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;**/
 import java.util.Stack;
-
-import javax.management.Notification;
-
+//import javax.management.Notification;
+//import javax.management.*;
 import org.citygml.Model.GMLModifier;
 import org.citygml.util.Logger;
 
-//import javax.management.*;
-
-
+/**
+ * This class is responsible for:
+ * 	- Checking the input arguments, and set properties.
+ *  - Finding input file(es) and asking for modifying all gmal files.  
+ * @author Babak Naderi
+ *
+ */
 public class Controller {
-	
-
-	
+		
 	private String atlasOptions;
 	private String inputPath;
 	private String outputPath;
 	
 	private GMLModifier gmlModifier;
-	
-	// path of NVIDIA AtlasTexture Generator --- @remove
-	String atlasCreationToolPath="E:/CityGML/atlasCreationTool.exe";
+
 	private int texturePackerType,maxH,maxW;
 	public Controller(){
 		gmlModifier= new GMLModifier();
@@ -57,20 +80,6 @@ public class Controller {
 		outputPath=outputPath.toLowerCase().replace('\\','/');
 		
 		
-				
-		
-//		if(atlasOptions.equals("-atlaspng"))
-//			gmlModifier.setAtlasTextureOutputFormat(GMLModifier.PNG);
-//		else
-//			if(atlasOptions.equals("-atlasjpg"))
-//				gmlModifier.setAtlasTextureOutputFormat(GMLModifier.JPG);
-//			else	
-//				if(atlasOptions.equals("-atlasauto"))
-//					gmlModifier.setAtlasTextureOutputFormat(GMLModifier.AUTO);
-//				else
-//					return false; // or maybe just set the default value!
-		
-		
 		// validate input file/folder
 		File input =new File(inputPath);
 		if (!input.exists())
@@ -98,7 +107,10 @@ public class Controller {
 		System.out.println("\r\n");
 	}
 	
-
+	/**
+	 * Looks entire folder and sub-folders for ".gmal" files and modifies each of them separately. 
+	 * @param folder
+	 */
 	private void multiGMLFiles(File folder){
 		try{
 			
@@ -147,7 +159,7 @@ public class Controller {
 				e.printStackTrace();
 			
 		}	
-		
+//   for quality analyzing. 		
 //		System.out.println(System.currentTimeMillis());
 //		System.out.println(ManagementFactory.getRuntimeMXBean().getName());
 //		MemoryUsage mu =ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
@@ -163,13 +175,6 @@ public class Controller {
 		outputPath=null;
 	}
 
-}
-class MyListener implements javax.management.NotificationListener {
-	@Override
-	public void handleNotification(Notification arg0, Object arg1) {
-		// TODO Auto-generated method stub
-		
-	}
 }
 
 
