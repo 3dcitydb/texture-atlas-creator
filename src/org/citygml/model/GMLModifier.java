@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.Model;
+package org.citygml.model;
 
 
 import java.awt.Graphics2D;
@@ -382,7 +382,7 @@ public class GMLModifier {
 
 		};
 
-		// pars to get information is a structured data format.
+		// pars to load information in a structured data format.
 		citymodel.accept(loader);
 		return buildings;
 

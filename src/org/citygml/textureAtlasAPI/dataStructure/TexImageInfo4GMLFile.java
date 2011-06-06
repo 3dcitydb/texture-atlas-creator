@@ -24,13 +24,14 @@
  ******************************************************************************/
 package org.citygml.textureAtlasAPI.dataStructure;
 
-
-
 import java.util.HashMap;
 
-
 /**
- * TODO Read data from ImagesLocalPath and fill the texImages hashmap. 
+ * In the case of loading CityGMl file, TexImageInfo is not sufficient. 
+ * ImagesLocalPath, and TexGeneralProperties should be added.
+ * ImagesLocalPath: Images should be load inside of API (RGB decoder).
+ * TexGeneralProperties: General properties will be used during modification of
+ * CityModel.
  * @author babak naderi
  *
  */

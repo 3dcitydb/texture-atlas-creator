@@ -80,7 +80,7 @@ public class Modifier {
 	
 	/**
 	 * TODO check the code whether for several texCoordiLists for a parameterizedTexture.
-	 * TODO add try catch to get errors.
+
 	 * @param ti
 	 * @return
 	 */
@@ -91,13 +91,8 @@ public class Modifier {
 	}
 	public TexImageInfo run(TexImageInfo ti){
 
-//		if (bi==null){
-//			bi=new BufferedImage(ImageMaxWidth, ImageMaxHeight,BufferedImage.TYPE_INT_RGB);
-//			g = bi.getGraphics();
-//		}
 		fileCounter=0;
 		completeAtlasPath=null;
-//		g.clearRect(0, 0, ImageMaxWidth, ImageMaxHeight);
 
 		HashMap<Object, String> coordinatesHashMap =ti.getTexCoordinates();
 		HashMap<String, TexImage> textImage= ti.getTexImages();
@@ -117,7 +112,7 @@ public class Modifier {
 		int totalWidth3c=0,maxw3c=0;
 		int totalWidth4c=0,maxw4c=0;
 		
-		//!?!?! should I make it again?
+		
 		Packer packer3C = new Packer(ImageMaxWidth,ImageMaxHeight,packingAlgorithm,false);
 		Packer packer4C = new Packer(ImageMaxWidth,ImageMaxHeight,packingAlgorithm,true);
 		// target URI: surface ID

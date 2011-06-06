@@ -29,7 +29,7 @@ import java.util.HashMap;
 
 
 /**
- * This class will be used to carry all information of a Building object which are necessary 
+ * This class will be used to carry all information of a Building object (or CityObject) which are necessary 
  * for generating a texture atlas. This class also will be used as a data structure to carry
  * result which is texture atlas. 
  *  

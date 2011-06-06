@@ -67,7 +67,6 @@ public class Atlas {
     }
     
     public ArrayList<Rect> getAllItems(){
-       
     	return allData;
     }
     

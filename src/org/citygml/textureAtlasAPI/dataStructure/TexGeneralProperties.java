@@ -30,6 +30,13 @@ import org.citygml4j.model.citygml.appearance.TextureType;
 import org.citygml4j.model.citygml.appearance.WrapMode;
 import org.citygml4j.model.citygml.appearance.ColorPlusOpacity;
 
+/**
+ * Each ParameterizedTexture has some properties. In the case of combining several textures,
+ * they should have same properties. An instance of this class presents properties of its
+ * corresponding texture. In addition it is possible to compare two instance of this class.
+ * @author babak
+ *
+ */
 
 public class TexGeneralProperties {
 	private TextureType textureType;

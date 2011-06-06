@@ -33,7 +33,12 @@ import org.citygml.textureAtlasAPI.TextureAtlasGenerator;
 import org.citygml.textureAtlasAPI.packer.comparator.HeightComparator;
 //import org.citygml.util.Logger;
 
-
+/**
+ * It a responsible class for packing the textures. Each texture will be represent as a
+ * Rect. Based on selected packing algorithm, and bin size, it will pack the textures 
+ * in an atlas. Each atlas may have different levels.
+ *  @author Babak Naderi 
+ */
 public class Packer  {
 	
 	private LinkedList <Rect> rects;
@@ -243,7 +248,18 @@ public class Packer  {
 	}
 
 	/**
-	 * Step 1. Stack all the pieces of width greater than 4 on top of one another in the bottom of the bin.
+	 *  Sleator's algorithm is a two-dimentional bin packing. It starts by packing
+	 * 	all the items which has a width greater than half of the bin's width on top of
+	 * 	each other. Then the remaining items will be sorted according to nonincreasing
+	 * 	height. 
+	 * 	The bin will be split to two halves. Next items will be placed from left to right 
+	 * 	in the left half and when it can not accommodate, the left half will be close and items 
+	 * 	will be placed in right half. Next level of halves, will be started with different 
+	 * 	bottom height according to maximum height in previous level of left and right side.
+
+	 * 	For more information please refer to:
+	 * 	D. Sleator , A 2.5 times optimal algorithm for packing in two
+	 * 	dimensions. Information Processing Letters 10 (1980), pp. 37-40.
 	 * 
 	 * @param bindingBoxWidth
 	 * @return

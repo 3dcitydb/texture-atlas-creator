@@ -25,7 +25,7 @@
 package org.citygml.textureAtlasAPI.packer;
 
 /**
- * For implementation sample code of Jukka Jylänki is used, which published for public use.
+ * This algorithm is based on source code developed and released to the public by Jukka Jylänki.
  */
 import java.util.ArrayList;
 import java.util.Collections;

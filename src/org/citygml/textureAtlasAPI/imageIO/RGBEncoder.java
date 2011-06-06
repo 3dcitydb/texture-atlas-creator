@@ -33,9 +33,27 @@ import java.io.InputStream;
 
 //import org.citygml.util.Logger;
 
-
+/**
+ * This is an encoder for the SGI RGB Image format. 
+ * It is developed base on file format specification version 1.00 written by Paul Haeberli 
+ * from Silicon Graphics Computer Systems. The encoder supports most of RGB images, but not 
+ * all of them. For more information about the file format please refer to 
+ * http://paulbourke.net/dataformats/sgirgb/sgiversion.html (active in 2011).
+ * 
+ * @author babak naderi
+ */
 public class RGBEncoder {
+	RGBHeader header;
+	byte[][] ChannelsShifts = { {},// free
+			{0},// B/W
+			{},// ?
+			{ 16, 8, 0 },// RGB
+			{ 16, 8, 0, 24 } // RGBA
 
+	};
+	
+	BufferedImage bi;
+	
 	public RGBEncoder() {
 
 	}
@@ -167,22 +185,23 @@ public class RGBEncoder {
 
 	}
 
-	byte[][] ChannelsShifts = { {},// free
-			{0},// B/W
-			{},// ?
-			{ 16, 8, 0 },// RGB
-			{ 16, 8, 0, 24 } // RGBA
-
-	};
 	
-	BufferedImage bi;
 	public BufferedImage readRGB(File file) throws Exception {
 		if (!file.exists())
 			return null;
 		return readRGB(new FileInputStream(file),(int)file.length());
 		
 	}
-	RGBHeader header;
+	
+	
+	
+	/**
+	 * TODO: remove fileLength from input arguments.  
+	 * @param is
+	 * @param fileLength
+	 * @return
+	 * @throws Exception
+	 */
 	public BufferedImage readRGB(InputStream is, int fileLength)throws Exception {
 		if (is==null)
 			return null;
@@ -276,7 +295,7 @@ public class RGBEncoder {
 			header.pimin=getLong(headerR, count);
 			header.pimax=getLong(headerR, count+4);
 			header.pSize=header.pimax-header.pimin;
-			count+=84;// dummy, name
+			count+=84;// skip dummy, name
 //			count+=98;// skip Pixmin, pixmax, dummy, name
 			header.colorMap = getLong(headerR, count);
 			headerR = null;

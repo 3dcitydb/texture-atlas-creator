@@ -24,23 +24,22 @@
  ******************************************************************************/
 package org.citygml.textureAtlasAPI.imageIO;
 
-
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-
 import javax.imageio.ImageIO;
-
-
 import org.citygml.textureAtlasAPI.dataStructure.TexImage;
 //import org.citygml.util.Logger;
 
-
-
+/**
+ * This class is responsible for loading different image formats. 
+ * Currently all j2se 6 supported image formats and SGI RGB Image format are included.
+ * In the case of adding other encoders, they should announced in here.
+ * @author babak naderi   
+ */
 
 public class ImageLoader {
 	RGBEncoder rgbEncoder;
@@ -49,14 +48,12 @@ public class ImageLoader {
 	}
 	File f;
 	BufferedImage b;
-//	ImageIcon ii;
 	int chanels;
 	
 	private BufferedImage loadImage(String path){
 		try {
 			f= new File(path);
 			if (!f.exists()){
-//				Logger.getInstance().log(Logger.TYPE_ERROR,"File not exists. ("+path+")");
 				return null;
 			}
 			if (path.lastIndexOf(".rgb")>0){
@@ -69,7 +66,6 @@ public class ImageLoader {
 				chanelDetector(b);
 			}else {
 				chanels=0;
-				//Logger.getInstance().log(Logger.TYPE_ERROR,"Error in loading an image. ("+path+")");
 			}
 			
 		} catch (Exception e) {
@@ -101,8 +97,28 @@ public class ImageLoader {
 //				e.printStackTrace();
 		}
 		return b;
-	}	
+	}
 	
+	public HashMap<String, TexImage> loadAllImage(HashMap<String,String> imageLocalPath){
+		HashMap<String, TexImage> texImages = new HashMap<String, TexImage>();
+		if (imageLocalPath==null)
+			return null;
+		Iterator<String> imageURI=imageLocalPath.keySet().iterator();
+		String URI;
+		while(imageURI.hasNext()){
+			URI=imageURI.next();
+			texImages.put(URI,new TexImage(loadImage(imageLocalPath.get(URI))));
+			URI=null;
+		}
+		imageURI=null;
+		imageLocalPath=null;
+		return texImages ;
+	}
+	
+	/**
+	 * set this instance in all TexImage in input HashMap.
+	 * @param basic
+	 */
 	public void setImageLoader(HashMap<String, TexImage> basic){
 		if (basic==null)
 			return ;
@@ -135,21 +151,7 @@ public class ImageLoader {
 		return this.chanels;
 	}
 	
-	public HashMap<String, TexImage> loadAllImage(HashMap<String,String> imageLocalPath){
-		HashMap<String, TexImage> texImages = new HashMap<String, TexImage>();
-		if (imageLocalPath==null)
-			return null;
-		Iterator<String> imageURI=imageLocalPath.keySet().iterator();
-		String URI;
-		while(imageURI.hasNext()){
-			URI=imageURI.next();
-			texImages.put(URI,new TexImage(loadImage(imageLocalPath.get(URI))));
-			URI=null;
-		}
-		imageURI=null;
-		imageLocalPath=null;
-		return texImages ;
-	}
+	
 	
 	public static boolean isSupportedImageFormat(String MIMEType,String extension){
 		if (SupportedImageMIMETypes==null)

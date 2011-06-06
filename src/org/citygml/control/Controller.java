@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.Control;
+package org.citygml.control;
 
 import java.io.File;
 /**import java.lang.management.ManagementFactory;
@@ -31,7 +31,7 @@ import java.lang.management.MemoryUsage;**/
 import java.util.Stack;
 //import javax.management.Notification;
 //import javax.management.*;
-import org.citygml.Model.GMLModifier;
+import org.citygml.model.GMLModifier;
 import org.citygml.util.Logger;
 
 /**

@@ -29,27 +29,14 @@ import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
-
+/**
+ * In the case that image size is bigger than maximum supported size, 
+ * it will resize.
+ * @author babak naderi
+ *
+ */
 public class ImageScaling {
-	/*
-	public static GraphicsConfiguration getDefaultConfiguration() {
-	    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-	    GraphicsDevice gd = ge.getDefaultScreenDevice();
-	    return gd.getDefaultConfiguration();
-	}
-	 
-	public static BufferedImage toCompatibleImage(BufferedImage image, GraphicsConfiguration gc) {
-	    if (gc == null)
-	        gc = getDefaultConfiguration();
-	    int w = image.getWidth();
-	    int h = image.getHeight();
-	    int transparency = image.getColorModel().getTransparency();
-	    BufferedImage result = gc.createCompatibleImage(w, h, transparency);
-	    Graphics2D g2 = result.createGraphics();
-	    g2.drawRenderedImage(image, null);
-	    g2.dispose();
-	    return result;
-	}*/
+	
 	public static BufferedImage rescale(BufferedImage source,int maxW,int maxH) {
 		
 		int nw,nh;

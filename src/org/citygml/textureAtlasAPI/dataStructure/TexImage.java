@@ -31,7 +31,8 @@ import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
 import oracle.ord.im.OrdImage;
 
 /**
- * for the OrdImage the MIME type should be set.
+ * This class represents a texture image. It supports OrdImage and load them by using
+ * and instance of ImageLoader class. 
  * 
  * @author babak naderi
  * 
@@ -86,18 +87,8 @@ public class TexImage {
 		}
 		
 		return this.image;
-//		if (image==null)
-//			return null;
-//		
-//		BufferedImage bi = new BufferedImage(image.getWidth(null), image.getHeight(null), chanels==3? BufferedImage.TYPE_INT_RGB:BufferedImage.TYPE_INT_ARGB);
-//		Graphics2D g=bi.createGraphics();
-//		g.drawImage(image, 0, 0,null);
-//		g.dispose();
-//		return bi;
 	}
 	
-	
-	// before that you should set db connection in a static variable
 	public OrdImage getOrdImage() {
 		if (this.type == ORD_IMAGE)
 			return this.ordImage;

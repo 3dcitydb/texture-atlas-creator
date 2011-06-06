@@ -24,7 +24,7 @@
  ******************************************************************************/
 package org.citygml.bin;
 
-import org.citygml.Control.Controller;
+import org.citygml.control.Controller;
 import org.citygml.util.Logger;
 
 public class TextureAtlasGenerator {

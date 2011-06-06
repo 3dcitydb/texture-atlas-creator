@@ -32,10 +32,16 @@ import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
 import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
 
 /**
- * Todo:
- * 2. remove every image.. ( if it works good).
- * @author babak naderi
- *
+ * It is a starting point for using Textureatlas API.
+ * After setting properties, call the convert(TexImageInfo,...) method.
+ * It will return modified TexImageInfo. Check getLOG() or getLOGInText
+ * to see the message related to current conversion.
+ * 
+ * All the textures in TexImageInfo should be potentially combinable.
+ * 
+ * In the case of using standalone tool, use TexImageInfo4GMLFile instead of TexImageInfo.
+ * In this case images will be loaded in this API. 
+ *@author babak naderi
  */
 public class TextureAtlasGenerator {
 	/**
