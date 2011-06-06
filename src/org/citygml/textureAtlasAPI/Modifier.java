@@ -53,6 +53,14 @@ import org.citygml.textureAtlasAPI.packer.comparator.StartHeightComparator;
 //import org.citygml.util.Logger;
 
 
+/**
+ * This class is responsible for creating atlases, modifying coordinates and names for an instance of 
+ * TexImageInfo. However, it does not modify unloaded TexImages and the one which has coordinates out of 
+ * the rage [0,1].
+ * Remaining textures will be divide in two groups: with/without alpha channel textures. They will be 
+ * combined separately. As a result, atlases will be in PNG/JPEG image formats.
+ * 
+ */
 public class Modifier {
 	private int ImageMaxWidth;
 	private int ImageMaxHeight;
@@ -89,33 +97,48 @@ public class Modifier {
 	public HashMap<Object, ErrorTypes> getLOG(){
 		return this.LOG;
 	}
+	
+	/**
+	 * main method which does the modification.
+	 * @param ti
+	 * @return
+	 */
 	public TexImageInfo run(TexImageInfo ti){
 
 		fileCounter=0;
 		completeAtlasPath=null;
 
+		// Object as a key, coordinates 
 		HashMap<Object, String> coordinatesHashMap =ti.getTexCoordinates();
+		// URI , Image
 		HashMap<String, TexImage> textImage= ti.getTexImages();
+		// Object as a key, URI
 		HashMap<Object, String> textUri= ti.getTexImageURIs();
+		
 		if (LOG==null)
 			this.LOG =new HashMap<Object, ErrorTypes>(); 
 		else
 			LOG.clear();
 		
+		//list of objects which point to a same texture.
 		HashMap<String, ArrayList<Object>> uri2Object = new HashMap<String, ArrayList<Object>>();
 	
+		// if the Image in the URI is not accepted it should be marked in here. 
 		HashMap<String,Boolean> isImageAcceptable = new HashMap<String, Boolean>();
+		// URI dictionary: <oldURI,newURI> 
 		HashMap<String, String> URIDic= new HashMap<String, String>();
+		// Object as a key, array of coordinates
 		HashMap< Object, double[]> doubleCoordinateList= new HashMap<Object, double[]>();
 		
-
+		// statistic about width of 3 channels textures.  
 		int totalWidth3c=0,maxw3c=0;
+		// statistic about width of 4 channels textures.  		
 		int totalWidth4c=0,maxw4c=0;
 		
-		
+		// packers for 3 and 4 channels textures.
 		Packer packer3C = new Packer(ImageMaxWidth,ImageMaxHeight,packingAlgorithm,false);
 		Packer packer4C = new Packer(ImageMaxWidth,ImageMaxHeight,packingAlgorithm,true);
-		// target URI: surface ID
+		
 		int width, height;
 		String URI,tmpURI;
 		ArrayList<Object> list;
@@ -124,13 +147,16 @@ public class Modifier {
 		BufferedImage tmp;
 		boolean is4Chanel=false;
 		double[] coordinate;
+		
 		if (textUri==null){
-			//System.err.println("------ NO Texture");
+			// it does not contain any texture!
 			return ti;
 		}
+		// for all objects (the surface-geometry id (Long) in API | TargetURI+' '+Ring(String) in standalone tool)
 		for (Object key : textUri.keySet()){
 			URI= textUri.get(key);
-							
+				
+			
 			//Check whether this URI is changed before.
 			if((tmpURI=URIDic.get(URI))!=null){
 				// this URI previously have been changed, so textImage should also be changed before.
@@ -139,28 +165,30 @@ public class Modifier {
 			}else{
 				tmpTextureImage= textImage.get(URI);
 				if (tmpTextureImage!=null && tmpTextureImage.getBufferedImage()!=null ){
+					// set a new uri based the number of channels in result.
 					tmpURI= makeNewURI(URI, tmpTextureImage.getChanels());
 					textUri.put(key,tmpURI);
 					textImage.remove(URI);
 					textImage.put(tmpURI, tmpTextureImage);
 					URIDic.put(URI, tmpURI);
 					URI=tmpURI;
-					
 				}
-			}
+			}	
 			tmpURI=null;
 			tmpTextureImage=null;
 			
-			// The image was read before;
+			// The image was loaded before;
 			if((b=isImageAcceptable.get(URI))!=null){
 				if (!b.booleanValue()){
+					// previously another object which has the same URI was rejected. Therefore this object
+					// also will be rejected.
 					//LOG.put(key,ErrorTypes.TARGET_PT_NOT_SUPPORTED);
 					continue;
 				}
-				// the coordinates should be added and then continue.
+				// the coordinates should be linked to the key and then continue.
 				coordinate= formatCoordinates(coordinatesHashMap.get(key));
-				// previous coordinate was accepted but this one has a problem with coordinates
 				if (coordinate==null){
+					// previous coordinate was accepted but this one has a problem with coordinates
 		        	isImageAcceptable.put(URI, new Boolean(false));
 		        	width= textImage.get(URI).getBufferedImage().getWidth(null);
 		        	
@@ -192,6 +220,7 @@ public class Modifier {
 			
 			// report bug
 			if ((tmp= textImage.get(URI).getBufferedImage())==null){
+				// image is not available 
 				isImageAcceptable.put(URI, new Boolean(false));
 				LOG.put(key,ErrorTypes.IMAGE_IS_NOT_AVAILABLE);
 				continue;			
@@ -200,7 +229,7 @@ public class Modifier {
 			 
 			width= tmp.getWidth();
 	        height= tmp.getHeight();
-	        //LOG if the image is not accepted, do not touch it! size problem
+	        // check whether the size of image is acceptable
 	        if (!acceptATexture(width,height)){
 	        	tmp = ImageScaling.rescale(tmp, ImageMaxWidth, ImageMaxHeight);
 	        	if (tmp==null||!acceptATexture(width= tmp.getWidth(null),height= tmp.getHeight(null))){
@@ -217,9 +246,12 @@ public class Modifier {
 	        	LOG.put(key,ErrorTypes.ERROR_IN_COORDINATES);
 	        	continue;
 	        }
+	        // setting the name of atlas.
 	        if (completeAtlasPath==null)
 				completeAtlasPath= URI.substring(0,URI.lastIndexOf('.'))+"_%1d.";
 	        
+
+	        // everything is alright with the current Key object. so the values will be set in data structures. 
 	        doubleCoordinateList.put(key, coordinate);
             if (is4Chanel){
             	packer4C.addRect(URI,width, height);
@@ -247,12 +279,20 @@ public class Modifier {
 
 		}
 
+		/**
+		 * Until know textures are grouped in:
+		 *   - unsupported ones. they will not touched.
+		 *   - 3channels images
+		 *   - 4channels images.
+		 * Atlas will be generate for both 3channels and 4channels groups.  
+		 */
 		ArrayList<Atlas> atlasMR = new ArrayList<Atlas>();
 		if (packer3C.getSize()!=0)
 			atlasMR.add(iterativePacker(packer3C, maxw3c,totalWidth3c));
 		if (packer4C.getSize()!=0)
 			atlasMR.add(iterativePacker(packer4C, maxw4c,totalWidth4c));
 		
+		// for all available atlases modify the coordinates and URIs.
 		for (Atlas mr:atlasMR){	
 			if (Math.min(mr.getBindingBoxHeight(), mr.getBindingBoxWidth())<1)
 				continue;
@@ -262,6 +302,8 @@ public class Modifier {
 					is4Chanel ? BufferedImage.TYPE_INT_ARGB
 							: BufferedImage.TYPE_INT_RGB);
 			Graphics2D g = bi.createGraphics();
+			// each atlas may be divided to several ones.
+			// @TODO The result atlas should be fixed and not divided to more atlases.
 			// start to make atlas. prevH: amount of height of strip which was written in file before.
 			int x,y, prevH=0;
 			int atlasW=0,atlasH=0;
@@ -278,14 +320,11 @@ public class Modifier {
 			Rect item=null;
 			
 			int currentLevel=0;
+			// for all rects inside of this atlas:
 			while(all.hasNext()){
-			
 				item = all.next();		
-			
 				if (item.rotated){
-					// just for test mode.
 					BufferedImage bif = textImage.get(item.getURI()).getBufferedImage();
-					
 					AffineTransform at = new AffineTransform();
 					at.translate ( 0,bif.getWidth() ) ;
 			        at.rotate(Math.toRadians(-90));
@@ -298,9 +337,9 @@ public class Modifier {
 				
 	        	 x= item.x;
 	        	 y= item.y;
+	        	 // check whether the current atlas is full.
 	        	 if (y-prevH+item.height>ImageMaxHeight||((this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)&&currentLevel!=item.level)){
 	        		 // set Image in Hashmap and write it to file.
-	//        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi),is4Chanel?4:3));
 	        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi)));
 	        		 g.dispose();
 	        		 fileCounter++;
@@ -312,7 +351,7 @@ public class Modifier {
 	        					is4Chanel ? BufferedImage.TYPE_INT_ARGB
 	        							: BufferedImage.TYPE_INT_RGB);
 	        		 g = bi.createGraphics();
-	        		 // set the new coordinates
+	        		 // modify coordinate for all textures which are fixed in the current atlas.
 	        		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
 	//        		 analyzeOccupation(frame,atlasW,atlasH);
 	        		 frame.clear();
@@ -331,15 +370,13 @@ public class Modifier {
 	        		 atlasW=x+item.width;
 	        	 if (atlasH<y-prevH+item.height)
 	        		 atlasH=y-prevH+item.height;
-	        	 
-	        	 // set the properties.
+
 	        	 // set the URI
 	        	 for(Object obj:uri2Object.get(item.getURI())){	
 	        		 textUri.put(obj, String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"));
 	        	 }
 			}
 			if (atlasH!=0||atlasW!=0){
-	//	        textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi),is4Chanel?4:3));
 				textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi)));
 				fileCounter++;
 				 // set the new coordinates
@@ -384,7 +421,7 @@ public class Modifier {
 	}**/
 	
 	/**
-	 * also can add the textures.
+	 * size checking
 	 * @param width
 	 * @return
 	 */
@@ -429,25 +466,6 @@ public class Modifier {
 	
 	private BufferedImage getImage(int w, int h, BufferedImage bi){
 		return bi.getSubimage(0, 0, w, h);
-		/**
-		try{
-			ImageIcon ii;
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ImageIO.write(bi.getSubimage(0, 0, w, h),"jpeg",baos);
-			ii=new ImageIcon(baos.toByteArray());
-			Image result =ii.getImage();
-			ii=null;
-			baos.flush();
-			baos=null;
-			
-			fileCounter++;
-			g.clearRect(0, 0, w, h);
-		
-		return result;
-		}catch(Exception e){
-			e.printStackTrace();
-			return null;
-		}**/
 	}
 	
 	private void modifyNewCorrdinates(Vector<Rect> items, HashMap<Object, String> coordinatesHashMap,HashMap<Object, double[]>doubleCoordinateList,HashMap<String,ArrayList<Object>> URI2OBJ, int atlasWidth, int atlasHeigth){
@@ -506,85 +524,8 @@ public class Modifier {
 //		System.out.println("#"+sb.substring(0, sb.length()-1));
 		return sb.substring(0, sb.length()-1);
 	}
-	/**
-	private String getCoordinate2(double[]coordinates, double posX, double posY, double imW,double imH ,double atlasw, double atlasH, boolean rotated){
-		StringBuffer sb = new StringBuffer(coordinates.length*15);
-		
-		BigDecimal bdPosX= BigDecimal.valueOf(posX);
-		BigDecimal bdPosY= BigDecimal.valueOf(posY);
-		BigDecimal bdImW= BigDecimal.valueOf(imW);
-		BigDecimal bdImH= BigDecimal.valueOf(imH);
-		BigDecimal bdAtlasw= BigDecimal.valueOf(atlasw);
-		BigDecimal bdAtlash= BigDecimal.valueOf(atlasH);
-		BigDecimal cor1;
-		BigDecimal cor2;
-		double tmp;
-
-		for (int j = 0; j < coordinates.length; j += 2) {
-			cor1=null;
-			cor2=null;
-			cor1= BigDecimal.valueOf(coordinates[j]);
-			cor2= BigDecimal.valueOf(coordinates[j+1]);
-//			System.out.println(cor1.doubleValue());
-//			System.out.println(coordinates[j]);
-			if (rotated){			
-				cor1= BigDecimal.ONE.subtract(cor2);
-				cor2=BigDecimal.valueOf(coordinates[j]);
-				tmp =coordinates[j];
-//				coordinates[j]=1- coordinates[j+1];
-//				coordinates[j+1]= tmp;		
-			}
-			
-			
-			// Horizontal
-//			System.out.println(bdPosX.doubleValue()+","+cor1.doubleValue()+","+bdImW.doubleValue());
-//			System.out.println(posX+","+coordinates[j]+","+imW);
-//			
-//			System.out.println((bdPosX.add(cor1.multiply(bdImW))).doubleValue());
-//			System.out.println((posX+(coordinates[j] * imW)));
-//			
-//			System.out.println((bdPosX.add(cor1.multiply(bdImW))).divide(bdAtlasw,30,BigDecimal.ROUND_DOWN).doubleValue());
-//			System.out.println((posX+(coordinates[j] * imW))/atlasw);
-			
-			sb.append((bdPosX.add(cor1.multiply(bdImW))).divide(bdAtlasw,30,BigDecimal.ROUND_CEILING).doubleValue());
-			sb.append(' ');
-			
-			
-			// corner as a origin,but cityGML used left down corner.
-			sb.append(BigDecimal.ONE.subtract((BigDecimal.ONE.subtract(cor2).multiply(bdImH).add(bdPosY)).divide(bdAtlash,30,BigDecimal.ROUND_CEILING)).doubleValue());
-			sb.append(' ');
-//			System.out.println(BigDecimal.ONE.subtract((BigDecimal.ONE.subtract(cor2).multiply(bdImH).add(bdPosY)).divide(bdAtlash,30,BigDecimal.ROUND_CEILING)).doubleValue());
-//			System.out.println(1-((1-coordinates[j+1])*imH+posY)/atlasH);
-			
-		}
-		System.out.println("*"+sb.substring(0, sb.length()-1));
-		bdPosX=null;
-		bdPosY=null;
-		bdImW=null;
-		bdImH=null;
-		bdAtlasw=null;
-		bdAtlash=null;
-		cor1=null;
-		cor2=null;
-
 	
-		return sb.substring(0, sb.length()-1);
-		//return null;
-		
-	}
-	**/
 	public void reset(){
-/**
-		if(bi!=null){
-		bi.flush();
-		bi=null;
-		}
-		if(tmp!=null){
-			tmp.flush();
-			tmp=null;
-		}
-		
-		g=null;**/
 		completeAtlasPath=null;
 	}
 }

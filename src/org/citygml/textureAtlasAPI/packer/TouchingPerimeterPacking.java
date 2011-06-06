@@ -26,6 +26,35 @@ package org.citygml.textureAtlasAPI.packer;
 
 /**
  * This algorithm is based on source code developed and released to the public by Jukka Jylänki.
+ * This class is responsible for packing in TPIM and TPIM_WO_R mode. 
+ * TPIM:
+		TPIM is customized version of Touching Perimeter algorithm 
+		as a heuristic two-dimensional bin packing with support of rotation. 
+		During tests 83.35% of result atlas was occupied. This algorithm is 
+		based on source code developed and released to the public by Jukka Jylï¿½nki.
+					
+		TPIM starts by sorting the items according to nonincreasing area and 
+		their normal orientation. It initializes a bin with maximume acceptable 
+		size and packs one item at a time. In the case that it is not possible 
+		to add a new item to the current bin, a new bin will be initialized. The first 
+		item packed in a bin is always placed in the bottom left corner. However 
+		in the result atlas the origin will be in the top left corner. Each item is 
+		packed in a way that its bottom and left edges touching either the the bin 
+		or the edge of another item.
+
+		Each potential position for the new item will be scored as the amount 
+		of its touching edges. Touching the bin edges is more valuable to avoid 
+		inhomogeneous shape of bin. For each candidate (position) the score will be 
+		calculated twice (normal orientation and 90 degree rotated) and the highest 
+		value will be taken.
+		 
+		For more information about Touching Perimeter algorithm please refer to:
+		Lodi A, Martello S, Vigo D. Heuristic and Metaheuristic Approaches 
+		for a Class of Two-Dimensional Bin Packing Problems. INFORMS J on 
+		Computing 1999;11:345-357.
+		
+	TPIM_WITHOUT_ROTATION:
+		It is an extension of TPIM algorithm which does not rotate textures.
  */
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,7 +102,12 @@ public class TouchingPerimeterPacking {
 		freeRectangles.add(n);
 		maxH=0;maxW=0;
 	}
-
+	/**
+	 * Main method. At first size of bin should be set and in the case of  TPIM_WITHOUT_ROTATION the 
+	 * setUseRotation(false) method should be called before this method.
+	 * @param rects
+	 * @return
+	 */
 	public Atlas insert(List<Rect> rects) {
 		
 		Collections.sort(rects,new AreaComparator());
@@ -82,10 +116,11 @@ public class TouchingPerimeterPacking {
 		
 		Rect rect=null;
 		int bestScore1,bestRectIndex;
-
+		// Between all remaining Rects...
 		while (rects.size() > 0) {
 			bestScore1 = Integer.MIN_VALUE;
 			bestRectIndex = -1;
+			// find the one that fits as best as possible (max score) to the current configuration.
 			for (int i = 0; i < rects.size(); i++) {
 				rect= rects.get(i);
 				if (rect.rotated){
@@ -104,7 +139,7 @@ public class TouchingPerimeterPacking {
 			// check whether it is finished or not.
 			if (bestRectIndex == -1)
 				if (rects.size()>0){
-					// one atlas is complete but some other rects are remaining.
+					// one atlas is complete but some other rects are remaining. add one level and reset.
 					level++;
 					res.setBindingBox(res.getBindingBoxWidth()+maxW,res.getBindingBoxHeight()+maxH );
 					clear();
@@ -113,12 +148,14 @@ public class TouchingPerimeterPacking {
 				else
 					return res;
 			rect = rects.get(bestRectIndex);
+			// put the best texture in its position.
 			putRect((Rect)rect);
 			if (rect.x+rect.width>maxW)
 				maxW=rect.x+rect.width;
 			if (rect.y+rect.height>maxH)
 				maxH=rect.y+rect.height;
 			rect.level= level;
+			// add it to the atlas and remove it from the list.
 			res.addRect(rect);
 			rects.remove(bestRectIndex);
 		}
@@ -147,12 +184,6 @@ public class TouchingPerimeterPacking {
 			
 		}
 
-//		if (findBestFreePosition(rect))
-//			rect.score1 = rect.score1;
-//		else{
-//			rect.score1 = Integer.MIN_VALUE;
-//			rect.score2 = Integer.MIN_VALUE;
-//		}
 	}
 
 
@@ -244,7 +275,12 @@ public class TouchingPerimeterPacking {
 			return false;
 
 	}
-		
+	/**
+	 * check whether the freeRecr is affected by the new position of newRect.	
+	 * @param freeRect
+	 * @param newRect
+	 * @return
+	 */
 	private boolean isAffected(Rect freeRect, Rect newRect) {
 		// check whether they are intersecting
 		if (newRect.x >= freeRect.x + freeRect.width
