@@ -30,7 +30,7 @@ import java.util.Calendar;
 
 
 public class Logger {
-	public final static boolean SHOW_STACK_PRINT=true;
+	public final static boolean SHOW_STACK_PRINT=false;
 	public final static int TYPE_INFO=1;
 	public final static int TYPE_ERROR=2;
 	public final static int TYPE_NESS=3;

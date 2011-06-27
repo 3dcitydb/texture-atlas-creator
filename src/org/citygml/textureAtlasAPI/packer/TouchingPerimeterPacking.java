@@ -25,13 +25,13 @@
 package org.citygml.textureAtlasAPI.packer;
 
 /**
- * This algorithm is based on source code developed and released to the public by Jukka Jyl�nki.
+ * This algorithm is based on source code developed and released to the public by Jukka Jylänki.
  * This class is responsible for packing in TPIM and TPIM_WO_R mode. 
  * TPIM:
 		TPIM is customized version of Touching Perimeter algorithm 
 		as a heuristic two-dimensional bin packing with support of rotation. 
 		During tests 83.35% of result atlas was occupied. This algorithm is 
-		based on source code developed and released to the public by Jukka Jyl�nki.
+		based on source code developed and released to the public by Jukka Jylänki.
 					
 		TPIM starts by sorting the items according to nonincreasing area and 
 		their normal orientation. It initializes a bin with maximume acceptable 

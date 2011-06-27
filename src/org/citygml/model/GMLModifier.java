@@ -234,7 +234,6 @@ public class GMLModifier {
 	 * scan a cityModel object and make a TexImageInfo object for each building which is included in
 	 * that cityModel. Objects will be distinguished by their building ID.  
 	 * TODO change it by chunk wise reader to support mobility of elements.
-	 * @author Babak Naderi
 	 * @param citymodel
 	 * @return
 	 */

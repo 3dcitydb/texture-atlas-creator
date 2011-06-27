@@ -34,8 +34,6 @@ import oracle.ord.im.OrdImage;
  * This class represents a texture image. It supports OrdImage and load them by using
  * and instance of ImageLoader class. 
  * 
- * @author babak naderi
- * 
  */
 public class TexImage {
 	public final static int ORD_IMAGE = 1;
@@ -70,11 +68,12 @@ public class TexImage {
 			if (this.ordImage == null)
 				return null;
 			try {	
+				// TODO: change the way ASAP.
 				byte[] mb=ordImage.getDataInByteArray();
 				if (imageLoader==null)
 					imageLoader= new ImageLoader();
 				this.image= imageLoader.loadImage(ordImage.getDataInStream(), ordImage
-						.getMimeType(),null, mb.length);
+						.getMimeType(), mb.length);
 				mb=null;
 				this.chanels=imageLoader.getChanels();
 			} catch (Exception e) {

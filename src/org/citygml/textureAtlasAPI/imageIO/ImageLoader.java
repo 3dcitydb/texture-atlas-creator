@@ -38,7 +38,6 @@ import org.citygml.textureAtlasAPI.dataStructure.TexImage;
  * This class is responsible for loading different image formats. 
  * Currently all j2se 6 supported image formats and SGI RGB Image format are included.
  * In the case of adding other encoders, they should announced in here.
- * @author babak naderi   
  */
 
 public class ImageLoader {
@@ -78,11 +77,11 @@ public class ImageLoader {
 		return b;
 	}
 	
-	public BufferedImage loadImage(InputStream is, String MIME_Type,String extension, int size){
-		if (!isSupportedImageFormat(MIME_Type,extension))
+	public BufferedImage loadImage(InputStream is, String MIME_Type, int size){
+		if (!isSupportedImageFormat(MIME_Type,null))
 			return null;
 		try {
-			if (MIME_Type.lastIndexOf(".rgb") > 0) {
+			if (MIME_Type.lastIndexOf("rgb") > 0) {
 				b = rgbEncoder.readRGB(is, size);
 				rgbEncoder.freeMemory();
 			} else

@@ -37,15 +37,24 @@ import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
  * It will return modified TexImageInfo. Check getLOG() or getLOGInText
  * to see the message related to current conversion.
  * 
- * All the textures in TexImageInfo should be potentially combinable.
+ * Note that all the textures in TexImageInfo should be potentially combinable.
  * 
- * In the case of using standalone tool, use TexImageInfo4GMLFile instead of TexImageInfo.
+ * In the case of standalone tool, TexImageInfo4GMLFile should be used instead of TexImageInfo.
  * In this case images will be loaded in this API. 
- *@author babak naderi
+ * 
+ * To see how should input data structured please see TexImageInfo or TexImageInfo4GMLFile according 
+ * to type of your usage.
+ * 
+ * User can also set the packing algorithm which should be used and maximum size of atlas. 
  */
 public class TextureAtlasGenerator {
 	/**
-	 * different packing algorithm
+	 * Different packing algorithm (more info in readme file)
+	 * FFDH: First-Fit Decreasing Height
+	 * NFDH: Next-Fit Decreasing Height
+	 * SLEA: Sleator's algorithm
+	 * TPIM: Improved version of Touching Perimeter algorithm.
+	 * TPIM_WITHOUT_ROTATION: TPIM algorithm without rotating textures.
 	 */
 	public static  final int FFDH = 0;
 	public static  final int NFDH = 1;

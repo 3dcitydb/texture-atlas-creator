@@ -29,14 +29,14 @@ import java.util.HashMap;
 /**
  * In the case of loading CityGMl file, TexImageInfo is not sufficient. 
  * ImagesLocalPath, and TexGeneralProperties should be added.
- * ImagesLocalPath: Images should be load inside of API (RGB decoder).
- * TexGeneralProperties: General properties will be used during modification of
- * CityModel.
- * @author babak naderi
- *
+ * ImagesLocalPath: Images should be load inside of API (RGB decoder). So it contains local path 
+ * of each image which is accessible by imageURI(String). (refer to TexImageInfo for more info.)
+ * TexGeneralProperties: General properties are the features that all the textures which are 
+ * gathered in this object are sharing. 
  */
 public class TexImageInfo4GMLFile extends TexImageInfo {
 	
+	// <imageURI, image local path>
 	HashMap<String,String> ImagesLocalPath;
 	
 	public HashMap<String, String> getImagesLocalPath() {

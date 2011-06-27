@@ -86,12 +86,6 @@ public class Modifier {
 		this.ImageMaxWidth= atlasMaxWidth;
 	}
 	
-	/**
-	 * TODO check the code whether for several texCoordiLists for a parameterizedTexture.
-
-	 * @param ti
-	 * @return
-	 */
 	HashMap<Object, ErrorTypes> LOG;
 	
 	public HashMap<Object, ErrorTypes> getLOG(){

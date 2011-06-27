@@ -27,6 +27,9 @@ package org.citygml.bin;
 import org.citygml.control.Controller;
 import org.citygml.util.Logger;
 
+/**
+ * This is the main class and starting point of Texture Atlas Creator standalone tool. 
+ */
 public class TextureAtlasGenerator {
 	
 	Controller controller;
@@ -42,14 +45,7 @@ public class TextureAtlasGenerator {
 		else
 			controller.start();
 	}
-	/**public void run(String atlasOption,String inputPath,String outputPath){
-		controller = new Controller();
-		controller.setProperties(atlasOption, inputPath, outputPath);
-		if (!controller.validateArguments())
-			syntaxError();
-		else
-			controller.start();
-	}**/
+
 	/**
 	 * Note: do not use any space in the directory names.
 	 * @param args

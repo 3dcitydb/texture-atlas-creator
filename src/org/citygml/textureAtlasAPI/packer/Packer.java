@@ -37,7 +37,6 @@ import org.citygml.textureAtlasAPI.packer.comparator.HeightComparator;
  * It is the responsible class for packing the textures. Each texture will be represented as 
  * a Rect instance. Based on selected packing algorithm, and bin size, it will pack the textures 
  * in an atlas. Each atlas may have different levels.  
- *  @author Babak Naderi 
  */
 public class Packer  {
 	

@@ -34,13 +34,22 @@ import java.util.HashMap;
  * result which is texture atlas. 
  *  
  * This is a data structure for set/get data to Texture Atlas Generator API.
- * @author babak naderi
- *
+ * 
+ * <I>HashMap<Object, String> texImageURIs</I>
+ * texImgeURIs contains  a key (the surface-geometry id (Long) in DB usage and TargetURI+' '+Ring(String) in GML loader)
+ * and corresponding imageURI(String). By using imageURI as a key for texImages hashmap, texture will be available.
+ * 
+ * <I>HashMap<Object, String> texCoordinates</I>
+ * texCoordingates contains a key (the surface-geometry id (Long) in DB usage and TargetURI+' '+Ring(String) in GML loader)
+ * and corresponding texture coordinates in the same format as in the database (string tokenizable via whitespace)
+ * 
+ * <I>HashMap<String, TexImage> texImages</I>
+ * textImages contains an imageURI(String) and the corresponding TexImage object which is a texture.
  */
 public class TexImageInfo {
 	/**
 	 * texImgeURIs contains  a key (the surface-geometry id (Long) in DB usage and TargetURI+' '+Ring(String) in GML loader)
-	 * and corresponding imageURI(String)
+	 * and corresponding imageURI(String). By using imageURI as a key for texImages hashmap, texture will be available.   
 	 */
 	protected HashMap<Object, String> texImageURIs ;
 	
@@ -51,8 +60,7 @@ public class TexImageInfo {
 	protected HashMap<Object, String> texCoordinates;
 	
 	/**
-	 * textImages contains an imageURI(String) and the corresponding Image object which is a texture
-	 * for the corresponding surface-geometry. 
+	 * textImages contains an imageURI(String) and the corresponding TexImage object which is a texture. 
 	 */
 	protected HashMap<String, TexImage> texImages;
 	

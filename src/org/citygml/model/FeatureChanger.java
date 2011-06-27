@@ -47,7 +47,6 @@ import org.citygml4j.model.citygml.core.AbstractCityObject;
 import org.citygml4j.util.walker.FeatureWalker;
 /**
  * It will modify the cityModel with new configuration of ParameterizedTexture.
- * @author babak naderi
  *
  */
 public class FeatureChanger extends FeatureWalker {

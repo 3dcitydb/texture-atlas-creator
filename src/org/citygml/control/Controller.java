@@ -38,7 +38,6 @@ import org.citygml.util.Logger;
  * This class is responsible for:
  * 	- Checking the input arguments, and set properties.
  *  - Finding input file(es) and asking for modifying all gmal files.  
- * @author Babak Naderi
  *
  */
 public class Controller {

@@ -28,8 +28,6 @@ package org.citygml.textureAtlasAPI.packer;
  * For packing algorithms each texture will represent as a object of this class.
  * As a result of packing process these variables should be set: x,y, level, and rotated.
  * Because of optimization SET/GET methods are neglected and variables defined in public domain.
- * 
- * @author babak
  *
  */
 public class Rect {

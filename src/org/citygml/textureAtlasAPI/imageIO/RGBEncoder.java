@@ -40,7 +40,6 @@ import java.io.InputStream;
  * all of them. For more information about the file format please refer to 
  * http://paulbourke.net/dataformats/sgirgb/sgiversion.html (active in 2011).
  * 
- * @author babak naderi
  */
 public class RGBEncoder {
 	RGBHeader header;

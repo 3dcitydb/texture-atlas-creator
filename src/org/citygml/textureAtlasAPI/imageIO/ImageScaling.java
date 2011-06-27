@@ -32,7 +32,6 @@ import java.awt.image.BufferedImage;
 /**
  * In the case that image size is bigger than maximum supported size, 
  * it will resize.
- * @author babak naderi
  *
  */
 public class ImageScaling {
