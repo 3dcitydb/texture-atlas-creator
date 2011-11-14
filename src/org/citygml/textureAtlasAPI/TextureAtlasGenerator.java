@@ -73,28 +73,36 @@ public class TextureAtlasGenerator {
 	
 	private Modifier modifier;
 	private ImageLoader imageLoader;
-	
+	private boolean usePOTS=false;
 
 	public TextureAtlasGenerator() {
 		PackingAlgorithm= FFDH;
 		ImageMaxWidth=2048;
 		ImageMaxHeight=2048;
-		modifier = new Modifier(PackingAlgorithm, ImageMaxWidth, ImageMaxHeight);
+		modifier = new Modifier(PackingAlgorithm, ImageMaxWidth, ImageMaxHeight,usePOTS);
 		imageLoader= new ImageLoader();
 	}
 	
 	public TextureAtlasGenerator(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight) {
-		setGeneralProp(PackingAlg, atlasMaxWidth, atlasMaxHeight);
-		modifier = new Modifier(PackingAlgorithm, ImageMaxWidth, ImageMaxHeight);
+		setGeneralProp(PackingAlg, atlasMaxWidth, atlasMaxHeight,usePOTS);
+		modifier = new Modifier(PackingAlgorithm, ImageMaxWidth, ImageMaxHeight,usePOTS);
 		imageLoader= new ImageLoader();
 	}
 	
-	private void setGeneralProp(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight){
+	//-----------------
+	public TextureAtlasGenerator(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight,boolean usePOTS) {
+		setGeneralProp(PackingAlg, atlasMaxWidth, atlasMaxHeight,usePOTS);
+		modifier = new Modifier(this.PackingAlgorithm, this.ImageMaxWidth, 
+				this.ImageMaxHeight,this.usePOTS);
+		imageLoader= new ImageLoader();
+	}
+	
+	private void setGeneralProp(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight,boolean usePOTS){
 		this.PackingAlgorithm = PackingAlg;
 		this.ImageMaxHeight=atlasMaxHeight;
 		this.ImageMaxWidth= atlasMaxWidth;
 	}
-	
+	//-----------------
 	public int getPackingAlgorithm() {
 		return PackingAlgorithm;
 	}
@@ -136,7 +144,7 @@ public class TextureAtlasGenerator {
 			
 		this.PackingAlgorithm=PackingAlgorithm;
 		// check tii.isImagesReady()
-		modifier.setGeneralSettings(this.PackingAlgorithm, this.ImageMaxWidth, this.ImageMaxHeight);
+		modifier.setGeneralSettings(this.PackingAlgorithm, this.ImageMaxWidth, this.ImageMaxHeight,this.usePOTS);
 		return modifier.run(tii);
 	}
 	

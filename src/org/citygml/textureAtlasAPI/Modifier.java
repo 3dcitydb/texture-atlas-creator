@@ -73,17 +73,24 @@ public class Modifier {
 	int fileCounter=0;
 	String completeAtlasPath;
 	boolean overBorder=false;
+	boolean userPOTS=false;
 	
 	
-	public Modifier(int PackingAlg,  int atlasMaxWidth, int atlasMaxHeight){
-		setGeneralSettings(PackingAlg, atlasMaxWidth, atlasMaxHeight);
+	
+	public Modifier(int PackingAlg,  int atlasMaxWidth, int atlasMaxHeight, boolean userPOTS){
+		setGeneralSettings(PackingAlg, atlasMaxWidth, atlasMaxHeight,userPOTS);
 	}
 	
-	
-	public void setGeneralSettings(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight){
+	public void setGeneralSettings(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight, boolean userPOTS){
 		this.packingAlgorithm = PackingAlg;
 		this.ImageMaxHeight=atlasMaxHeight;
 		this.ImageMaxWidth= atlasMaxWidth;
+		this.userPOTS=userPOTS;
+		if (userPOTS){
+			ImageMaxHeight= (int) Math.pow(2, Math.floor(Math.log10(ImageMaxHeight)/Math.log10(2)));
+			ImageMaxWidth= (int) Math.pow(2, Math.floor(Math.log10(ImageMaxWidth)/Math.log10(2)));
+			
+		}
 	}
 	
 	HashMap<Object, ErrorTypes> LOG;
@@ -128,6 +135,8 @@ public class Modifier {
 		int totalWidth3c=0,maxw3c=0;
 		// statistic about width of 4 channels textures.  		
 		int totalWidth4c=0,maxw4c=0;
+		// total needed area for 3chanel and 4chanel textures. 
+		long area3c=0,area4c=0;
 		
 		// packers for 3 and 4 channels textures.
 		Packer packer3C = new Packer(ImageMaxWidth,ImageMaxHeight,packingAlgorithm,false);
@@ -208,10 +217,7 @@ public class Modifier {
 				uri2Object.get(URI).add(key);
 				continue;
 			}
-			
-			
-			
-			
+
 			// report bug
 			if ((tmp= textImage.get(URI).getBufferedImage())==null){
 				// image is not available 
@@ -252,11 +258,13 @@ public class Modifier {
             	if (width>maxw4c)
     	        	maxw4c=width;	
                 totalWidth4c+=width;
+                area4c+=width*height;
             }else{
             	packer3C.addRect(URI, width,height);
             	if (width>maxw3c)
     	        	maxw3c=width;	
                 totalWidth3c+=width;
+                area3c+=width*height;
             }
             
             isImageAcceptable.put(URI, new Boolean(true));
@@ -282,9 +290,9 @@ public class Modifier {
 		 */
 		ArrayList<Atlas> atlasMR = new ArrayList<Atlas>();
 		if (packer3C.getSize()!=0)
-			atlasMR.add(iterativePacker(packer3C, maxw3c,totalWidth3c));
+			atlasMR.add(iterativePacker(packer3C, maxw3c,totalWidth3c,area3c));
 		if (packer4C.getSize()!=0)
-			atlasMR.add(iterativePacker(packer4C, maxw4c,totalWidth4c));
+			atlasMR.add(iterativePacker(packer4C, maxw4c,totalWidth4c,area4c));
 		
 		// for all available atlases modify the coordinates and URIs.
 		for (Atlas mr:atlasMR){	
@@ -403,16 +411,7 @@ public class Modifier {
 	private String makeNewURI(String prevURI, int chanel){
 		return prevURI.substring(0, prevURI.lastIndexOf('.'))+(chanel==3?".jpeg":".png");
 	}
-	/**
-	private void testImageWriter(BufferedImage bitext,String name){
-		try{
-			ImageIO.write(bitext,"png",new File("C:/TMP/"+name));
-		
-		}catch(Exception e){
-//			if (Logger.SHOW_STACK_PRINT)
-//				e.printStackTrace();
-		}
-	}**/
+	
 	
 	/**
 	 * size checking
@@ -426,12 +425,19 @@ public class Modifier {
 		
 	}
 	
-	private Atlas iterativePacker(Packer msp, int maxw, int totalw){
+	private Atlas iterativePacker(Packer msp, int maxw, int totalw, long area){
 		if (this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)
 			msp.setBinSize(ImageMaxWidth,ImageMaxHeight);
-		else
+		else{
+			int floorPOT= (int)Math.floor(Math.sqrt(area));
+			floorPOT=Math.min(floorPOT,ImageMaxWidth);
+			// find POT point with less waste.  
+			if (area -area %(Math.pow( floorPOT,2)) > Math.pow(floorPOT+1, 2)-area){
+				
+			}
+			
 			msp.setBinSize(Math.min((totalw-maxw)/2+maxw,ImageMaxWidth),ImageMaxHeight);
-		try{
+		}try{
 			return msp.pack();	
 		}catch(Exception e){
 //			if (Logger.SHOW_STACK_PRINT)
