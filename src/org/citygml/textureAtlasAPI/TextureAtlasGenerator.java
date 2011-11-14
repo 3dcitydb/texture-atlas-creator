@@ -84,6 +84,7 @@ public class TextureAtlasGenerator {
 	}
 	
 	public TextureAtlasGenerator(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight) {
+		usePOTS=false;
 		setGeneralProp(PackingAlg, atlasMaxWidth, atlasMaxHeight,usePOTS);
 		modifier = new Modifier(PackingAlgorithm, ImageMaxWidth, ImageMaxHeight,usePOTS);
 		imageLoader= new ImageLoader();
@@ -98,6 +99,7 @@ public class TextureAtlasGenerator {
 	}
 	
 	private void setGeneralProp(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight,boolean usePOTS){
+		this.usePOTS=usePOTS;
 		this.PackingAlgorithm = PackingAlg;
 		this.ImageMaxHeight=atlasMaxHeight;
 		this.ImageMaxWidth= atlasMaxWidth;

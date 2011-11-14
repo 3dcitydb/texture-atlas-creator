@@ -87,7 +87,7 @@ public class Packer  {
 		return rects!=null?rects.size():0;
 	}
 	
-	public Atlas pack() {
+	public Atlas pack(boolean takePOT) {
 		Atlas atlas;
         switch (algorithm){
         case TextureAtlasGenerator.NFDH:
@@ -101,18 +101,18 @@ public class Packer  {
                 break;
             case TextureAtlasGenerator.TPIM:
                 if (tpPacker==null)
-                	tpPacker= new TouchingPerimeterPacking(binWidth,binHeight);
+                	tpPacker= new TouchingPerimeterPacking(binWidth,binHeight,takePOT);
                 else
-                	tpPacker.init(binWidth, binHeight);
+                	tpPacker.init(binWidth, binHeight,takePOT);
                 tpPacker.setUseRotation(true);
                 atlas= tpPacker.insert(rects);
                 break;
                 
             case TextureAtlasGenerator.TPIM_WITHOUT_ROTATION:
                 if (tpPacker==null)
-                	tpPacker= new TouchingPerimeterPacking(binWidth,binHeight);
+                	tpPacker= new TouchingPerimeterPacking(binWidth,binHeight,takePOT);
                 else
-                	tpPacker.init(binWidth, binHeight);
+                	tpPacker.init(binWidth, binHeight,takePOT);
                 tpPacker.setUseRotation(false);
                 atlas= tpPacker.insert(rects);
                 break;

@@ -65,6 +65,7 @@ public class Modifier {
 	private int ImageMaxWidth;
 	private int ImageMaxHeight;
 	private int packingAlgorithm;
+	boolean isDebug=false;
 	
 	
 //	BufferedImage bi;
@@ -86,7 +87,10 @@ public class Modifier {
 		this.ImageMaxHeight=atlasMaxHeight;
 		this.ImageMaxWidth= atlasMaxWidth;
 		this.userPOTS=userPOTS;
-		if (userPOTS){
+		//TODO remove it just for debug
+		if (isDebug)
+			this.userPOTS=true;
+		if (this.userPOTS){
 			ImageMaxHeight= (int) Math.pow(2, Math.floor(Math.log10(ImageMaxHeight)/Math.log10(2)));
 			ImageMaxWidth= (int) Math.pow(2, Math.floor(Math.log10(ImageMaxWidth)/Math.log10(2)));
 			
@@ -295,12 +299,13 @@ public class Modifier {
 			atlasMR.add(iterativePacker(packer4C, maxw4c,totalWidth4c,area4c));
 		
 		// for all available atlases modify the coordinates and URIs.
+		try{
 		for (Atlas mr:atlasMR){	
 			if (Math.min(mr.getBindingBoxHeight(), mr.getBindingBoxWidth())<1)
 				continue;
 			is4Chanel=mr.isFourChanel();
-			BufferedImage bi = new BufferedImage(Math.min(mr.getBindingBoxWidth(),
-					ImageMaxWidth), Math.min(mr.getBindingBoxHeight(),ImageMaxHeight),
+			BufferedImage bi = new BufferedImage(Math.min(getMinCoveredPOT(mr.getBindingBoxWidth()),
+					ImageMaxWidth), Math.min(getMinCoveredPOT(mr.getBindingBoxHeight()),ImageMaxHeight),
 					is4Chanel ? BufferedImage.TYPE_INT_ARGB
 							: BufferedImage.TYPE_INT_RGB);
 			Graphics2D g = bi.createGraphics();
@@ -348,8 +353,8 @@ public class Modifier {
 	        		 bi=null;
 	        		 g=null;
 	        		 
-	        		 bi = new BufferedImage(Math.min(mr.getBindingBoxWidth(),
-	        					ImageMaxWidth), Math.min(mr.getBindingBoxHeight(), ImageMaxHeight),
+	        		 bi = new BufferedImage(Math.min(getMinCoveredPOT(mr.getBindingBoxWidth()),
+	        					ImageMaxWidth), Math.min(getMinCoveredPOT(mr.getBindingBoxHeight()), ImageMaxHeight),
 	        					is4Chanel ? BufferedImage.TYPE_INT_ARGB
 	        							: BufferedImage.TYPE_INT_RGB);
 	        		 g = bi.createGraphics();
@@ -396,6 +401,9 @@ public class Modifier {
 			g.dispose();
 			g=null;
 			bi=null;
+		}}
+		catch(Exception e){
+			e.printStackTrace();
 		}
 		uri2Object.clear();
 		isImageAcceptable.clear();
@@ -410,6 +418,20 @@ public class Modifier {
 	
 	private String makeNewURI(String prevURI, int chanel){
 		return prevURI.substring(0, prevURI.lastIndexOf('.'))+(chanel==3?".jpeg":".png");
+	}
+	
+	private int getMinCoveredPOT(int len){
+		if (!userPOTS)
+			return len;
+		int minPOT=(int) Math.floor(Math.log10(len)/Math.log10(2));
+		if (Math.pow(2,minPOT)== len)
+			return len;
+		
+		if (isDebug){
+			int tmp=(int)Math.pow(2,minPOT +1);
+			return tmp;
+		}
+		return (int)Math.pow(2, minPOT+1);
 	}
 	
 	
@@ -429,16 +451,38 @@ public class Modifier {
 		if (this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)
 			msp.setBinSize(ImageMaxWidth,ImageMaxHeight);
 		else{
-			int floorPOT= (int)Math.floor(Math.sqrt(area));
-			floorPOT=Math.min(floorPOT,ImageMaxWidth);
-			// find POT point with less waste.  
-			if (area -area %(Math.pow( floorPOT,2)) > Math.pow(floorPOT+1, 2)-area){
-				
-			}
 			
-			msp.setBinSize(Math.min((totalw-maxw)/2+maxw,ImageMaxWidth),ImageMaxHeight);
+			if (!userPOTS)
+				msp.setBinSize(Math.min((totalw-maxw)/2+maxw,ImageMaxWidth),ImageMaxHeight);
+			else{
+				int floorPOT= (int)Math.floor(Math.sqrt(area));
+				floorPOT=Math.min(floorPOT,ImageMaxWidth);
+				// minimum possible POT that can can cover all tetxures. (2^minPOT>maxw)
+	//			int minPower= (int) Math.floor(Math.log10(maxw)/Math.log10(2))+1;
+	//			int maxPower= (int) Math.min(Math.floor(Math.log10(floorPOT)/Math.log10(2))+1,
+	//					Math.floor(Math.log10(ImageMaxWidth)/Math.log10(2)));
+	//			
+	//			long minWastedArea=Long.MAX_VALUE;
+	//			int minWastedAreaWidthPower=minPower;
+	//			int numberOfAtlas=Integer.MAX_VALUE-2;
+	//			int candidate=minPower;
+	//			long tmparea;
+	//			long wastarea;
+	//			while(candidate<=maxPower){
+	//				tmparea= (long)Math.pow(2, candidate);
+	//				wastarea= tmparea- (area%tmparea);
+	//				if (wastarea<minWastedArea || ){
+	//					minWastedAreaWidthPower=candidate;
+	//					minWastedArea=wastarea;
+	//				}
+	//				candidate=candidate*2;
+	//			}
+				
+				msp.setBinSize((int)Math.min(Math.pow(2, (int) Math.floor(Math.log10(floorPOT)/Math.log10(2))+1),ImageMaxWidth),
+						ImageMaxHeight);
+			}
 		}try{
-			return msp.pack();	
+			return msp.pack(userPOTS);	
 		}catch(Exception e){
 //			if (Logger.SHOW_STACK_PRINT)
 //				e.printStackTrace();
@@ -465,7 +509,7 @@ public class Modifier {
 	}
 	
 	private BufferedImage getImage(int w, int h, BufferedImage bi){
-		return bi.getSubimage(0, 0, w, h);
+		return bi.getSubimage(0, 0,getMinCoveredPOT(w) , getMinCoveredPOT(h));
 	}
 	
 	private void modifyNewCorrdinates(Vector<Rect> items, HashMap<Object, String> coordinatesHashMap,HashMap<Object, double[]>doubleCoordinateList,HashMap<String,ArrayList<Object>> URI2OBJ, int atlasWidth, int atlasHeigth){

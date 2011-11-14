@@ -70,6 +70,8 @@ public class TouchingPerimeterPacking {
 	private List<Rect> usedRectangles = new ArrayList<Rect>();
 	private List<Rect> freeRectangles = new ArrayList<Rect>();
 	
+	
+	private boolean usePOTDimention=false;
 	private int maxH=0, maxW=0;
 	TouchingPerimeterPacking() {
 		binWidth = 0;
@@ -77,13 +79,14 @@ public class TouchingPerimeterPacking {
 	}
 
 	
-	TouchingPerimeterPacking(int width, int height) {
-		init(width, height);
+	TouchingPerimeterPacking(int width, int height,boolean usePOTDimention) {
+		init(width, height,usePOTDimention);
 	}
 
-	public void init(int width, int height) {
+	public void init(int width, int height,boolean usePOTDimention) {
 		binWidth = width;
 		binHeight = height;
+		this.usePOTDimention=usePOTDimention;
 		clear();
 	}
 		
@@ -102,6 +105,7 @@ public class TouchingPerimeterPacking {
 		freeRectangles.add(n);
 		maxH=0;maxW=0;
 	}
+	
 	/**
 	 * Main method. At first size of bin should be set and in the case of  TPIM_WITHOUT_ROTATION the 
 	 * setUseRotation(false) method should be called before this method.
@@ -115,6 +119,7 @@ public class TouchingPerimeterPacking {
 		short level = 0;
 		
 		Rect rect=null;
+
 		int bestScore1,bestRectIndex;
 		// Between all remaining Rects...
 		while (rects.size() > 0) {
@@ -162,6 +167,7 @@ public class TouchingPerimeterPacking {
 		res.setBindingBox(res.getBindingBoxWidth()+maxW,res.getBindingBoxHeight()+maxH );
 		return res;
 	}
+	
 	/**
 	 * rec.x and rec.y are set previously. 
 	 * calculate new free areas which are made by adding this rectangle.
@@ -186,7 +192,12 @@ public class TouchingPerimeterPacking {
 
 	}
 
-
+	private int getMinCoveredPOT(int len){
+		int pot=(int) Math.floor(Math.log10(len)/Math.log10(2));
+		if (Math.pow(2, pot)==len)
+			return pot-1;
+		return pot;
+	}
 
 	/**
 	 * score based amount of contact. input parameters are candidate position.
@@ -200,6 +211,17 @@ public class TouchingPerimeterPacking {
 		int score = 0;
 		int tmps;
 		double trick=1.5;
+		double beInPOT=0.2;
+		
+		tmps=binWidth;
+		
+		if (usePOTDimention &&( x + width<maxW || getMinCoveredPOT(x)==getMinCoveredPOT(x+width) ))
+			score+=beInPOT*tmps;
+		if (usePOTDimention &&( y + height<maxH || getMinCoveredPOT(y)==getMinCoveredPOT(y+height) ))
+			score+=beInPOT*tmps;
+		if (usePOTDimention && score==0 && maxW+maxH>0 )
+			score-=beInPOT*tmps;
+		
 		for (Rect occupied:usedRectangles){
 			if (occupied.x == x + width || occupied.x + occupied.width == x){
 				tmps= adjacentLength(occupied.y, occupied.y + occupied.height, y, y
@@ -208,7 +230,7 @@ public class TouchingPerimeterPacking {
 			}
 			if (occupied.y == y + height || occupied.y + occupied.height == y){
 				tmps=adjacentLength(occupied.x, occupied.x + occupied.width, x, x + width);
-				score += occupied.y==0?tmps*trick:tmps;
+				score += occupied.y==0?tmps*trick:tmps;	
 			}
 		}
 		return score;
