@@ -79,29 +79,29 @@ public class TextureAtlasGenerator {
 		PackingAlgorithm= FFDH;
 		ImageMaxWidth=2048;
 		ImageMaxHeight=2048;
-		modifier = new Modifier(PackingAlgorithm, ImageMaxWidth, ImageMaxHeight,usePOTS);
+		modifier = new Modifier(PackingAlgorithm, ImageMaxWidth, ImageMaxHeight, usePOTS);
 		imageLoader= new ImageLoader();
 	}
 	
 	public TextureAtlasGenerator(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight) {
-		usePOTS=false;
-		setGeneralProp(PackingAlg, atlasMaxWidth, atlasMaxHeight,usePOTS);
-		modifier = new Modifier(PackingAlgorithm, ImageMaxWidth, ImageMaxHeight,usePOTS);
+		usePOTS = false;
+		setGeneralProp(PackingAlg, atlasMaxWidth, atlasMaxHeight, usePOTS);
+		modifier = new Modifier(PackingAlgorithm, ImageMaxWidth, ImageMaxHeight, usePOTS);
 		imageLoader= new ImageLoader();
 	}
 	
 	//-----------------
-	public TextureAtlasGenerator(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight,boolean usePOTS) {
+	public TextureAtlasGenerator(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS) {
 		setGeneralProp(PackingAlg, atlasMaxWidth, atlasMaxHeight,usePOTS);
 		modifier = new Modifier(this.PackingAlgorithm, this.ImageMaxWidth, 
 				this.ImageMaxHeight,this.usePOTS);
 		imageLoader= new ImageLoader();
 	}
 	
-	private void setGeneralProp(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight,boolean usePOTS){
-		this.usePOTS=usePOTS;
+	private void setGeneralProp(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS){
+		this.usePOTS = usePOTS;
 		this.PackingAlgorithm = PackingAlg;
-		this.ImageMaxHeight=atlasMaxHeight;
+		this.ImageMaxHeight = atlasMaxHeight;
 		this.ImageMaxWidth= atlasMaxWidth;
 	}
 	//-----------------
@@ -170,4 +170,14 @@ public class TextureAtlasGenerator {
 			return null;
 		return sb.toString();
 	}
+
+	public void setUsePOTS(boolean usePOTS) {
+		this.usePOTS = usePOTS;
+	}
+
+	public boolean isUsePOTS() {
+		return usePOTS;
+	}
+
+
 }
