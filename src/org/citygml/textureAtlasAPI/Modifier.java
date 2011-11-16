@@ -300,6 +300,8 @@ public class Modifier {
 		
 		// for all available atlases modify the coordinates and URIs.
 		try{
+			// Power Of Two size
+			int potW,potH;
 		for (Atlas mr:atlasMR){	
 			if (Math.min(mr.getBindingBoxHeight(), mr.getBindingBoxWidth())<1)
 				continue;
@@ -347,7 +349,10 @@ public class Modifier {
 	        	 // check whether the current atlas is full.
 	        	 if (y-prevH+item.height>ImageMaxHeight||((this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)&&currentLevel!=item.level)){
 	        		 // set Image in Hashmap and write it to file.
-	        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi)));
+	        		 potW=getMinCoveredPOT(atlasW);
+	        		 potH=getMinCoveredPOT(atlasH);
+	        			
+	        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(bi.getSubimage(0, 0,potW , potH)));
 	        		 g.dispose();
 	        		 fileCounter++;
 	        		 bi=null;
@@ -359,7 +364,7 @@ public class Modifier {
 	        							: BufferedImage.TYPE_INT_RGB);
 	        		 g = bi.createGraphics();
 	        		 // modify coordinate for all textures which are fixed in the current atlas.
-	        		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
+	        		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,potW, potH);
 	//        		 analyzeOccupation(frame,atlasW,atlasH);
 	        		 frame.clear();
 	        		 atlasW=0;
@@ -384,10 +389,13 @@ public class Modifier {
 	        	 }
 			}
 			if (atlasH!=0||atlasW!=0){
-				textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(getImage(atlasW, atlasH,bi)));
+				 potW=getMinCoveredPOT(atlasW);
+        		 potH=getMinCoveredPOT(atlasH);
+        		 
+				textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(bi.getSubimage(0, 0,potW , potH)));
 				fileCounter++;
 				 // set the new coordinates
-				 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,atlasW, atlasH);
+				 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,potW, potH);
 	//			 analyzeOccupation(frame,atlasW,atlasH);
 				 frame.clear();
 			}
@@ -508,9 +516,9 @@ public class Modifier {
 		return c;
 	}
 	
-	private BufferedImage getImage(int w, int h, BufferedImage bi){
-		return bi.getSubimage(0, 0,getMinCoveredPOT(w) , getMinCoveredPOT(h));
-	}
+//	private BufferedImage getImage(int w, int h, BufferedImage bi){
+//		return bi.getSubimage(0, 0,getMinCoveredPOT(w) , getMinCoveredPOT(h));
+//	}
 	
 	private void modifyNewCorrdinates(Vector<Rect> items, HashMap<Object, String> coordinatesHashMap,HashMap<Object, double[]>doubleCoordinateList,HashMap<String,ArrayList<Object>> URI2OBJ, int atlasWidth, int atlasHeigth){
 		Iterator<Rect> itr= items.iterator();
