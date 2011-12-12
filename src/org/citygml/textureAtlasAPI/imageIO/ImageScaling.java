@@ -60,6 +60,20 @@ public class ImageScaling {
 	    return target;
 	}
 	
+	public static BufferedImage rescale(BufferedImage source,double scalefactor) {	
+		if (source==null) return null;
+		BufferedImage target = new BufferedImage((int)Math.floor(source.getWidth()*scalefactor)+1, (int)Math.floor(source.getHeight()*scalefactor)+1, source.getType());
+	    Graphics2D g2 = target.createGraphics();
+	    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+	    double scalex = (double) target.getWidth()/ source.getWidth(null);
+	    double scaley = (double) target.getHeight()/ source.getHeight(null);
+	    
+	    AffineTransform xform = AffineTransform.getScaleInstance(scalex, scaley);
+	    g2.drawRenderedImage(source, xform);
+	    g2.dispose();
+	    source=null;
+	    return target;
+	}
 
 
 

@@ -75,14 +75,15 @@ public class Modifier {
 	String completeAtlasPath;
 	boolean overBorder=false;
 	boolean userPOTS=false;
-	
+	double scaleFactor=1;
 	
 	
 	public Modifier(int PackingAlg,  int atlasMaxWidth, int atlasMaxHeight, boolean userPOTS){
-		setGeneralSettings(PackingAlg, atlasMaxWidth, atlasMaxHeight,userPOTS);
+		setGeneralSettings(PackingAlg, atlasMaxWidth, atlasMaxHeight,userPOTS,1);
 	}
 	
-	public void setGeneralSettings(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight, boolean userPOTS){
+	public void setGeneralSettings(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight, boolean userPOTS, double scalef){
+		this.scaleFactor=scalef;
 		this.packingAlgorithm = PackingAlg;
 		this.ImageMaxHeight=atlasMaxHeight;
 		this.ImageMaxWidth= atlasMaxWidth;
@@ -183,7 +184,8 @@ public class Modifier {
 			}	
 			tmpURI=null;
 			tmpTextureImage=null;
-			
+		
+	
 			// The image was loaded before;
 			if((b=isImageAcceptable.get(URI))!=null){
 				if (!b.booleanValue()){
@@ -221,7 +223,11 @@ public class Modifier {
 				uri2Object.get(URI).add(key);
 				continue;
 			}
-
+			// rescale image
+			if (scaleFactor!=1){
+				BufferedImage tmpbi=textImage.get(URI).getBufferedImage();
+				textImage.get(URI).setImage(ImageScaling.rescale(tmpbi, scaleFactor));
+			}
 			// report bug
 			if ((tmp= textImage.get(URI).getBufferedImage())==null){
 				// image is not available 
@@ -391,8 +397,9 @@ public class Modifier {
 			if (atlasH!=0||atlasW!=0){
 				 potW=getMinCoveredPOT(atlasW);
         		 potH=getMinCoveredPOT(atlasH);
-        		 
+        		 try{
 				textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(bi.getSubimage(0, 0,potW , potH)));
+        		 }catch(Exception e){e.printStackTrace();}
 				fileCounter++;
 				 // set the new coordinates
 				 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,potW, potH);
@@ -463,8 +470,8 @@ public class Modifier {
 			if (!userPOTS)
 				msp.setBinSize(Math.min((totalw-maxw)/2+maxw,ImageMaxWidth),ImageMaxHeight);
 			else{
-				int floorPOT= (int)Math.floor(Math.sqrt(area));
-				floorPOT=Math.min(floorPOT,ImageMaxWidth);
+				int floor= (int)Math.floor(Math.sqrt(area));
+				floor=Math.min(floor,ImageMaxWidth);
 				// minimum possible POT that can can cover all tetxures. (2^minPOT>maxw)
 	//			int minPower= (int) Math.floor(Math.log10(maxw)/Math.log10(2))+1;
 	//			int maxPower= (int) Math.min(Math.floor(Math.log10(floorPOT)/Math.log10(2))+1,
@@ -485,9 +492,14 @@ public class Modifier {
 	//				}
 	//				candidate=candidate*2;
 	//			}
-				
-				msp.setBinSize((int)Math.min(Math.pow(2, (int) Math.floor(Math.log10(floorPOT)/Math.log10(2))+1),ImageMaxWidth),
-						ImageMaxHeight);
+				int w=(int)(int)Math.min(Math.pow(2, (int) Math.floor(Math.log10(floor)/Math.log10(2))+1),ImageMaxWidth);
+					
+				if (w<maxw)
+					msp.setBinSize(Math.min(w*2, ImageMaxWidth),
+							ImageMaxHeight);
+				else
+					msp.setBinSize(w,
+							ImageMaxHeight);
 			}
 		}try{
 			return msp.pack(userPOTS);	
