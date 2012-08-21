@@ -47,7 +47,7 @@ public class ImageLoader {
 	}
 	File f;
 	BufferedImage b;
-	int chanels;
+//	int chanels;
 	
 	private BufferedImage loadImage(String path){
 		try {
@@ -61,12 +61,13 @@ public class ImageLoader {
 			}
 			else
 				b= ImageIO.read(f);
+/*
 			if (b!=null){
 				chanelDetector(b);
 			}else {
 				chanels=0;
 			}
-			
+*/
 		} catch (Exception e) {
 //			if (Logger.SHOW_STACK_PRINT)
 //				e.printStackTrace();
@@ -86,11 +87,12 @@ public class ImageLoader {
 				rgbEncoder.freeMemory();
 			} else
 				b = ImageIO.read(is);
+/*
 			if (b != null) {
 				chanelDetector(b);
-
 			} else
 				chanels = 0;
+*/
 		} catch (Exception e) {
 			//if (Logger.SHOW_STACK_PRINT)
 //				e.printStackTrace();
@@ -129,6 +131,7 @@ public class ImageLoader {
 		}
 	}
 	
+/*
 	private void chanelDetector(BufferedImage bImage){
 		switch(bImage.getType()){
 		case BufferedImage.TYPE_BYTE_INDEXED:
@@ -146,10 +149,11 @@ public class ImageLoader {
 		}
 		
 	}
+
 	public int getChanels(){
 		return this.chanels;
 	}
-	
+*/
 	
 	
 	public static boolean isSupportedImageFormat(String MIMEType,String extension){

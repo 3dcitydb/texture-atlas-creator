@@ -26,6 +26,7 @@ package org.citygml.textureAtlasAPI.imageIO;
 
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Transparency;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
@@ -47,8 +48,11 @@ public class ImageScaling {
 			nw = nh*source.getWidth()/source.getHeight();
 		}
 
+		int type = (source.getTransparency() == Transparency.OPAQUE) ?
+        		BufferedImage.TYPE_INT_RGB :
+        		BufferedImage.TYPE_INT_ARGB;
 		
-		BufferedImage target = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_RGB);
+		BufferedImage target = new BufferedImage(nw, nh, type);
 	    Graphics2D g2 = target.createGraphics();
 	    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 	    double scalex = (double) target.getWidth()/ source.getWidth(null);
@@ -60,9 +64,12 @@ public class ImageScaling {
 	    return target;
 	}
 	
-	public static BufferedImage rescale(BufferedImage source,double scalefactor) {	
+	public static BufferedImage rescale(BufferedImage source, double scalefactor) {	
 		if (source==null) return null;
-		BufferedImage target = new BufferedImage((int)Math.floor(source.getWidth()*scalefactor)+1, (int)Math.floor(source.getHeight()*scalefactor)+1, source.getType());
+		int type = (source.getTransparency() == Transparency.OPAQUE) ?
+            		BufferedImage.TYPE_INT_RGB :
+            		BufferedImage.TYPE_INT_ARGB;
+		BufferedImage target = new BufferedImage((int)Math.floor(source.getWidth()*scalefactor)+1, (int)Math.floor(source.getHeight()*scalefactor)+1, type);
 	    Graphics2D g2 = target.createGraphics();
 	    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 	    double scalex = (double) target.getWidth()/ source.getWidth(null);

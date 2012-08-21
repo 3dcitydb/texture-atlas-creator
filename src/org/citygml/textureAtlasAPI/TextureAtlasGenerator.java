@@ -56,20 +56,20 @@ public class TextureAtlasGenerator {
 	 * TPIM: Improved version of Touching Perimeter algorithm.
 	 * TPIM_WITHOUT_ROTATION: TPIM algorithm without rotating textures.
 	 */
-	public static  final int FFDH = 0;
-	public static  final int NFDH = 1;
-	public static  final int SLEA = 2;
+	public static final int FFDH = 0;
+	public static final int NFDH = 1;
+	public static final int SLEA = 2;
 
 	
 	//Touching Perimeter+ improved
-	public static  final int TPIM = 5;
-	public static  final int TPIM_WITHOUT_ROTATION = 6;
+	public static final int TPIM = 5;
+	public static final int TPIM_WITHOUT_ROTATION = 6;
 	
 	
-	private int PackingAlgorithm;
+	private int packingAlgorithm;
 	
-	private int ImageMaxWidth=2048;
-	private int ImageMaxHeight=2048;
+	private int imageMaxWidth=2048;
+	private int imageMaxHeight=2048;
 	
 	private Modifier modifier;
 	private ImageLoader imageLoader;
@@ -78,35 +78,35 @@ public class TextureAtlasGenerator {
 	private double scaleFactor;
 
 	public TextureAtlasGenerator() {
-		PackingAlgorithm= FFDH;
-		ImageMaxWidth=2048;
-		ImageMaxHeight=2048;
+		packingAlgorithm= FFDH;
+		imageMaxWidth=2048;
+		imageMaxHeight=2048;
 		scaleFactor=1;
-		modifier = new Modifier(PackingAlgorithm, ImageMaxWidth, ImageMaxHeight, usePOTS);
+		modifier = new Modifier(packingAlgorithm, imageMaxWidth, imageMaxHeight, usePOTS);
 		imageLoader= new ImageLoader();
 	}
 	
 	public TextureAtlasGenerator(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight) {
 		usePOTS = false;
 		setGeneralProp(PackingAlg, atlasMaxWidth, atlasMaxHeight, usePOTS);
-		modifier = new Modifier(PackingAlgorithm, ImageMaxWidth, ImageMaxHeight, usePOTS);
+		modifier = new Modifier(packingAlgorithm, imageMaxWidth, imageMaxHeight, usePOTS);
 		imageLoader= new ImageLoader();
 	}
 	
 	//-----------------
 	public TextureAtlasGenerator(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS) {
 		setGeneralProp(PackingAlg, atlasMaxWidth, atlasMaxHeight,usePOTS);
-		modifier = new Modifier(this.PackingAlgorithm, this.ImageMaxWidth, 
-				this.ImageMaxHeight,this.usePOTS);
+		modifier = new Modifier(this.packingAlgorithm, this.imageMaxWidth, 
+				this.imageMaxHeight,this.usePOTS);
 		imageLoader= new ImageLoader();
 	}
 	
 	private void setGeneralProp(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS){
 		this.scaleFactor=1;
 		this.usePOTS = usePOTS;
-		this.PackingAlgorithm = PackingAlg;
-		this.ImageMaxHeight = atlasMaxHeight;
-		this.ImageMaxWidth= atlasMaxWidth;
+		this.packingAlgorithm = PackingAlg;
+		this.imageMaxHeight = atlasMaxHeight;
+		this.imageMaxWidth= atlasMaxWidth;
 	}
 	public double getScaleFactor() {
 		return scaleFactor;
@@ -118,34 +118,34 @@ public class TextureAtlasGenerator {
 
 	//-----------------
 	public int getPackingAlgorithm() {
-		return PackingAlgorithm;
+		return packingAlgorithm;
 	}
 
 	public void setPackingAlgorithm(int packingAlgorithm) {
-		this.PackingAlgorithm = packingAlgorithm;
+		this.packingAlgorithm = packingAlgorithm;
 	}
 
 	public int getImageMaxWidth() {
-		return ImageMaxWidth;
+		return imageMaxWidth;
 	}
 
 	public void setImageMaxWidth(int imageMaxWidth) {
-		this.ImageMaxWidth = imageMaxWidth;
+		this.imageMaxWidth = imageMaxWidth;
 	}
 
 	public int getImageMaxHeight() {
-		return ImageMaxHeight;
+		return imageMaxHeight;
 	}
 
 	public void setImageMaxHeight(int imageMaxHeight) {
-		this.ImageMaxHeight = imageMaxHeight;
+		this.imageMaxHeight = imageMaxHeight;
 	}
 
 	public TexImageInfo convert(TexImageInfo tii){	
-		return convert(tii,PackingAlgorithm);
+		return convert(tii,packingAlgorithm);
 	}
 	
-	public TexImageInfo convert(TexImageInfo tii, int PackingAlgorithm){	
+	public TexImageInfo convert(TexImageInfo tii, int packingAlgorithm){	
 		modifier.reset();
 		if( tii instanceof TexImageInfo4GMLFile){
 			if( !((TexImageInfo4GMLFile)tii).isImageLoaded()){
@@ -156,9 +156,9 @@ public class TextureAtlasGenerator {
 		if (tii instanceof TexImageInfo && tii!=null)
 			imageLoader.setImageLoader(tii.getTexImages());
 			
-		this.PackingAlgorithm=PackingAlgorithm;
+		this.packingAlgorithm=packingAlgorithm;
 		// check tii.isImagesReady()
-		modifier.setGeneralSettings(this.PackingAlgorithm, this.ImageMaxWidth, this.ImageMaxHeight,this.usePOTS,this.scaleFactor);
+		modifier.setGeneralSettings(this.packingAlgorithm, this.imageMaxWidth, this.imageMaxHeight, this.usePOTS, this.scaleFactor);
 		return modifier.run(tii);
 	}
 	

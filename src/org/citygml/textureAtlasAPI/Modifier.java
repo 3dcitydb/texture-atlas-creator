@@ -25,6 +25,7 @@
 package org.citygml.textureAtlasAPI;
 
 import java.awt.Graphics2D;
+import java.awt.Transparency;
 
 
 import java.awt.geom.AffineTransform;
@@ -174,7 +175,7 @@ public class Modifier {
 				tmpTextureImage= textImage.get(URI);
 				if (tmpTextureImage!=null && tmpTextureImage.getBufferedImage()!=null ){
 					// set a new uri based the number of channels in result.
-					tmpURI= makeNewURI(URI, tmpTextureImage.getChanels());
+					tmpURI= makeNewURI(URI, tmpTextureImage.getChannels());
 					textUri.put(key,tmpURI);
 					textImage.remove(URI);
 					textImage.put(tmpURI, tmpTextureImage);
@@ -235,7 +236,7 @@ public class Modifier {
 				LOG.put(key,ErrorTypes.IMAGE_IS_NOT_AVAILABLE);
 				continue;			
 			}
-			is4Chanel=textImage.get(URI).getChanels()==4;
+			is4Chanel=textImage.get(URI).getChannels()==4;
 			 
 			width= tmp.getWidth();
 	        height= tmp.getHeight();
@@ -258,7 +259,8 @@ public class Modifier {
 	        }
 	        // setting the name of atlas.
 	        if (completeAtlasPath==null)
-				completeAtlasPath= URI.substring(0,URI.lastIndexOf('.'))+"_%1d.";
+//				completeAtlasPath= URI.substring(0,URI.lastIndexOf('.'))+"_%1d.";
+				completeAtlasPath = "textureAtlas_" + getPackingAlgorithmName() + "_" + ti.hashCode() + "_%1d."; 
 	        
 
 	        // everything is alright with the current Key object. so the values will be set in data structures. 
@@ -340,14 +342,30 @@ public class Modifier {
 				item = all.next();		
 				if (item.rotated){
 					BufferedImage bif = textImage.get(item.getURI()).getBufferedImage();
+
+					int type = (bif.getTransparency() == Transparency.OPAQUE) ?
+								BufferedImage.TYPE_INT_RGB :
+								BufferedImage.TYPE_INT_ARGB;
+/*
 					AffineTransform at = new AffineTransform();
 					at.translate ( 0,bif.getWidth() ) ;
 			        at.rotate(Math.toRadians(-90));
-			        AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);		       
+			        AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
 					BufferedImage bb= new BufferedImage(bif.getHeight(), bif.getWidth(), bif.getType());
 					ato.filter(bif, bb);
 			        textImage.get(item.getURI()).setImage(bb);
-			        bif=null;
+*/
+					int w = bif.getWidth();
+					int h = bif.getHeight();
+
+					BufferedImage biFlip = new BufferedImage(h, w, type);
+
+					for(int i=0; i<w; i++)
+						for(int j=0; j<h; j++)
+							biFlip.setRGB(j, i, bif.getRGB(i, j));
+
+					textImage.get(item.getURI()).setImage(biFlip);
+					bif=null;
 				}
 				
 	        	 x= item.x;
@@ -367,7 +385,7 @@ public class Modifier {
 	        		 bi = new BufferedImage(Math.min(getMinCoveredPOT(mr.getBindingBoxWidth()),
 	        					ImageMaxWidth), Math.min(getMinCoveredPOT(mr.getBindingBoxHeight()), ImageMaxHeight),
 	        					is4Chanel ? BufferedImage.TYPE_INT_ARGB
-	        							: BufferedImage.TYPE_INT_RGB);
+	        							  : BufferedImage.TYPE_INT_RGB);
 	        		 g = bi.createGraphics();
 	        		 // modify coordinate for all textures which are fixed in the current atlas.
 	        		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,potW, potH);
@@ -592,4 +610,27 @@ public class Modifier {
 	public void reset(){
 		completeAtlasPath=null;
 	}
+
+	private String getPackingAlgorithmName() {
+		String algorithmName = null;
+		switch (packingAlgorithm) {
+			case TextureAtlasGenerator.FFDH:
+				algorithmName = "FFDH";
+				break;
+			case TextureAtlasGenerator.NFDH:
+				algorithmName = "NFDH";
+				break;
+			case TextureAtlasGenerator.SLEA:
+				algorithmName = "SLEA";
+				break;
+			case TextureAtlasGenerator.TPIM:
+				algorithmName = "TPIM";
+				break;
+			case TextureAtlasGenerator.TPIM_WITHOUT_ROTATION:
+				algorithmName = "TPIM_WO_R";
+				break;
+		}
+		return algorithmName;
+	}
+
 }

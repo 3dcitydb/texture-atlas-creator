@@ -24,6 +24,7 @@
  ******************************************************************************/
 package org.citygml.textureAtlasAPI.dataStructure;
 
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
 //import org.citygml.util.Logger;
@@ -42,16 +43,11 @@ public class TexImage {
 	private BufferedImage image;
 	private OrdImage ordImage;
 	private ImageLoader imageLoader;
-	private int chanels=3;
 
 
-	public TexImage(BufferedImage bi){
-		this.image=bi;
+	public TexImage(BufferedImage bImage){
+		setImage(bImage);
 		this.type=IMAGE;
-		if (bi!=null)
-			this.chanels = getChanel(bi.getType());	
-		else
-			this.chanels =-1;
 	}
 	
 	public TexImage(OrdImage ordImage) {
@@ -75,7 +71,6 @@ public class TexImage {
 				this.image= imageLoader.loadImage(ordImage.getDataInStream(), ordImage
 						.getMimeType(), mb.length);
 				mb=null;
-				this.chanels=imageLoader.getChanels();
 			} catch (Exception e) {
 //				if (Logger.SHOW_STACK_PRINT)
 //					e.printStackTrace();
@@ -92,30 +87,23 @@ public class TexImage {
 		if (this.type == ORD_IMAGE)
 			return this.ordImage;
 		else {
-			if (this.image == null)
-				return null;
 			return null;
 		}
 	}
 
 	public void setImage(BufferedImage bImage) {
 		this.image = bImage;
-		if (bImage!=null)
-			this.chanels = getChanel(bImage.getType());
-		else
-			this.chanels = -1;
 	}
 
 	public void setImage(OrdImage ordImage) {
 		this.ordImage = ordImage;
 	}
-	public int getChanels(){
-		if (this.image==null)
-			getBufferedImage();
-		return this.chanels;
-	}
 	
-	public int getChanel(int BuffImageType){
+	public int getChannels(){
+		if (this.image==null) getBufferedImage();
+		return (this.image.getTransparency() == Transparency.OPAQUE) ?
+            	3 : 4;
+/*
 		switch(BuffImageType){
 		case BufferedImage.TYPE_BYTE_GRAY:
 			return 1;
@@ -127,6 +115,7 @@ public class TexImage {
 		default:
 			return 3;
 		}
+*/
 	}
 	
 	public void freeMemory(){

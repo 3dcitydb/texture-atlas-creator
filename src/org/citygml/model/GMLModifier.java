@@ -460,7 +460,7 @@ public class GMLModifier {
 			
 		
 			bim= texImage.get(path).getBufferedImage();
-			chanels=texImage.get(path).getChanels();
+			chanels=texImage.get(path).getChannels();
 			
 			outPath=outputParentPath+(outputParentPath==null||outputParentPath.length()==0?"":"/")+path.replace('\\', '/');
 			// copy file exactly in the new place
