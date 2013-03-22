@@ -362,7 +362,7 @@ public class Modifier {
 
 					for(int i=0; i<w; i++)
 						for(int j=0; j<h; j++)
-							biFlip.setRGB(j, i, bif.getRGB(i, j));
+							biFlip.setRGB(j, w-i-1, bif.getRGB(i, j));
 
 					textImage.get(item.getURI()).setImage(biFlip);
 					bif=null;
