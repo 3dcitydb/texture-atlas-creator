@@ -522,7 +522,7 @@ public class Modifier {
 	}
 	
 	private double[] formatCoordinates(String coordinates){
-		if (coordinates==null)
+		if (coordinates==null || coordinates.length() == 0)
 			return null;
 		String[] sc = coordinates.split(" ");
 		double[]c= new double[sc.length];
@@ -535,6 +535,9 @@ public class Modifier {
 		}
 		sc=null;
 		coordinates=null;
+		if ((c.length & 1) == 1)
+			return null;
+		
 		return c;
 	}
 	
