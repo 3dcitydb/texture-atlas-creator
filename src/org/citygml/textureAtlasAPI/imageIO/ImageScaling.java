@@ -43,11 +43,15 @@ public class ImageScaling {
 		if (source.getWidth()>source.getHeight()){
 			nw=maxW;
 			nh = nw*source.getHeight()/source.getWidth();
+			if (nh == 0)
+				nh = 1;
 		}else{
 			nh=maxH;
 			nw = nh*source.getWidth()/source.getHeight();
+			if (nw == 0)
+				nw = 1;
 		}
-
+		
 		int type = (source.getTransparency() == Transparency.OPAQUE) ?
         		BufferedImage.TYPE_INT_RGB :
         		BufferedImage.TYPE_INT_ARGB;

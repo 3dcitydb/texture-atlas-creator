@@ -26,30 +26,22 @@ package org.citygml.textureAtlasAPI;
 
 import java.awt.Graphics2D;
 import java.awt.Transparency;
-
-
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-
 import java.util.Vector;
+
 import org.citygml.textureAtlasAPI.dataStructure.ErrorTypes;
 import org.citygml.textureAtlasAPI.dataStructure.TexGeneralProperties;
+import org.citygml.textureAtlasAPI.dataStructure.TexImage;
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo;
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
-import org.citygml.textureAtlasAPI.dataStructure.TexImage;
-
 import org.citygml.textureAtlasAPI.imageIO.ImageScaling;
-import org.citygml.textureAtlasAPI.packer.Rect;
 import org.citygml.textureAtlasAPI.packer.Atlas;
-
-
 import org.citygml.textureAtlasAPI.packer.Packer;
+import org.citygml.textureAtlasAPI.packer.Rect;
 import org.citygml.textureAtlasAPI.packer.comparator.StartHeightComparator;
 //import org.citygml.util.Logger;
 

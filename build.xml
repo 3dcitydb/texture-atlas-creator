@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="Texture Atlas" default="dist_API">
+	<property name="api.version" value="0.5" />
+	<property name="app.version" value="0.3" />
+	<property name="vendor.homepage" value="http://www.igg.tu-berlin.de/"/>
+	<property name="app.vendor" value="IGG, Technical University Berlin, Germany, ${vendor.homepage}" />
+	<property name="dir.build" value="${basedir}/build" />
+
+	<path id="classpath">
+		<fileset dir="lib" includes="**/*.jar"/>
+	</path>
+
+	<target name="clean_API">
+		<delete dir="${dir.build}/build"/>
+		<delete dir="${dir.build}/api"/>
+	</target>
+	<target name="clean_standalone">
+		<delete dir="${dir.build}/build"/>
+		<delete dir="${dir.build}/standalone"/>
+	</target>
+
+	<target name="compile_API" depends="clean_API">
+		<mkdir dir="${dir.build}"/>
+		<mkdir dir="${dir.build}/build"/>
+		<mkdir dir="${dir.build}/build/classes"/>
+		<javac classpathref="classpath" srcdir="src/org/citygml/textureAtlasAPI" destdir="${dir.build}/build/classes"/>
+	</target>
+	<target name="compile_standalone" depends="clean_standalone">
+		<mkdir dir="${dir.build}"/>
+		<mkdir dir="${dir.build}/build"/>
+		<mkdir dir="${dir.build}/build/classes"/>
+		<javac classpathref="classpath" srcdir="src/org/citygml" destdir="${dir.build}/build/classes"/>
+	</target>
+
+
+	<target name="dist_API" depends="compile_API">
+		<replace file="resource/license_api/README" token="!api.version!" value="${api.version}" />
+		<mkdir dir="${dir.build}/api"/>
+		<jar destfile="${dir.build}/api/textureAtlas.jar" basedir="${dir.build}/build/classes">
+			<fileset dir="resource/license_api" includes="**/*" />
+		</jar>
+		<copy todir="${dir.build}/api">
+			<fileset dir="lib" includes="**/ordim.jar" />
+		</copy>
+		<delete dir="${dir.build}/build"/>
+	</target>
+
+	<target name="dist_standalone" depends="compile_standalone">
+		<tstamp>
+			<format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+		</tstamp>
+		<replace file="resource/license_standalone/README" token="!app.version!" value="${app.version}" />
+		<mkdir dir="${dir.build}/standalone"/>
+		<mkdir dir="${dir.build}/standalone/lib"/>
+
+		<jar jarfile="${dir.build}/standalone/tac.jar" basedir="${dir.build}/build/classes">
+			<fileset dir="resource/license_standalone" includes="**/*" />
+			<manifest>
+				<attribute name="Built-Date" value="${TODAY}" />
+				<attribute name="Implementation-Title" value="Texture Atlas Creator" />
+				<attribute name="Implementation-Version" value="${app.version}" />
+				<attribute name="Implementation-Vendor" value="${app.vendor}" />
+				<attribute name="Class-Path" value="lib\citygml4j.jar lib\jaxb-api.jar lib\jsr173_1.0_api.jar lib\jaxb-impl.jar lib\jaxb-xjc.jar lib\sjsxp.jar lib\ordim.jar" />
+				<attribute name="Main-Class" value="org.citygml.bin.TextureAtlasGenerator" />
+			</manifest>
+		</jar>
+
+		<mkdir dir="${dir.build}/standalone/license"/>
+
+		<copy todir="${dir.build}/standalone/license">
+			<fileset dir="resource/license_standalone" >
+				<include name="**/*"/>
+				<exclude name="**/README"/>
+			</fileset>
+		</copy>
+		<copy todir="${dir.build}/standalone">
+			<fileset dir="resource/license_standalone" includes="**/README" />
+			<fileset dir="resource" includes="**/tac.bat" />
+		</copy>
+		<copy todir="${dir.build}/standalone/lib">
+			<fileset dir="lib" includes="**/jaxb-api.jar jsr173_1.0_api.jar jaxb-impl.jar jaxb-xjc.jar sjsxp.jar citygml4j.jar ordim.jar" />
+		</copy>
+		<delete dir="${dir.build}/build"/>
+	</target>
+
+
+</project>
