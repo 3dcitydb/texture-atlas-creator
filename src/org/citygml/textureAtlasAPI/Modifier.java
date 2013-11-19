@@ -524,20 +524,18 @@ public class Modifier {
 	private double[] formatCoordinates(String coordinates){
 		if (coordinates==null || coordinates.length() == 0)
 			return null;
+		
 		String[] sc = coordinates.split(" ");
+		if ((sc.length & 1) == 1)
+			return null;
+
 		double[]c= new double[sc.length];
 		for (int i=0;i<sc.length;i++){
 			c[i] = Double.parseDouble(sc[i]);
-			if (c[i]<-0.1||c[i]>1.1){
-				sc=null;
+			if (c[i]<-0.1||c[i]>1.1)
 				return null;
-			}
 		}
-		sc=null;
-		coordinates=null;
-		if ((c.length & 1) == 1)
-			return null;
-		
+
 		return c;
 	}
 	
