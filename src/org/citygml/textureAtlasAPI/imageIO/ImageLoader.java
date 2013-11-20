@@ -21,18 +21,17 @@
  * <http://www.gnu.org/licenses/>.
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
+ * @author Claus Nagel <c.nagel@virtualcitysystems.de>
  ******************************************************************************/
 package org.citygml.textureAtlasAPI.imageIO;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+
 import javax.imageio.ImageIO;
-import org.citygml.textureAtlasAPI.dataStructure.TexImage;
-//import org.citygml.util.Logger;
 
 /**
  * This class is responsible for loading different image formats. 
@@ -40,104 +39,107 @@ import org.citygml.textureAtlasAPI.dataStructure.TexImage;
  * In the case of adding other encoders, they should announced in here.
  */
 
-public class ImageLoader {
-	RGBEncoder rgbEncoder;
-	public ImageLoader(){
+public class ImageLoader {	
+	private RGBEncoder rgbEncoder;
+	private ArrayList<String> supportedMIMETypes;
+	private ArrayList<String> supportedExtensions;
+
+	public ImageLoader() {
 		rgbEncoder= new RGBEncoder();
+		initSupportedFileFormats();
 	}
-	File f;
-	BufferedImage b;
-//	int chanels;
-	
-	private BufferedImage loadImage(String path){
-		try {
-			f= new File(path);
-			if (!f.exists()){
-				return null;
-			}
-			if (path.lastIndexOf(".rgb")>0){
-				b=rgbEncoder.readRGB(f);
-				rgbEncoder.freeMemory();
-			}
-			else
-				b= ImageIO.read(f);
-/*
-			if (b!=null){
-				chanelDetector(b);
-			}else {
-				chanels=0;
-			}
-*/
-		} catch (Exception e) {
-//			if (Logger.SHOW_STACK_PRINT)
-//				e.printStackTrace();
-//			Logger.getInstance().log(Logger.TYPE_ERROR,"Error in loading image. ("+path+")");
-		}
-		f=null;
-		path=null;
+
+	public BufferedImage loadImage(File file) throws IOException {
+		if (!file.isFile() || !file.exists() || !file.canRead())
+			return null;
+
+		BufferedImage b = null;
+		if (file.getName().toUpperCase().endsWith(".RGB") ||
+				file.getName().toUpperCase().endsWith(".RGBA"))
+			b = rgbEncoder.readRGB(file);
+		else
+			b = ImageIO.read(file);
+
 		return b;
 	}
-	
-	public BufferedImage loadImage(InputStream is, String MIME_Type, int size){
-		if (!isSupportedImageFormat(MIME_Type,null))
+
+	public BufferedImage loadImage(InputStream is, String mimeType, int size) throws IOException {
+		if (!isSupportedMIMEType(mimeType))
 			return null;
-		try {
-			if (MIME_Type.lastIndexOf("rgb") > 0) {
-				b = rgbEncoder.readRGB(is, size);
-				rgbEncoder.freeMemory();
-			} else
-				b = ImageIO.read(is);
-/*
-			if (b != null) {
-				chanelDetector(b);
-			} else
-				chanels = 0;
-*/
-		} catch (Exception e) {
-			//if (Logger.SHOW_STACK_PRINT)
-//				e.printStackTrace();
-		}
+
+		BufferedImage b = null;
+		if (mimeType.toUpperCase().endsWith("RGB") ||
+				mimeType.toUpperCase().endsWith("RGBA"))
+			b = rgbEncoder.readRGB(is, size);
+		else
+			b = ImageIO.read(is);
+
 		return b;
 	}
-	
-	public HashMap<String, TexImage> loadAllImage(HashMap<String,String> imageLocalPath){
-		HashMap<String, TexImage> texImages = new HashMap<String, TexImage>();
-		if (imageLocalPath==null)
-			return null;
-		Iterator<String> imageURI=imageLocalPath.keySet().iterator();
-		String URI;
-		while(imageURI.hasNext()){
-			URI=imageURI.next();
-			texImages.put(URI,new TexImage(loadImage(imageLocalPath.get(URI))));
-			URI=null;
-		}
-		imageURI=null;
-		imageLocalPath=null;
-		return texImages ;
+
+	public boolean isSupportedMIMEType(String mimeType) {
+		return mimeType != null ? supportedMIMETypes.contains(mimeType.toUpperCase()) : false;
+	}
+
+	public boolean isSupportedFileExtension(String extension) {
+		return extension != null ? supportedExtensions.contains(extension.toUpperCase()) : false;
 	}
 	
-	/**
-	 * set this instance in all TexImage in input HashMap.
-	 * @param basic
-	 */
-	public void setImageLoader(HashMap<String, TexImage> basic){
-		if (basic==null)
-			return ;
-		if (basic.values()!=null){
-		Iterator<TexImage> tximag=basic.values().iterator();
-			while(tximag.hasNext()){
-				tximag.next().setImageLoader(this);
-			}
-		}
+	private void initSupportedFileFormats(){
+		supportedMIMETypes= new ArrayList<String>();
+		supportedExtensions = new ArrayList<String>();
+		
+		for (String mimeType : ImageIO.getReaderMIMETypes())
+			supportedMIMETypes.add(mimeType.toUpperCase());
+		
+		for (String extension : ImageIO.getReaderFileSuffixes())
+			supportedExtensions.add(extension.toUpperCase());
+			
+		supportedMIMETypes.add("IMAGE/RGB");
+		supportedMIMETypes.add("IMAGE/X-RGB");
+		supportedMIMETypes.add("IMAGE/RGBA");
+		supportedExtensions.add("RGB");
+		supportedExtensions.add("RGBA");
 	}
 	
-/*
+	//	public HashMap<String, TexImage> loadAllImage(HashMap<String,String> imageLocalPath){
+	//		HashMap<String, TexImage> texImages = new HashMap<String, TexImage>();
+	//		if (imageLocalPath==null)
+	//			return null;
+	//		Iterator<String> imageURI=imageLocalPath.keySet().iterator();
+	//		String URI;
+	//		while(imageURI.hasNext()){
+	//			URI=imageURI.next();
+	//			texImages.put(URI,new TexImage(loadImage(imageLocalPath.get(URI))));
+	//			URI=null;
+	//		}
+	//		imageURI=null;
+	//		imageLocalPath=null;
+	//		return texImages ;
+	//	}
+
+	//	/**
+	//	 * set this instance in all TexImage in input HashMap.
+	//	 * @param basic
+	//	 */
+	//	public void setImageLoader(HashMap<String, TexImage> basic) {
+	//		if (basic==null)
+	//			return ;
+	//		if (basic.values()!=null){
+	//			Iterator<TexImage> tximag=basic.values().iterator();
+	//			while(tximag.hasNext()){
+	//				tximag.next().setImageLoader(this);
+	//			}
+	//		}
+	//	}
+
+	/*
 	private void chanelDetector(BufferedImage bImage){
 		switch(bImage.getType()){
 		case BufferedImage.TYPE_BYTE_INDEXED:
 		case BufferedImage.TYPE_BYTE_GRAY:
 			this.chanels=1;break;
-		
+
 		case BufferedImage.TYPE_INT_ARGB:
 		case BufferedImage.TYPE_INT_ARGB_PRE:
 		case BufferedImage.TYPE_4BYTE_ABGR:
@@ -147,44 +149,12 @@ public class ImageLoader {
 		default:
 			this.chanels=3;
 		}
-		
+
 	}
 
 	public int getChanels(){
 		return this.chanels;
 	}
-*/
-	
-	
-	public static boolean isSupportedImageFormat(String MIMEType,String extension){
-		if (SupportedImageMIMETypes==null)
-			loadSupportedImageList();
-		if (MIMEType==null){
-			if (extension!=null)
-				return SupportedImageExtensions.contains(extension.toUpperCase());
-			return false;
-		}
-		return SupportedImageMIMETypes.contains(MIMEType.toUpperCase());
-	}
-	
-	private static ArrayList<String> SupportedImageMIMETypes=null;
-	private static ArrayList<String> SupportedImageExtensions=null;
-	private static void loadSupportedImageList(){
-		SupportedImageMIMETypes= new ArrayList<String>();
-		String[] st= ImageIO.getReaderMIMETypes();
-		for (int i=0;i<st.length;i++){
-			SupportedImageMIMETypes.add(st[i].toUpperCase());
-			st[i]=null;
-		}
-		SupportedImageMIMETypes.add("IMAGE/RGB");
-		SupportedImageMIMETypes.add("IMAGE/X-RGB");
-		SupportedImageExtensions = new ArrayList<String>();
-		SupportedImageExtensions.add("JPG");
-		SupportedImageExtensions.add("JPEG");
-		SupportedImageExtensions.add("RGB");
-		SupportedImageExtensions.add("PNG");
-		SupportedImageExtensions.add("GIF");
-		
-		st=null;
-	}
+	 */
+
 }

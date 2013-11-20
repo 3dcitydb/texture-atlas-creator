@@ -36,56 +36,54 @@ import java.awt.image.BufferedImage;
  *
  */
 public class ImageScaling {
-	
-	public static BufferedImage rescale(BufferedImage source,int maxW,int maxH) {
+
+	public static BufferedImage rescale(BufferedImage source, int maxW, int maxH) {
+		if (source == null)
+			return null;
 		
-		int nw,nh;
-		if (source.getWidth()>source.getHeight()){
-			nw=maxW;
-			nh = nw*source.getHeight()/source.getWidth();
-			if (nh == 0)
-				nh = 1;
-		}else{
-			nh=maxH;
-			nw = nh*source.getWidth()/source.getHeight();
-			if (nw == 0)
-				nw = 1;
+		int newW, newH;
+		
+		if (source.getWidth() > source.getHeight()) {
+			newW = maxW;
+			newH = newW * source.getHeight() / source.getWidth();
+			if (newH == 0)
+				newH = 1;
+		} else {
+			newH = maxH;
+			newW = newH * source.getWidth() / source.getHeight();
+			if (newW == 0)
+				newW = 1;
 		}
+
+		int type = (source.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+		BufferedImage target = new BufferedImage(newW, newH, type);
 		
-		int type = (source.getTransparency() == Transparency.OPAQUE) ?
-        		BufferedImage.TYPE_INT_RGB :
-        		BufferedImage.TYPE_INT_ARGB;
-		
-		BufferedImage target = new BufferedImage(nw, nh, type);
-	    Graphics2D g2 = target.createGraphics();
-	    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-	    double scalex = (double) target.getWidth()/ source.getWidth(null);
-	    double scaley = (double) target.getHeight()/ source.getHeight(null);
-	    AffineTransform xform = AffineTransform.getScaleInstance(scalex, scaley);
-	    g2.drawRenderedImage(source, xform);
-	    g2.dispose();
-	    source=null;
-	    return target;
+		return rescale(source, target);
 	}
 	
-	public static BufferedImage rescale(BufferedImage source, double scalefactor) {	
-		if (source==null) return null;
-		int type = (source.getTransparency() == Transparency.OPAQUE) ?
-            		BufferedImage.TYPE_INT_RGB :
-            		BufferedImage.TYPE_INT_ARGB;
-		BufferedImage target = new BufferedImage((int)Math.floor(source.getWidth()*scalefactor)+1, (int)Math.floor(source.getHeight()*scalefactor)+1, type);
-	    Graphics2D g2 = target.createGraphics();
-	    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-	    double scalex = (double) target.getWidth()/ source.getWidth(null);
-	    double scaley = (double) target.getHeight()/ source.getHeight(null);
-	    
-	    AffineTransform xform = AffineTransform.getScaleInstance(scalex, scaley);
-	    g2.drawRenderedImage(source, xform);
-	    g2.dispose();
-	    source=null;
-	    return target;
+	public static BufferedImage rescale(BufferedImage source, double scaleFactor) {	
+		if (source == null) 
+			return null;
+		
+		int type = (source.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+		BufferedImage target = new BufferedImage(
+				(int)Math.floor(source.getWidth() * scaleFactor) + 1, 
+				(int)Math.floor(source.getHeight() * scaleFactor) + 1, type);
+		
+		return rescale(source, target);
 	}
+	
+	private static BufferedImage rescale(BufferedImage source, BufferedImage target) {
+		double scaleX = (double) target.getWidth() / source.getWidth();
+		double scaleY = (double) target.getHeight() / source.getHeight();
+		AffineTransform transform = AffineTransform.getScaleInstance(scaleX, scaleY);
+		
+		Graphics2D graphics = target.createGraphics();
+		graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+		graphics.drawRenderedImage(source, transform);
+		graphics.dispose();
 
-
+		return target;
+	}
 
 }

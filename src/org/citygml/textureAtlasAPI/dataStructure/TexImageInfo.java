@@ -26,10 +26,8 @@ package org.citygml.textureAtlasAPI.dataStructure;
 
 import java.util.HashMap;
 
-
-
 /**
- * This class will be used to carry all information of a Building object (or CityObject) which are necessary 
+ * This class is used to carry all information of a Building object (or CityObject) which are necessary 
  * for generating a texture atlas. This class also will be used as a data structure to carry
  * result which is texture atlas. 
  *  
@@ -64,9 +62,6 @@ public class TexImageInfo {
 	 */
 	protected HashMap<String, TexImage> texImages;
 	
-	
-
-
 	/**
 	 * @return the texImageURIs
 	 */
@@ -109,21 +104,14 @@ public class TexImageInfo {
 		this.texImages = texImages;
 	}
 
-	/**
-	 * @return the lOG
-	 */
-
-
+	// TODO: Why is this not called?
 	public void clear(){
 		texCoordinates.clear();
 		texImages.clear();
 		texImageURIs.clear();
 
-		texCoordinates=null;
-		texImages=null;
-		texImageURIs=null;
+		texCoordinates = null;
+		texImages = null;
+		texImageURIs = null;
 	}
-	
-
-
 }

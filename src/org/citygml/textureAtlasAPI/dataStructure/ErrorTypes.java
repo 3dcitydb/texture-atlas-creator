@@ -25,17 +25,18 @@
 package org.citygml.textureAtlasAPI.dataStructure;
 
 public enum ErrorTypes {
-	IMAGE_FORMAT_NOT_SUPPORTED("IMAGE_FORMAT_NOT_SUPPORTED"),
-	// Texture is shared between several targets, and at least one of them are not combinable.  
-	TARGET_PT_NOT_SUPPORTED("TARGET_PT_NOT_SUPPORTED"),
 	ERROR_IN_COORDINATES("Wrapping coordinates"),
-	IMAGE_IS_NOT_AVAILABLE("Image file/path is not valid"),
-	IMAGE_UNBONDED_SIZE("IMAGE_UNBONDED_SIZE");
-	String name;
-	ErrorTypes(String name){
+	IMAGE_IS_NOT_AVAILABLE("Image file/path is not available"),
+	IMAGE_UNBOUNDED_SIZE("Unbounded image size");
+	
+	private final String name;
+	
+	ErrorTypes(String name) {
 		this.name=name;
 	}
-	public String toString(){
+
+	@Override
+	public String toString() {
 		return name;
 	}
-	}
+}

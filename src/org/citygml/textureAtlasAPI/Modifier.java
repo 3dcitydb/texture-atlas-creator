@@ -34,10 +34,8 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import org.citygml.textureAtlasAPI.dataStructure.ErrorTypes;
-import org.citygml.textureAtlasAPI.dataStructure.TexGeneralProperties;
 import org.citygml.textureAtlasAPI.dataStructure.TexImage;
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo;
-import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
 import org.citygml.textureAtlasAPI.imageIO.ImageScaling;
 import org.citygml.textureAtlasAPI.packer.Atlas;
 import org.citygml.textureAtlasAPI.packer.Packer;
@@ -237,7 +235,7 @@ public class Modifier {
 	        	tmp = ImageScaling.rescale(tmp, ImageMaxWidth, ImageMaxHeight);
 	        	if (tmp==null||!acceptATexture(width= tmp.getWidth(null),height= tmp.getHeight(null))){
 					isImageAcceptable.put(URI, new Boolean(false));
-					LOG.put(key, ErrorTypes.IMAGE_UNBONDED_SIZE);
+					LOG.put(key, ErrorTypes.IMAGE_UNBOUNDED_SIZE);
 					continue;
 	        	}
 	        	textImage.get(URI).setImage(tmp);
@@ -417,11 +415,6 @@ public class Modifier {
 				 frame.clear();
 			}
 			
-			if (ti instanceof TexImageInfo4GMLFile){
-				if (((TexImageInfo4GMLFile) ti).getGeneralProp()==null)
-					((TexImageInfo4GMLFile) ti).setGeneralProp(new TexGeneralProperties());
-				((TexImageInfo4GMLFile) ti).getGeneralProp().setMIMEType(is4Chanel?"image/png":"image/jpeg");
-			}
 			bi=null;
 			g.dispose();
 			g=null;

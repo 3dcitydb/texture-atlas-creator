@@ -28,7 +28,6 @@ import java.util.HashMap;
 
 import org.citygml.textureAtlasAPI.dataStructure.ErrorTypes;
 import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo;
-import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo4GMLFile;
 import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
 
 /**
@@ -147,13 +146,8 @@ public class TextureAtlasGenerator {
 	
 	public TexImageInfo convert(TexImageInfo tii, int packingAlgorithm){	
 		modifier.reset();
-		if( tii instanceof TexImageInfo4GMLFile){
-			if( !((TexImageInfo4GMLFile)tii).isImageLoaded()){
-				tii.setTexImages(imageLoader.loadAllImage(((TexImageInfo4GMLFile)tii).getImagesLocalPath()));
-				
-			}
-		}
-		if (tii instanceof TexImageInfo && tii!=null)
+		
+		if (tii!=null)
 			imageLoader.setImageLoader(tii.getTexImages());
 			
 		this.packingAlgorithm=packingAlgorithm;

@@ -26,83 +26,78 @@ package org.citygml.textureAtlasAPI.dataStructure;
 
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
-import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
 //import org.citygml.util.Logger;
 
-import oracle.ord.im.OrdImage;
-
 /**
- * This class represents a texture image. It supports OrdImage and load them by using
- * and instance of ImageLoader class. 
+ * This class represents a texture image.
  * 
  */
 public class TexImage {
-	public final static int ORD_IMAGE = 1;
-	public final static int IMAGE = 2;
-	private int type;
+//	public final static int ORD_IMAGE = 1;
+//	public final static int IMAGE = 2;
+//	private int type;
 	private BufferedImage image;
-	private OrdImage ordImage;
-	private ImageLoader imageLoader;
+//	private OrdImage ordImage;
+//	private ImageLoader imageLoader;
 
 
-	public TexImage(BufferedImage bImage){
+	public TexImage(BufferedImage bImage) {
 		setImage(bImage);
-		this.type=IMAGE;
+//		this.type=IMAGE;
 	}
 	
-	public TexImage(OrdImage ordImage) {
-		this.ordImage = ordImage;
-		this.type = ORD_IMAGE;
-	}
+//	public TexImage(OrdImage ordImage) {
+//		this.ordImage = ordImage;
+//		this.type = ORD_IMAGE;
+//	}
 
-	public void setImageLoader(ImageLoader imgLoader){
-		this.imageLoader=imgLoader;
-	}
+//	public void setImageLoader(ImageLoader imgLoader){
+//		this.imageLoader=imgLoader;
+//	}
 	
 	public BufferedImage getBufferedImage(){
-		if (this.image == null){
-			if (this.ordImage == null)
-				return null;
-			try {	
-				// TODO: change the way ASAP.
-				byte[] mb=ordImage.getDataInByteArray();
-				if (imageLoader==null)
-					imageLoader= new ImageLoader();
-				this.image= imageLoader.loadImage(ordImage.getDataInStream(), ordImage
-						.getMimeType(), mb.length);
-				mb=null;
-			} catch (Exception e) {
-//				if (Logger.SHOW_STACK_PRINT)
-//					e.printStackTrace();
-				e = null;
-				return null;
-			}
-			imageLoader=null;
-		}
+//		if (this.image == null){
+//			if (this.ordImage == null)
+//				return null;
+//			try {	
+//				// TODO: change the way ASAP.
+//				byte[] mb=ordImage.getDataInByteArray();
+//				if (imageLoader==null)
+//					imageLoader= new ImageLoader();
+//				this.image= imageLoader.loadImage(ordImage.getDataInStream(), ordImage
+//						.getMimeType(), mb.length);
+//				mb=null;
+//			} catch (Exception e) {
+////				if (Logger.SHOW_STACK_PRINT)
+////					e.printStackTrace();
+//				e = null;
+//				return null;
+//			}
+//			imageLoader=null;
+//		}
 		
 		return this.image;
 	}
 	
-	public OrdImage getOrdImage() {
-		if (this.type == ORD_IMAGE)
-			return this.ordImage;
-		else {
-			return null;
-		}
-	}
+//	public OrdImage getOrdImage() {
+//		if (this.type == ORD_IMAGE)
+//			return this.ordImage;
+//		else {
+//			return null;
+//		}
+//	}
 
 	public void setImage(BufferedImage bImage) {
 		this.image = bImage;
 	}
 
-	public void setImage(OrdImage ordImage) {
-		this.ordImage = ordImage;
-	}
+//	public void setImage(OrdImage ordImage) {
+//		this.ordImage = ordImage;
+//	}
 	
 	public int getChannels(){
-		if (this.image==null) getBufferedImage();
-		return (this.image.getTransparency() == Transparency.OPAQUE) ?
-            	3 : 4;
+//		if (this.image==null) getBufferedImage();
+		return (this.image.getTransparency() == Transparency.OPAQUE) ? 3 : 4;
 /*
 		switch(BuffImageType){
 		case BufferedImage.TYPE_BYTE_GRAY:
@@ -118,24 +113,24 @@ public class TexImage {
 */
 	}
 	
-	public void freeMemory(){
-		// how to finalize it!?
-		ordImage=null;
-		if (image!=null){
-			image.flush();
-			image=null;
-		}
-		imageLoader=null;		
-	}
-
-	@Override
-	protected void finalize() throws Throwable {
-		super.finalize();
-		ordImage=null;
-		if (image!=null){
-			image.flush();
-			image=null;
-		}
-		imageLoader=null;
-	}
+//	public void freeMemory(){
+//		// how to finalize it!?
+//		ordImage=null;
+//		if (image!=null){
+//			image.flush();
+//			image=null;
+//		}
+//		imageLoader=null;		
+//	}
+//
+//	@Override
+//	protected void finalize() throws Throwable {
+//		super.finalize();
+//		ordImage=null;
+//		if (image!=null){
+//			image.flush();
+//			image=null;
+//		}
+//		imageLoader=null;
+//	}
 }
