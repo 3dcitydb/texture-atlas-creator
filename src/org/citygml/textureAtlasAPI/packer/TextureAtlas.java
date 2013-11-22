@@ -22,17 +22,55 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.packer.comparator;
+package org.citygml.textureAtlasAPI.packer;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 
-import org.citygml.textureAtlasAPI.packer.Rect;
-
-public class AreaComparator implements Comparator<Rect> {
-
-	@Override
-	public int compare(Rect arg0, Rect arg1) {
-		return arg0.area > arg1.area ? -1 : arg0.area == arg1.area ? 0 : 1;
+public class TextureAtlas { 
+	private final ArrayList<AtlasRegion> regions;
+	private int bindingBoxHeight;
+	private int bindingBoxWidth;
+	private boolean hasFourChannels;
+    
+    public TextureAtlas(){
+    	regions = new ArrayList<AtlasRegion>();
+    }
+    
+    public boolean hasFourChannels() {
+		return hasFourChannels;
 	}
 
+	public void setFourChannels(boolean hasFourChannels) {
+		this.hasFourChannels = hasFourChannels;
+	}      
+
+    public void setBindingBox(int w, int h) {
+    	bindingBoxHeight = h;
+    	bindingBoxWidth = w;
+    }
+    
+    public void setBindingBoxWidth(int w) {
+    	bindingBoxWidth = w;
+    }
+    
+    public void setBindingBoxHeight(int h) {
+    	bindingBoxHeight = h;
+    }
+
+    public int getBindingBoxHeight() {
+    	return bindingBoxHeight;
+    }
+    
+    public int getBindingBoxWidth() {
+    	return bindingBoxWidth;
+    }
+
+    public void addRegion(AtlasRegion region) {
+    	regions.add(region);
+    }
+    
+    public ArrayList<AtlasRegion> getRegions() {
+    	return regions;
+    }
+    
 }

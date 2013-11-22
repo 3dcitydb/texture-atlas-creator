@@ -28,20 +28,19 @@ import java.awt.Graphics2D;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.List;
+import java.util.Map.Entry;
 
-import org.citygml.textureAtlasAPI.dataStructure.ErrorTypes;
-import org.citygml.textureAtlasAPI.dataStructure.TexImage;
-import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo;
+import org.citygml.textureAtlasAPI.dataStructure.TextureImage;
+import org.citygml.textureAtlasAPI.dataStructure.TextureImagesInfo;
 import org.citygml.textureAtlasAPI.imageIO.ImageScaling;
-import org.citygml.textureAtlasAPI.packer.Atlas;
+import org.citygml.textureAtlasAPI.packer.AtlasRegion;
 import org.citygml.textureAtlasAPI.packer.Packer;
-import org.citygml.textureAtlasAPI.packer.Rect;
-import org.citygml.textureAtlasAPI.packer.comparator.StartHeightComparator;
+import org.citygml.textureAtlasAPI.packer.TextureAtlas;
 //import org.citygml.util.Logger;
+import org.citygml.util.ErrorTypes;
 
 
 /**
@@ -53,471 +52,360 @@ import org.citygml.textureAtlasAPI.packer.comparator.StartHeightComparator;
  * 
  */
 public class Modifier {
-	private int ImageMaxWidth;
-	private int ImageMaxHeight;
-	private int packingAlgorithm;
-	boolean isDebug=false;
-	
-	
-//	BufferedImage bi;
-//	BufferedImage tmp;
-//	Graphics g;
-	int fileCounter=0;
-	String completeAtlasPath;
-	boolean overBorder=false;
-	boolean userPOTS=false;
-	double scaleFactor=1;
-	
-	
-	public Modifier(int PackingAlg,  int atlasMaxWidth, int atlasMaxHeight, boolean userPOTS){
-		setGeneralSettings(PackingAlg, atlasMaxWidth, atlasMaxHeight,userPOTS,1);
-	}
-	
-	public void setGeneralSettings(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight, boolean userPOTS, double scalef){
-		this.scaleFactor=scalef;
-		this.packingAlgorithm = PackingAlg;
-		this.ImageMaxHeight=atlasMaxHeight;
-		this.ImageMaxWidth= atlasMaxWidth;
-		this.userPOTS=userPOTS;
-		//TODO remove it just for debug
-		if (isDebug)
-			this.userPOTS=true;
-		if (this.userPOTS){
-			ImageMaxHeight= (int) Math.pow(2, Math.floor(Math.log10(ImageMaxHeight)/Math.log10(2)));
-			ImageMaxWidth= (int) Math.pow(2, Math.floor(Math.log10(ImageMaxWidth)/Math.log10(2)));
-			
+	private final int atlasMaxWidth;
+	private final int atlasMaxHeight;
+	private final int packingAlgorithm;	
+	private final boolean usePOTS;
+	private final double scaleFactor;
+
+	private HashMap<Object, ErrorTypes> log;
+
+	public Modifier(int packingAlgorithm,  int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS, double scaleFactor) {
+		this.packingAlgorithm = packingAlgorithm;
+		this.atlasMaxHeight = atlasMaxHeight;
+		this.atlasMaxWidth = atlasMaxWidth;
+		this.usePOTS = usePOTS;
+		this.scaleFactor = scaleFactor;
+
+		if (usePOTS) {
+			atlasMaxHeight = (int) Math.pow(2, Math.floor(Math.log10(atlasMaxHeight) / Math.log10(2)));
+			atlasMaxWidth = (int) Math.pow(2, Math.floor(Math.log10(atlasMaxWidth) / Math.log10(2)));
 		}
 	}
-	
-	HashMap<Object, ErrorTypes> LOG;
-	
+
 	public HashMap<Object, ErrorTypes> getLOG(){
-		return this.LOG;
+		return log;
 	}
-	
-	/**
-	 * main method which does the modification.
-	 * @param ti
-	 * @return
-	 */
-	public TexImageInfo run(TexImageInfo ti){
 
-		fileCounter=0;
-		completeAtlasPath=null;
+	public void run(TextureImagesInfo ti) {
+		int atlasCounter = 0;
+		String atlasName = null;
 
-		// Object as a key, coordinates 
-		HashMap<Object, String> coordinatesHashMap =ti.getTexCoordinates();
-		// URI , Image
-		HashMap<String, TexImage> textImage= ti.getTexImages();
-		// Object as a key, URI
-		HashMap<Object, String> textUri= ti.getTexImageURIs();
-		
-		if (LOG==null)
-			this.LOG =new HashMap<Object, ErrorTypes>(); 
+		HashMap<String, TextureImage> texImages = ti.getTexImages();
+		HashMap<Object, String> object2texCoords = ti.getTexCoordinates();
+		HashMap<Object, String> object2texImage = ti.getTexImageURIs();
+
+		if (log == null)
+			this.log =new HashMap<Object, ErrorTypes>(); 
 		else
-			LOG.clear();
-		
-		//list of objects which point to a same texture.
-		HashMap<String, ArrayList<Object>> uri2Object = new HashMap<String, ArrayList<Object>>();
-	
-		// if the Image in the URI is not accepted it should be marked in here. 
-		HashMap<String,Boolean> isImageAcceptable = new HashMap<String, Boolean>();
-		// URI dictionary: <oldURI,newURI> 
-		HashMap<String, String> URIDic= new HashMap<String, String>();
-		// Object as a key, array of coordinates
-		HashMap< Object, double[]> doubleCoordinateList= new HashMap<Object, double[]>();
-		
-		// statistic about width of 3 channels textures.  
-		int totalWidth3c=0,maxw3c=0;
-		// statistic about width of 4 channels textures.  		
-		int totalWidth4c=0,maxw4c=0;
-		// total needed area for 3chanel and 4chanel textures. 
-		long area3c=0,area4c=0;
-		
-		// packers for 3 and 4 channels textures.
-		Packer packer3C = new Packer(ImageMaxWidth,ImageMaxHeight,packingAlgorithm,false);
-		Packer packer4C = new Packer(ImageMaxWidth,ImageMaxHeight,packingAlgorithm,true);
-		
-		int width, height;
-		String URI,tmpURI;
-		ArrayList<Object> list;
-		Boolean b;
-		TexImage tmpTextureImage;
-		BufferedImage tmp;
-		boolean is4Chanel=false;
-		double[] coordinate;
-		
-		if (textUri==null){
+			log.clear();
+
+		HashMap<String, ArrayList<Object>> texImage2objects = new HashMap<String, ArrayList<Object>>();
+		HashMap<String, Boolean> acceptedTexImages = new HashMap<String, Boolean>();
+		HashMap<String, String> texImageNameMapping = new HashMap<String, String>();
+		HashMap<Object, double[]> texCoordsList = new HashMap<Object, double[]>();
+
+		int totalWidth3c = 0, maxw3c = 0;
+		int totalWidth4c = 0, maxw4c = 0;
+		long area3c = 0, area4c = 0;
+
+		// create packers for 3 and 4 channels textures.
+		Packer packer3C = new Packer(atlasMaxWidth, atlasMaxHeight, packingAlgorithm, false);
+		Packer packer4C = new Packer(atlasMaxWidth, atlasMaxHeight, packingAlgorithm, true);
+
+		if (object2texImage == null || object2texImage.isEmpty()) {
 			// it does not contain any texture!
-			return ti;
+			return;
 		}
-		// for all objects (the surface-geometry id (Long) in API | TargetURI+' '+Ring(String) in standalone tool)
-		for (Object key : textUri.keySet()){
-			URI= textUri.get(key);
-				
-			
-			//Check whether this URI is changed before.
-			if((tmpURI=URIDic.get(URI))!=null){
-				// this URI previously have been changed, so textImage should also be changed before.
-				textUri.put(key,tmpURI);
-				URI=tmpURI;
-			}else{
-				tmpTextureImage= textImage.get(URI);
-				if (tmpTextureImage!=null && tmpTextureImage.getBufferedImage()!=null ){
-					// set a new uri based the number of channels in result.
-					tmpURI= makeNewURI(URI, tmpTextureImage.getChannels());
-					textUri.put(key,tmpURI);
-					textImage.remove(URI);
-					textImage.put(tmpURI, tmpTextureImage);
-					URIDic.put(URI, tmpURI);
-					URI=tmpURI;
+
+		// step 1: go through all objects having texture information and
+		// check whether the (rescaled) texture image fits the binding box
+		// of the atlas and whether the texture coordinates are sane
+		for (Entry<Object, String> entry : object2texImage.entrySet()) {
+			Object objectId = entry.getKey();
+			String texImageName = entry.getValue();
+			TextureImage texImage = null;
+
+			// change the name of the texture image if not already done so
+			String mapping = texImageNameMapping.get(texImageName);
+			if (mapping == null) {
+				texImage = texImages.get(texImageName);
+
+				if (texImage != null && texImage.getBufferedImage() != null) {
+					mapping = getNewTexImageName(texImageName, texImage.getChannels());
+					object2texImage.put(objectId, mapping);
+					texImages.remove(texImageName);
+					texImages.put(mapping, texImage);
+					texImageNameMapping.put(texImageName, mapping);
 				}
-			}	
-			tmpURI=null;
-			tmpTextureImage=null;
-		
-	
-			// The image was loaded before;
-			if((b=isImageAcceptable.get(URI))!=null){
-				if (!b.booleanValue()){
-					// previously another object which has the same URI was rejected. Therefore this object
-					// also will be rejected.
-					//LOG.put(key,ErrorTypes.TARGET_PT_NOT_SUPPORTED);
-					continue;
-				}
-				// the coordinates should be linked to the key and then continue.
-				coordinate= formatCoordinates(coordinatesHashMap.get(key));
-				if (coordinate==null){
-					// previous coordinate was accepted but this one has a problem with coordinates
-		        	isImageAcceptable.put(URI, new Boolean(false));
-		        	width= textImage.get(URI).getBufferedImage().getWidth(null);
-		        	
-		        	// remove Item from list
-		        	
-		        	if (packer3C.removeRect(URI)){
-			        	totalWidth3c-=width;
-			        	// just for complicated cases.
-			        	if (totalWidth3c<maxw3c)
-			        		maxw3c=totalWidth3c;
-		        		
-		        	}
-		        	if(packer4C.removeRect(URI)){
-			        	totalWidth4c-=width;
-			        	// just for complicated cases.
-			        	if (totalWidth4c<maxw4c)
-			        		maxw4c=totalWidth4c;
-		        		
-		        	}		        	
-		        	continue;
-		        }
-				doubleCoordinateList.put(key, coordinate);
-				uri2Object.get(URI).add(key);
+			}
+
+			// update image
+			texImageName = mapping;
+			if (texImage == null && (texImage = texImages.get(texImageName)) == null)
 				continue;
-			}
-			// rescale image
-			if (scaleFactor!=1){
-				BufferedImage tmpbi=textImage.get(URI).getBufferedImage();
-				textImage.get(URI).setImage(ImageScaling.rescale(tmpbi, scaleFactor));
-			}
-			// report bug
-			if ((tmp= textImage.get(URI).getBufferedImage())==null){
-				// image is not available 
-				isImageAcceptable.put(URI, new Boolean(false));
-				LOG.put(key,ErrorTypes.IMAGE_IS_NOT_AVAILABLE);
+
+			// check whether buffered image is available
+			if (texImage.getBufferedImage() == null) {
+				acceptedTexImages.put(texImageName, false);
+				log.put(objectId,ErrorTypes.IMAGE_IS_NOT_AVAILABLE);				
 				continue;			
 			}
-			is4Chanel=textImage.get(URI).getChannels()==4;
-			 
-			width= tmp.getWidth();
-	        height= tmp.getHeight();
-	        // check whether the size of image is acceptable
-	        if (!acceptATexture(width,height)){
-	        	tmp = ImageScaling.rescale(tmp, ImageMaxWidth, ImageMaxHeight);
-	        	if (tmp==null||!acceptATexture(width= tmp.getWidth(null),height= tmp.getHeight(null))){
-					isImageAcceptable.put(URI, new Boolean(false));
-					LOG.put(key, ErrorTypes.IMAGE_UNBOUNDED_SIZE);
+
+			// get number of channels
+			boolean hasFourChannels = texImage.getChannels() == 4;
+
+			// the image was accepted before
+			Boolean isAccepted = acceptedTexImages.get(texImageName);
+			if (isAccepted != null) {
+				if (!isAccepted.booleanValue()) {
+					// the texture images has already been rejected
 					continue;
-	        	}
-	        	textImage.get(URI).setImage(tmp);
-	        }
-	        coordinate= formatCoordinates(coordinatesHashMap.get(key));
-	        //LOG if coordinates have any problem, do not touch it! (like n. available or wrapping textures)
-	        if (coordinate==null){
-	        	isImageAcceptable.put(URI, new Boolean(false));
-	        	LOG.put(key,ErrorTypes.ERROR_IN_COORDINATES);
-	        	continue;
-	        }
-	        // setting the name of atlas.
-	        if (completeAtlasPath==null)
-//				completeAtlasPath= URI.substring(0,URI.lastIndexOf('.'))+"_%1d.";
-				completeAtlasPath = "textureAtlas_" + getPackingAlgorithmName() + "_" + ti.hashCode() + "_%1d."; 
-	        
-
-	        // everything is alright with the current Key object. so the values will be set in data structures. 
-	        doubleCoordinateList.put(key, coordinate);
-            if (is4Chanel){
-            	packer4C.addRect(URI,width, height);
-            	if (width>maxw4c)
-    	        	maxw4c=width;	
-                totalWidth4c+=width;
-                area4c+=width*height;
-            }else{
-            	packer3C.addRect(URI, width,height);
-            	if (width>maxw3c)
-    	        	maxw3c=width;	
-                totalWidth3c+=width;
-                area3c+=width*height;
-            }
-            
-            isImageAcceptable.put(URI, new Boolean(true));
-            if ((list=uri2Object.get(URI))==null){
-            	list=new ArrayList<Object>();
-            	list.add(key);
-            	uri2Object.put(URI,list);
-            	list=null;
-            }
-            else{
-            	list.add(key);
-            	list=null;
-            }
-
-		}
-
-		/**
-		 * Until know textures are grouped in:
-		 *   - unsupported ones. they will not touched.
-		 *   - 3channels images
-		 *   - 4channels images.
-		 * Atlas will be generate for both 3channels and 4channels groups.  
-		 */
-		ArrayList<Atlas> atlasMR = new ArrayList<Atlas>();
-		if (packer3C.getSize()!=0)
-			atlasMR.add(iterativePacker(packer3C, maxw3c,totalWidth3c,area3c));
-		if (packer4C.getSize()!=0)
-			atlasMR.add(iterativePacker(packer4C, maxw4c,totalWidth4c,area4c));
-		
-		// for all available atlases modify the coordinates and URIs.
-		try{
-			// Power Of Two size
-			int potW,potH;
-		for (Atlas mr:atlasMR){	
-			if (Math.min(mr.getBindingBoxHeight(), mr.getBindingBoxWidth())<1)
-				continue;
-			is4Chanel=mr.isFourChanel();
-			BufferedImage bi = new BufferedImage(Math.min(getMinCoveredPOT(mr.getBindingBoxWidth()),
-					ImageMaxWidth), Math.min(getMinCoveredPOT(mr.getBindingBoxHeight()),ImageMaxHeight),
-					is4Chanel ? BufferedImage.TYPE_INT_ARGB
-							: BufferedImage.TYPE_INT_RGB);
-			Graphics2D g = bi.createGraphics();
-			// each atlas may be divided to several ones.
-			// @TODO The result atlas should be fixed and not divided to more atlases.
-			// start to make atlas. prevH: amount of height of strip which was written in file before.
-			int x,y, prevH=0;
-			int atlasW=0,atlasH=0;
-			// list of all items which will be drawn in a same atlas.
-			Vector<Rect> frame = new Vector<Rect>();
-			
-			//going in side of Result
-			ArrayList<Rect>  allItems=mr.getAllItems();			
-			if (this.packingAlgorithm!= TextureAtlasGenerator.TPIM&&
-					this.packingAlgorithm!= TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)
-				Collections.sort(allItems, new StartHeightComparator());
-			Iterator<Rect> all= allItems.iterator();
-			
-			Rect item=null;
-			
-			int currentLevel=0;
-			// for all rects inside of this atlas:
-			while(all.hasNext()){
-				item = all.next();		
-				if (item.rotated){
-					BufferedImage bif = textImage.get(item.getURI()).getBufferedImage();
-
-					int type = (bif.getTransparency() == Transparency.OPAQUE) ?
-								BufferedImage.TYPE_INT_RGB :
-								BufferedImage.TYPE_INT_ARGB;
-/*
-					AffineTransform at = new AffineTransform();
-					at.translate ( 0,bif.getWidth() ) ;
-			        at.rotate(Math.toRadians(-90));
-			        AffineTransformOp ato = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
-					BufferedImage bb= new BufferedImage(bif.getHeight(), bif.getWidth(), bif.getType());
-					ato.filter(bif, bb);
-			        textImage.get(item.getURI()).setImage(bb);
-*/
-					int w = bif.getWidth();
-					int h = bif.getHeight();
-
-					BufferedImage biFlip = new BufferedImage(h, w, type);
-
-					for(int i=0; i<w; i++)
-						for(int j=0; j<h; j++)
-							biFlip.setRGB(j, w-i-1, bif.getRGB(i, j));
-
-					textImage.get(item.getURI()).setImage(biFlip);
-					bif=null;
 				}
-				
-	        	 x= item.x;
-	        	 y= item.y;
-	        	 // check whether the current atlas is full.
-	        	 if (y-prevH+item.height>ImageMaxHeight||((this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)&&currentLevel!=item.level)){
-	        		 // set Image in Hashmap and write it to file.
-	        		 potW=getMinCoveredPOT(atlasW);
-	        		 potH=getMinCoveredPOT(atlasH);
-	        			
-	        		 textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(bi.getSubimage(0, 0,potW , potH)));
-	        		 g.dispose();
-	        		 fileCounter++;
-	        		 bi=null;
-	        		 g=null;
-	        		 
-	        		 bi = new BufferedImage(Math.min(getMinCoveredPOT(mr.getBindingBoxWidth()),
-	        					ImageMaxWidth), Math.min(getMinCoveredPOT(mr.getBindingBoxHeight()), ImageMaxHeight),
-	        					is4Chanel ? BufferedImage.TYPE_INT_ARGB
-	        							  : BufferedImage.TYPE_INT_RGB);
-	        		 g = bi.createGraphics();
-	        		 // modify coordinate for all textures which are fixed in the current atlas.
-	        		 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,potW, potH);
-	//        		 analyzeOccupation(frame,atlasW,atlasH);
-	        		 frame.clear();
-	        		 atlasW=0;
-	        		 atlasH=0;
-	        		 prevH=y;
-	        		 currentLevel=item.level;
-	        		 if(this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)
-	        			 prevH=0; 
-	        	 }
-	        	 g.drawImage(textImage.get(item.getURI()).getBufferedImage(), x, y-prevH, null);
-	        	 textImage.remove(item.getURI()).freeMemory();
-	        	 item.y=(y-prevH);
-	        	 frame.add(item);
-	        	 if (atlasW<x+item.width)
-	        		 atlasW=x+item.width;
-	        	 if (atlasH<y-prevH+item.height)
-	        		 atlasH=y-prevH+item.height;
 
-	        	 // set the URI
-	        	 for(Object obj:uri2Object.get(item.getURI())){	
-	        		 textUri.put(obj, String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"));
-	        	 }
+				// if the image has already been accepted,
+				// we only need to check the texture coordinates 
+				double[] texCoords = checkAndGetTexCoordinates(object2texCoords.get(objectId));
+				if (texCoords == null) {
+					// in a previous run the texture coordinates of another object pointing to this texture image
+					// could be successfully parsed. Now we failed to parse the texture coordinates of this object.
+					// Hence, the texture image is not accepted in order to keep the original texturing.
+					acceptedTexImages.put(texImageName, false);
+					log.put(objectId, ErrorTypes.ERROR_IN_COORDINATES);
+					int width = texImage.getBufferedImage().getWidth();
+
+					// remove the texture image from the packer and adapt statistics
+					if (hasFourChannels) {
+						if (packer4C.removeRegion(texImageName)) {
+							totalWidth4c -= width;
+							if (totalWidth4c < maxw4c)
+								maxw4c = totalWidth4c;
+						}
+					} else {
+						if (packer3C.removeRegion(texImageName)) {
+							totalWidth3c -= width;
+							if (totalWidth3c < maxw3c)
+								maxw3c = totalWidth3c;
+						}
+					}
+
+					continue;
+				}
+
+				// texture coordinates could be successfully parsed. add this object to the list
+				// of objects affected by this texture image
+				texCoordsList.put(objectId, texCoords);
+				texImage2objects.get(texImageName).add(objectId);	
+				continue;
 			}
-			if (atlasH!=0||atlasW!=0){
-				 potW=getMinCoveredPOT(atlasW);
-        		 potH=getMinCoveredPOT(atlasH);
-        		 try{
-				textImage.put(String.format(completeAtlasPath,fileCounter)+(is4Chanel?"png":"jpeg"),new TexImage(bi.getSubimage(0, 0,potW , potH)));
-        		 }catch(Exception e){e.printStackTrace();}
-				fileCounter++;
-				 // set the new coordinates
-				 modifyNewCorrdinates(frame,coordinatesHashMap,doubleCoordinateList,uri2Object,potW, potH);
-	//			 analyzeOccupation(frame,atlasW,atlasH);
-				 frame.clear();
+
+			// check texture coordinates of object
+			double[] texCoords = checkAndGetTexCoordinates(object2texCoords.get(objectId));
+			if (texCoords == null) {
+				acceptedTexImages.put(texImageName, false);
+				log.put(objectId, ErrorTypes.ERROR_IN_COORDINATES);
+				continue;
 			}
-			
-			bi=null;
+
+			// rescale image if requested
+			if (scaleFactor != 1)
+				texImage.setImage(ImageScaling.rescale(texImage.getBufferedImage(), scaleFactor));
+
+			// rescale texture image if it exceeds the maximum width or height of the atlas
+			if (!imageFitsIntoAtlas(texImage.getBufferedImage())) {
+				BufferedImage scaledImage = ImageScaling.rescale(texImage.getBufferedImage(), atlasMaxWidth, atlasMaxHeight);
+				if (scaledImage == null || !imageFitsIntoAtlas(scaledImage)){
+					acceptedTexImages.put(texImageName, false);
+					log.put(objectId, ErrorTypes.IMAGE_UNBOUNDED_SIZE);
+					continue;
+				}
+
+				texImage.setImage(scaledImage);
+			}
+
+			// set the name of the atlas
+			if (atlasName == null)
+				atlasName = "textureAtlas_" + ti.hashCode() + "_%1d."; 
+
+			// the current object and its texture information is fine.
+			// udpate the data structures correspondingly
+			texCoordsList.put(objectId, texCoords);
+			int width = texImage.getBufferedImage().getWidth();
+			int height = texImage.getBufferedImage().getHeight();
+
+			if (hasFourChannels) {
+				packer4C.addRegion(texImageName, width, height);
+				if (width > maxw4c)
+					maxw4c = width;
+
+				totalWidth4c += width;
+				area4c += width * height;
+			} else {
+				packer3C.addRegion(texImageName, width,height);
+				if (width > maxw3c)
+					maxw3c = width;
+
+				totalWidth3c += width;
+				area3c += width * height;
+			}
+
+			acceptedTexImages.put(texImageName, true);
+
+			ArrayList<Object> tmp = texImage2objects.get(texImageName);
+			if (tmp == null) {
+				tmp = new ArrayList<Object>();
+				tmp.add(objectId);
+				texImage2objects.put(texImageName, tmp);
+			} else
+				tmp.add(objectId);
+		}
+
+		// step 2: the previous step resulted in
+		// - unsupported images; they will not be touched
+		// - a group of 3-channel images
+		// - a group of 4-channel images
+		// next, atlases will be generated for both 3-channel and 4-channel groups.  
+
+		ArrayList<TextureAtlas> atlasMR = new ArrayList<TextureAtlas>(2);
+		if (packer3C.getRegions() != 0)
+			atlasMR.add(pack(packer3C, maxw3c, totalWidth3c, area3c));
+		if (packer4C.getRegions() != 0)
+			atlasMR.add(pack(packer4C, maxw4c, totalWidth4c, area4c));
+
+		// for all available atlases modify the coordinates and image names
+		for (TextureAtlas atlas : atlasMR) {	
+			if (Math.min(atlas.getBindingBoxHeight(), atlas.getBindingBoxWidth()) < 1)
+				continue;
+
+			// create atlas image
+			boolean hasFourChannels = atlas.hasFourChannels();
+			BufferedImage atlasImage = new BufferedImage(
+					Math.min(getMinCoveredPOT(atlas.getBindingBoxWidth()), atlasMaxWidth),
+					Math.min(getMinCoveredPOT(atlas.getBindingBoxHeight()),atlasMaxHeight),
+					hasFourChannels ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+
+			// obtain graphics object for drawing
+			Graphics2D g = atlasImage.createGraphics();
+
+			// create the atlas
+			// note: each atlas may be divided into several ones
+			int atlasWidth = 0, atlasHeight = 0;
+
+			// list of all items which will be drawn in a same atlas
+			List<AtlasRegion> frame = new ArrayList<AtlasRegion>();
+			List<AtlasRegion> regions = atlas.getRegions();	
+			int currentLevel = 0;
+
+			for (AtlasRegion region : regions) {
+				TextureImage texImage = texImages.get(region.getTexImageName());
+
+				if (region.isRotated) {
+					// rotate texture image
+					BufferedImage image = texImage.getBufferedImage();
+					int type = (image.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+
+					int width = image.getWidth();
+					int height = image.getHeight();
+					BufferedImage rotatedImage = new BufferedImage(height, width, type);
+
+					// swap pixels
+					for (int i = 0; i < width; i++)
+						for (int j = 0; j < height; j++)
+							rotatedImage.setRGB(j, width-i-1, image.getRGB(i, j));
+
+					texImage.setImage(rotatedImage);
+				}
+
+				// check whether the current atlas is full
+				if (currentLevel != region.level) {
+					int potW = getMinCoveredPOT(atlasWidth);
+					int potH = getMinCoveredPOT(atlasHeight);
+
+					// put atlas into texture image map
+					texImages.put(String.format(atlasName, atlasCounter) + (hasFourChannels ? "png" : "jpeg"),
+							new TextureImage(atlasImage.getSubimage(0, 0, potW , potH)));
+
+					// dispose graphics object
+					g.dispose();
+					atlasCounter++;
+
+					// create new atlas image
+					atlasImage = new BufferedImage(
+							Math.min(getMinCoveredPOT(atlas.getBindingBoxWidth()), atlasMaxWidth), 
+							Math.min(getMinCoveredPOT(atlas.getBindingBoxHeight()), atlasMaxHeight),
+							hasFourChannels ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+
+					// reobtain graphics object
+					g = atlasImage.createGraphics();
+
+					// adapt texture coordinate for all textures which are fixed in the current atlas.
+					adaptTextureCoordinates(frame, object2texCoords, texCoordsList, texImage2objects, potW, potH);
+
+					// reset metadata
+					frame.clear();
+					atlasWidth = 0;
+					atlasHeight = 0;
+					currentLevel = region.level;
+				}
+
+				// draw image into atlas and remove from list of texture images
+				g.drawImage(texImage.getBufferedImage(), region.x, region.y, null);
+				texImages.remove(region.getTexImageName());
+
+				frame.add(region);
+
+				if (atlasWidth < region.x + region.width)
+					atlasWidth = region.x + region.width;
+				if (atlasHeight < region.y + region.height)
+					atlasHeight = region.y + region.height;
+
+				// update texImage2objects map
+				for (Object obj : texImage2objects.get(region.getTexImageName()))	
+					object2texImage.put(obj, String.format(atlasName, atlasCounter) + (hasFourChannels ? "png" : "jpeg"));
+			}
+
+			if (atlasHeight != 0 || atlasWidth != 0) {
+				int potW = getMinCoveredPOT(atlasWidth);
+				int potH = getMinCoveredPOT(atlasHeight);
+
+				texImages.put(String.format(atlasName, atlasCounter) + (hasFourChannels ? "png" : "jpeg"),
+						new TextureImage(atlasImage.getSubimage(0, 0, potW , potH)));
+
+				atlasCounter++;
+
+				// adapt texture coordinate for all textures which are fixed in the current atlas.
+				adaptTextureCoordinates(frame, object2texCoords, texCoordsList, texImage2objects, potW, potH);
+
+				frame.clear();
+			}
+
 			g.dispose();
-			g=null;
-			bi=null;
-		}}
-		catch(Exception e){
-			e.printStackTrace();
 		}
-		uri2Object.clear();
-		isImageAcceptable.clear();
-		doubleCoordinateList.clear();
-		URIDic.clear();
-		ti.setTexCoordinates(coordinatesHashMap);
-		ti.setTexImages(textImage);
-		ti.setTexImageURIs(textUri);
 
-		return ti;
+		texImage2objects.clear();
+		acceptedTexImages.clear();
+		texCoordsList.clear();
+		texImageNameMapping.clear();
 	}
-	
-	private String makeNewURI(String prevURI, int chanel){
-		return prevURI.substring(0, prevURI.lastIndexOf('.'))+(chanel==3?".jpeg":".png");
+
+	private String getNewTexImageName(String prevURI, int channel) {
+		return prevURI.substring(0, prevURI.lastIndexOf('.')) + (channel == 3 ? ".jpeg" : ".png");
 	}
-	
+
 	private int getMinCoveredPOT(int len){
-		if (!userPOTS)
+		if (!usePOTS)
 			return len;
-		int minPOT=(int) Math.floor(Math.log10(len)/Math.log10(2));
-		if (Math.pow(2,minPOT)== len)
+
+		int minPOT=(int) Math.floor(Math.log10(len) / Math.log10(2));
+		if (Math.pow(2,minPOT) == len)
 			return len;
-		
-		if (isDebug){
-			int tmp=(int)Math.pow(2,minPOT +1);
-			return tmp;
-		}
-		return (int)Math.pow(2, minPOT+1);
+
+		return (int)Math.pow(2, minPOT + 1);
 	}
-	
-	
-	/**
-	 * size checking
-	 * @param width
-	 * @return
-	 */
-	private boolean acceptATexture(int width, int heigth){
-		if (width<=ImageMaxWidth && heigth<=ImageMaxHeight)
-			return true;
-		return false;
-		
+
+	private boolean imageFitsIntoAtlas(BufferedImage image){
+		return (image.getWidth() <= atlasMaxWidth && image.getHeight() <= atlasMaxHeight);
 	}
-	
-	private Atlas iterativePacker(Packer msp, int maxw, int totalw, long area){
-		if (this.packingAlgorithm==TextureAtlasGenerator.TPIM||this.packingAlgorithm==TextureAtlasGenerator.TPIM_WITHOUT_ROTATION)
-			msp.setBinSize(ImageMaxWidth,ImageMaxHeight);
-		else{
-			
-			if (!userPOTS)
-				msp.setBinSize(Math.min((totalw-maxw)/2+maxw,ImageMaxWidth),ImageMaxHeight);
-			else{
-				int floor= (int)Math.floor(Math.sqrt(area));
-				floor=Math.min(floor,ImageMaxWidth);
-				// minimum possible POT that can can cover all tetxures. (2^minPOT>maxw)
-	//			int minPower= (int) Math.floor(Math.log10(maxw)/Math.log10(2))+1;
-	//			int maxPower= (int) Math.min(Math.floor(Math.log10(floorPOT)/Math.log10(2))+1,
-	//					Math.floor(Math.log10(ImageMaxWidth)/Math.log10(2)));
-	//			
-	//			long minWastedArea=Long.MAX_VALUE;
-	//			int minWastedAreaWidthPower=minPower;
-	//			int numberOfAtlas=Integer.MAX_VALUE-2;
-	//			int candidate=minPower;
-	//			long tmparea;
-	//			long wastarea;
-	//			while(candidate<=maxPower){
-	//				tmparea= (long)Math.pow(2, candidate);
-	//				wastarea= tmparea- (area%tmparea);
-	//				if (wastarea<minWastedArea || ){
-	//					minWastedAreaWidthPower=candidate;
-	//					minWastedArea=wastarea;
-	//				}
-	//				candidate=candidate*2;
-	//			}
-				int w=(int)(int)Math.min(Math.pow(2, (int) Math.floor(Math.log10(floor)/Math.log10(2))+1),ImageMaxWidth);
-					
-				if (w<maxw)
-					msp.setBinSize(Math.min(w*2, ImageMaxWidth),
-							ImageMaxHeight);
-				else
-					msp.setBinSize(w,
-							ImageMaxHeight);
-			}
-		}try{
-			return msp.pack(userPOTS);	
-		}catch(Exception e){
-//			if (Logger.SHOW_STACK_PRINT)
-//				e.printStackTrace();
-			return null;
-		}
-		
+
+	private TextureAtlas pack(Packer packer, int maxWidth, int totalWidth, long area) {
+		packer.setBinSize(atlasMaxWidth, atlasMaxHeight);
+		return packer.pack(usePOTS);
 	}
-	
-	private double[] formatCoordinates(String coordinates){
+
+	private double[] checkAndGetTexCoordinates(String coordinates){
 		if (coordinates==null || coordinates.length() == 0)
 			return null;
-		
+
 		String[] sc = coordinates.split(" ");
 		if ((sc.length & 1) == 1)
 			return null;
@@ -525,98 +413,49 @@ public class Modifier {
 		double[]c= new double[sc.length];
 		for (int i=0;i<sc.length;i++){
 			c[i] = Double.parseDouble(sc[i]);
-			if (c[i]<-0.1||c[i]>1.1)
+
+			// check for texture wrapping 
+			// this is not supported by a texture atlas
+			if (c[i] < -0.1 || c[i] > 1.1)
 				return null;
 		}
 
 		return c;
 	}
-	
-//	private BufferedImage getImage(int w, int h, BufferedImage bi){
-//		return bi.getSubimage(0, 0,getMinCoveredPOT(w) , getMinCoveredPOT(h));
-//	}
-	
-	private void modifyNewCorrdinates(Vector<Rect> items, HashMap<Object, String> coordinatesHashMap,HashMap<Object, double[]>doubleCoordinateList,HashMap<String,ArrayList<Object>> URI2OBJ, int atlasWidth, int atlasHeigth){
-		Iterator<Rect> itr= items.iterator();
-		Rect mit;
-		while(itr.hasNext()){
-			mit = itr.next();
-			for(Object obj:URI2OBJ.get(mit.getURI())){
-				coordinatesHashMap.put(obj,getCoordinate(doubleCoordinateList.get(obj),mit.x,mit.y, mit.width,mit.height,atlasWidth, atlasHeigth,mit.rotated));
 
+	private void adaptTextureCoordinates(List<AtlasRegion> frame, 
+			HashMap<Object, String> object2texCoords, 
+			HashMap<Object, double[]> doubleCoordinateList,
+			HashMap<String,ArrayList<Object>> texImage2objects, 
+			int atlasWidth, int atlasHeigth) {
+		Iterator<AtlasRegion> rectIter = frame.iterator();
+		while (rectIter.hasNext()) {
+			AtlasRegion rect = rectIter.next();
+			for (Object obj : texImage2objects.get(rect.getTexImageName())) {
+				double[] texCoords = doubleCoordinateList.get(obj);
+				StringBuilder builder = new StringBuilder();
+
+				for (int j = 0; j < texCoords.length; j += 2) {
+					if (rect.isRotated){
+						double tmp =texCoords[j];
+						texCoords[j]=1- texCoords[j+1];
+						texCoords[j+1]= tmp;
+					}
+
+					texCoords[j] = (rect.x + (texCoords[j] * rect.width)) / atlasWidth;
+					texCoords[j + 1] = 1 - ((1 - texCoords[j+1]) * rect.height + rect.y) / atlasHeigth;
+
+					builder.append(texCoords[j]);
+					builder.append(' ');
+					builder.append(texCoords[j+1]);
+					builder.append(' ');	
+				}
+
+				object2texCoords.put(obj, builder.substring(0, builder.length() - 1));
 			}
-			mit.clear();
-		}
-		itr=null;
-	}
-	/**
-	private void analyzeOccupation(Vector<Rect> items,int atlasW,int atlasH){
-		Iterator<Rect> itr= items.iterator();
-		Rect mit;
-		int sumArea=0;
-		int num=0;
-		while(itr.hasNext()){
-			num++;
-			mit = itr.next();
-			sumArea+= mit.area;
-		}
-		itr=null;
-		
-		System.out.println(num+","+(float)(sumArea)/(atlasH*atlasW));
-	}**/
-	
-	private String getCoordinate(double[]coordinates, double posX, double posY, double imW,double imH ,double atlasw, double atlasH, boolean rotated){		
-		StringBuffer sb = new StringBuffer(coordinates.length*15);
-		double tmp;
-		
-		for (int j = 0; j < coordinates.length; j += 2) {
-			if (rotated){
-				
-				tmp =coordinates[j];
-				coordinates[j]=1- coordinates[j+1];
-				coordinates[j+1]= tmp;
-			
-			}
-			// Horizontal
-			coordinates[j] = (posX+(coordinates[j] * imW))/atlasw;
-			// corner as a origin,but cityGML used left down corner.
-			coordinates[j + 1] =1-((1-coordinates[j+1])*imH+posY)/atlasH;
-			
-//			coordinates[j + 1] =((atlasH-posY-imH)+coordinates[j+1]*imH)/atlasH;
 
-			sb.append(coordinates[j]);
-			sb.append(' ');
-			sb.append(coordinates[j+1]);
-			sb.append(' ');	
+			rect.clear();
 		}
-//		System.out.println("#"+sb.substring(0, sb.length()-1));
-		return sb.substring(0, sb.length()-1);
-	}
-	
-	public void reset(){
-		completeAtlasPath=null;
-	}
-
-	private String getPackingAlgorithmName() {
-		String algorithmName = null;
-		switch (packingAlgorithm) {
-			case TextureAtlasGenerator.FFDH:
-				algorithmName = "FFDH";
-				break;
-			case TextureAtlasGenerator.NFDH:
-				algorithmName = "NFDH";
-				break;
-			case TextureAtlasGenerator.SLEA:
-				algorithmName = "SLEA";
-				break;
-			case TextureAtlasGenerator.TPIM:
-				algorithmName = "TPIM";
-				break;
-			case TextureAtlasGenerator.TPIM_WITHOUT_ROTATION:
-				algorithmName = "TPIM_WO_R";
-				break;
-		}
-		return algorithmName;
 	}
 
 }

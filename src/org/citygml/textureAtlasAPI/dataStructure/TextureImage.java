@@ -32,7 +32,7 @@ import java.awt.image.BufferedImage;
  * This class represents a texture image.
  * 
  */
-public class TexImage {
+public class TextureImage {
 //	public final static int ORD_IMAGE = 1;
 //	public final static int IMAGE = 2;
 //	private int type;
@@ -41,7 +41,7 @@ public class TexImage {
 //	private ImageLoader imageLoader;
 
 
-	public TexImage(BufferedImage bImage) {
+	public TextureImage(BufferedImage bImage) {
 		setImage(bImage);
 //		this.type=IMAGE;
 	}

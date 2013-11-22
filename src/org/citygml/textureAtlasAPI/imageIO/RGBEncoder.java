@@ -25,11 +25,10 @@
 package org.citygml.textureAtlasAPI.imageIO;
 
 import java.awt.image.BufferedImage;
-
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+
+import javax.imageio.stream.ImageInputStream;
 
 //import org.citygml.util.Logger;
 
@@ -42,23 +41,124 @@ import java.io.InputStream;
  * 
  */
 public class RGBEncoder {
-	private int[] tmpA = new int[4];
-	private byte[][] channelsShifts = { {},// free
-			{0},// B/W
-			{},// ?
-			{ 16, 8, 0 },// RGB
-			{ 16, 8, 0, 24 } // RGBA
-	};
 
-	public RGBEncoder() {
+	public BufferedImage readRGB(ImageInputStream is) throws IOException {
+		if (is == null)
+			return null;
 
+		BufferedImage bi = null;
+		RGBHeader header = readHeader(is);
+		if (header.BPC == 2 || // 2 byte per pixel 
+				!header.isMagic ||// it is not RGB
+				header.dimension==1 // one row of data
+				) {
+			// not supported
+			return null;
+		}
+
+		switch(header.channels) {
+		case 1:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_BYTE_GRAY);break;
+		case 3:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_INT_RGB);break;
+		case 4:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_INT_ARGB);break;
+		default: return null;
+		}
+
+		byte[][] channelsShifts = { {},// free
+				{0},// B/W
+				{},// ?
+				{ 16, 8, 0 },// RGB
+				{ 16, 8, 0, 24 } // RGBA
+		};
+		
+		int tmp = 0;
+		byte[] startTableB = null;
+		byte[] lengthTableB = null;
+		if (header.isCompressed) {
+			tmp = 4 * header.ySize * header.channels;
+			startTableB = new byte[tmp];
+			lengthTableB = new byte[tmp];
+			is.read(startTableB);
+			is.read(lengthTableB);
+		}
+		tmp = tmp * 2 + 512;
+
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		byte[] buffer = new byte[1024];
+		int length;
+		while ((length = is.read(buffer)) != -1)
+			bos.write(buffer, 0 , length);
+		
+		byte[] all = bos.toByteArray();	
+
+		int[] lineData = new int[header.xSize];
+		int scanline = header.ySize - 1;
+		byte channel;
+		boolean reset;
+
+		while (scanline >= 0) {
+			channel = (byte) (header.channels - 1);
+			reset = true;
+			while (channel >= 0) {
+				if (header.isCompressed)
+					decodeRLE(all, 
+							(int) getLong(startTableB, (scanline + channel * header.ySize) * 4) - tmp,
+							(int) getLong(lengthTableB, (scanline + channel * header.ySize) * 4),
+							channelsShifts[header.channels][channel], 
+							lineData,
+							reset);
+				else
+					decodeNormalLine(header, 
+							all, 
+							(scanline + header.ySize * channel) * header.xSize, 
+							header.xSize,
+							channelsShifts[header.channels][channel], 
+							lineData,
+							reset);
+				channel--;
+				reset = false;
+			}
+			bi.setRGB(0, header.ySize - scanline - 1, header.xSize, 1, lineData, 0, lineData.length);
+			scanline--;
+		}
+
+		is.close();
+		header=null;
+		return bi;
 	}
 
-	public BufferedImage readRGB(String fileName) throws IOException {
-		return readRGB(new File(fileName));
+	private RGBHeader readHeader(ImageInputStream fis) {
+		byte[] headerR= new byte[512];
+		RGBHeader header = new RGBHeader();
+
+		try {
+			fis.read(headerR);
+			int count=0;
+			header.isMagic = (getShort(headerR, count) == 474);
+			count+=2;
+			header.isCompressed = (getByte(headerR, count++) == 1);
+			header.BPC = (byte) getByte(headerR, count++);
+			header.dimension = (byte) getShort(headerR, count);
+			count+=2;
+			header.xSize = getShort(headerR, count);
+			header.ySize = getShort(headerR, count+2);
+			header.channels = getShort(headerR, count+4);
+			count+=6;
+			header.pimin=getLong(headerR, count);
+			header.pimax=getLong(headerR, count+4);
+			header.pSize=header.pimax-header.pimin;
+			count+=84;// skip dummy, name
+			//			count+=98;// skip Pixmin, pixmax, dummy, name
+			header.colorMap = getLong(headerR, count);
+			headerR = null;
+		} catch (IOException e) {
+			return null;
+		}
+
+		return header;
 	}
 
 	private long getLong(byte[] mb, int offset) {
+		int[] tmpA = new int[4];
 		tmpA[0] = 0xFF & (int) mb[offset];
 		tmpA[1] = 0xFF & (int) mb[offset + 1];
 		tmpA[2] = 0xFF & (int) mb[offset + 2];
@@ -69,6 +169,7 @@ public class RGBEncoder {
 	}
 
 	private int getShort(byte[] mb, int offset) {
+		int[] tmpA = new int[4];
 		tmpA[0] = 0xFF & (int) mb[offset];
 		tmpA[1] = 0xFF & (int) mb[offset + 1];
 
@@ -80,12 +181,12 @@ public class RGBEncoder {
 		return 0xFF & (int) mb[offset];
 	}
 
-	public void decodeNormalLine(RGBHeader header, byte[] allData, int start, int len, byte channelShift, int[] result, boolean reset) {
+	private void decodeNormalLine(RGBHeader header, byte[] allData, int start, int len, byte channelShift, int[] result, boolean reset) {
 		// if reset, clear the data.
 		int max = start + len;
 		int rCounter = 0;
 		
-		if (header.chanels == 1){
+		if (header.channels == 1){
 			while (start < max) {
 				int tmp = allData[start++] & 0xff;
 				// tmp = (int)(((tmp-header.pimin)*255)/header.pSize);
@@ -112,7 +213,7 @@ public class RGBEncoder {
 		}
 	}
 
-	public void decodeRLE(byte[] allData, int start, int len, byte channelShift, int[] result, boolean reset) {
+	private void decodeRLE(byte[] allData, int start, int len, byte channelShift, int[] result, boolean reset) {
 		// if reset, clear the data.
 		int max = start + len;
 		int rCounter = 0;
@@ -180,124 +281,13 @@ public class RGBEncoder {
 
 	}
 	
-	public BufferedImage readRGB(File file) throws IOException {
-		if (!file.exists() || !file.canRead())
-			return null;
-
-		return readRGB(new FileInputStream(file), (int)file.length());
-	}
-
-	public BufferedImage readRGB(InputStream is, int fileLength) throws IOException {
-		if (is == null)
-			return null;
-
-		BufferedImage bi = null;
-		RGBHeader header = readHeader(is);
-		if (header.BPC == 2 || // 2 byte per pixel 
-				!header.isMagic ||// it is not RGB
-				header.dimension==1 // one row of data
-				) {
-			// not supported
-			return null;
-		}
-
-		switch(header.chanels) {
-		case 1:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_BYTE_GRAY);break;
-		case 3:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_INT_RGB);break;
-		case 4:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_INT_ARGB);break;
-		default: return null;
-		}
-
-		int tmp = 0;
-		byte[] startTableB = null;
-		byte[] lengthTableB = null;
-		if (header.isCompressed) {
-			tmp = 4 * header.ySize * header.chanels;
-			startTableB = new byte[tmp];
-			lengthTableB = new byte[tmp];
-			is.read(startTableB);
-			is.read(lengthTableB);
-		}
-		tmp = tmp * 2 + 512;
-
-		byte[] all = new byte[fileLength - tmp];
-		is.read(all, 0, all.length);
-
-		int[] lineData = new int[header.xSize];
-		int scanline = header.ySize - 1;
-		byte channel;
-		boolean reset;
-
-		while (scanline >= 0) {
-			channel = (byte) (header.chanels - 1);
-			reset = true;
-			while (channel >= 0) {
-				if (header.isCompressed)
-					decodeRLE(all, 
-							(int) getLong(startTableB, (scanline + channel * header.ySize) * 4) - tmp,
-							(int) getLong(lengthTableB, (scanline + channel * header.ySize) * 4),
-							channelsShifts[header.chanels][channel], 
-							lineData,
-							reset);
-				else
-					decodeNormalLine(header, 
-							all, 
-							(scanline + header.ySize * channel) * header.xSize, 
-							header.xSize,
-							channelsShifts[header.chanels][channel], 
-							lineData,
-							reset);
-				channel--;
-				reset = false;
-			}
-			bi.setRGB(0, header.ySize - scanline - 1, header.xSize, 1,
-					lineData, 0, lineData.length);
-			scanline--;
-		}
-
-		is.close();
-		header=null;
-		return bi;
-	}
-
-	private RGBHeader readHeader(InputStream fis) {
-		byte[] headerR= new byte[512];
-		RGBHeader header = new RGBHeader();
-
-		try {
-			fis.read(headerR);
-			int count=0;
-			header.isMagic = (getShort(headerR, count) == 474);
-			count+=2;
-			header.isCompressed = (getByte(headerR, count++) == 1);
-			header.BPC = (byte) getByte(headerR, count++);
-			header.dimension = (byte) getShort(headerR, count);
-			count+=2;
-			header.xSize = getShort(headerR, count);
-			header.ySize = getShort(headerR, count+2);
-			header.chanels = getShort(headerR, count+4);
-			count+=6;
-			header.pimin=getLong(headerR, count);
-			header.pimax=getLong(headerR, count+4);
-			header.pSize=header.pimax-header.pimin;
-			count+=84;// skip dummy, name
-			//			count+=98;// skip Pixmin, pixmax, dummy, name
-			header.colorMap = getLong(headerR, count);
-			headerR = null;
-		} catch (IOException e) {
-			return null;
-		}
-
-		return header;
-	}
-
 	protected class RGBHeader {
 		boolean isMagic;
 		boolean isCompressed;
 		byte BPC;
 		byte dimension;
 		int xSize, ySize;
-		int chanels;
+		int channels;
 		long colorMap;
 		long pimin;
 		long pimax;
@@ -327,7 +317,7 @@ public class RGBEncoder {
 			sb.append("\r\n");
 
 			sb.append("chanels:");
-			sb.append(chanels);
+			sb.append(channels);
 			sb.append("\r\n");
 
 			sb.append("colorMap:");

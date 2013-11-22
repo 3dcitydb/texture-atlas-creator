@@ -24,11 +24,7 @@
  ******************************************************************************/
 package org.citygml.textureAtlasAPI;
 
-import java.util.HashMap;
-
-import org.citygml.textureAtlasAPI.dataStructure.ErrorTypes;
-import org.citygml.textureAtlasAPI.dataStructure.TexImageInfo;
-import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
+import org.citygml.textureAtlasAPI.dataStructure.TextureImagesInfo;
 
 /**
  * It is a starting point for using Textureatlas API.
@@ -47,66 +43,32 @@ import org.citygml.textureAtlasAPI.imageIO.ImageLoader;
  * User can also set the packing algorithm which should be used and maximum size of atlas. 
  */
 public class TextureAtlasGenerator {
-	/**
-	 * Different packing algorithm (more info in readme file)
-	 * FFDH: First-Fit Decreasing Height
-	 * NFDH: Next-Fit Decreasing Height
-	 * SLEA: Sleator's algorithm
-	 * TPIM: Improved version of Touching Perimeter algorithm.
-	 * TPIM_WITHOUT_ROTATION: TPIM algorithm without rotating textures.
-	 */
-	public static final int FFDH = 0;
-	public static final int NFDH = 1;
-	public static final int SLEA = 2;
-
-	
-	//Touching Perimeter+ improved
-	public static final int TPIM = 5;
-	public static final int TPIM_WITHOUT_ROTATION = 6;
-	
+    public static final int TPIM = 1;
+    public static final int TPIM_WO_ROTATION = 2;
 	
 	private int packingAlgorithm;
+	private int atlasMaxWidth;
+	private int atlasMaxHeight;
 	
-	private int imageMaxWidth=2048;
-	private int imageMaxHeight=2048;
+	private boolean usePOTS = false;
+	private double scaleFactor = 1;
 	
-	private Modifier modifier;
-	private ImageLoader imageLoader;
-	private boolean usePOTS=false;
-	
-	private double scaleFactor;
-
 	public TextureAtlasGenerator() {
-		packingAlgorithm= FFDH;
-		imageMaxWidth=2048;
-		imageMaxHeight=2048;
-		scaleFactor=1;
-		modifier = new Modifier(packingAlgorithm, imageMaxWidth, imageMaxHeight, usePOTS);
-		imageLoader= new ImageLoader();
+		this(TPIM, 1024, 1024);
 	}
 	
-	public TextureAtlasGenerator(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight) {
-		usePOTS = false;
-		setGeneralProp(PackingAlg, atlasMaxWidth, atlasMaxHeight, usePOTS);
-		modifier = new Modifier(packingAlgorithm, imageMaxWidth, imageMaxHeight, usePOTS);
-		imageLoader= new ImageLoader();
+	public TextureAtlasGenerator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight) {
+		this(packingAlgorithm, atlasMaxWidth, atlasMaxHeight, false);
 	}
-	
-	//-----------------
-	public TextureAtlasGenerator(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS) {
-		setGeneralProp(PackingAlg, atlasMaxWidth, atlasMaxHeight,usePOTS);
-		modifier = new Modifier(this.packingAlgorithm, this.imageMaxWidth, 
-				this.imageMaxHeight,this.usePOTS);
-		imageLoader= new ImageLoader();
-	}
-	
-	private void setGeneralProp(int PackingAlg, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS){
-		this.scaleFactor=1;
+	  
+	public TextureAtlasGenerator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS) {
+		this.packingAlgorithm = packingAlgorithm;
+		this.atlasMaxHeight = atlasMaxHeight;
+		this.atlasMaxWidth= atlasMaxWidth;
 		this.usePOTS = usePOTS;
-		this.packingAlgorithm = PackingAlg;
-		this.imageMaxHeight = atlasMaxHeight;
-		this.imageMaxWidth= atlasMaxWidth;
+		scaleFactor = 1;				
 	}
+	
 	public double getScaleFactor() {
 		return scaleFactor;
 	}
@@ -115,7 +77,6 @@ public class TextureAtlasGenerator {
 		this.scaleFactor = scaleFactor;
 	}
 
-	//-----------------
 	public int getPackingAlgorithm() {
 		return packingAlgorithm;
 	}
@@ -124,59 +85,22 @@ public class TextureAtlasGenerator {
 		this.packingAlgorithm = packingAlgorithm;
 	}
 
-	public int getImageMaxWidth() {
-		return imageMaxWidth;
+	public int getAtlasMaxWidth() {
+		return atlasMaxWidth;
 	}
 
-	public void setImageMaxWidth(int imageMaxWidth) {
-		this.imageMaxWidth = imageMaxWidth;
+	public void setAtlasMaxWidth(int atlasMaxWidth) {
+		this.atlasMaxWidth = atlasMaxWidth;
 	}
 
-	public int getImageMaxHeight() {
-		return imageMaxHeight;
+	public int getAtlasMaxHeight() {
+		return atlasMaxHeight;
 	}
 
-	public void setImageMaxHeight(int imageMaxHeight) {
-		this.imageMaxHeight = imageMaxHeight;
-	}
-
-	public TexImageInfo convert(TexImageInfo tii){	
-		return convert(tii,packingAlgorithm);
+	public void setAtlasMaxHeight(int atlasMaxHeight) {
+		this.atlasMaxHeight = atlasMaxHeight;
 	}
 	
-	public TexImageInfo convert(TexImageInfo tii, int packingAlgorithm){	
-		modifier.reset();
-		
-		if (tii!=null)
-			imageLoader.setImageLoader(tii.getTexImages());
-			
-		this.packingAlgorithm=packingAlgorithm;
-		// check tii.isImagesReady()
-		modifier.setGeneralSettings(this.packingAlgorithm, this.imageMaxWidth, this.imageMaxHeight, this.usePOTS, this.scaleFactor);
-		return modifier.run(tii);
-	}
-	
-	public HashMap<Object, ErrorTypes> getLOG() {
-		return modifier.getLOG();
-	}
-	
-	public String getLOGInText(){
-		
-		HashMap<Object, ErrorTypes> LOG= modifier.getLOG();
-		StringBuffer sb = new StringBuffer();
-		for(Object key: LOG.keySet()){
-			sb.append("<");
-			sb.append(key.toString());
-			sb.append(": ");
-			sb.append(LOG.get(key));
-			sb.append(">\r\n");
-		}
-		LOG=null;
-		if (sb.length()==0)
-			return null;
-		return sb.toString();
-	}
-
 	public void setUsePOTS(boolean usePOTS) {
 		this.usePOTS = usePOTS;
 	}
@@ -185,5 +109,14 @@ public class TextureAtlasGenerator {
 		return usePOTS;
 	}
 
-
+	public void convert(TextureImagesInfo tii) {	
+		convert(tii, packingAlgorithm);
+	}
+	
+	public void convert(TextureImagesInfo tii, int packingAlgorithm){	
+		this.packingAlgorithm = packingAlgorithm;
+		Modifier modifier = new Modifier(packingAlgorithm, atlasMaxWidth, atlasMaxHeight, usePOTS, scaleFactor);
+		
+		 modifier.run(tii);
+	}
 }

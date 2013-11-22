@@ -27,11 +27,13 @@ package org.citygml.textureAtlasAPI.imageIO;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
 
 /**
  * This class is responsible for loading different image formats. 
@@ -39,40 +41,41 @@ import javax.imageio.ImageIO;
  * In the case of adding other encoders, they should announced in here.
  */
 
-public class ImageLoader {	
+public class ImageReader {	
 	private RGBEncoder rgbEncoder;
 	private ArrayList<String> supportedMIMETypes;
 	private ArrayList<String> supportedExtensions;
 
-	public ImageLoader() {
+	public ImageReader() {
 		rgbEncoder= new RGBEncoder();
 		initSupportedFileFormats();
 	}
 
-	public BufferedImage loadImage(File file) throws IOException {
+	public BufferedImage read(File file) throws IOException {
 		if (!file.isFile() || !file.exists() || !file.canRead())
 			return null;
 
 		BufferedImage b = null;
-		if (file.getName().toUpperCase().endsWith(".RGB") ||
-				file.getName().toUpperCase().endsWith(".RGBA"))
-			b = rgbEncoder.readRGB(file);
-		else
-			b = ImageIO.read(file);
+		ImageInputStream imageIS = ImageIO.createImageInputStream(new FileInputStream(file));	
+
+		b = ImageIO.read(imageIS);
+		if (b == null) {
+			imageIS.reset();
+			b = rgbEncoder.readRGB(imageIS);
+		}
 
 		return b;
 	}
 
-	public BufferedImage loadImage(InputStream is, String mimeType, int size) throws IOException {
-		if (!isSupportedMIMEType(mimeType))
-			return null;
-
+	public BufferedImage read(InputStream is) throws IOException {
 		BufferedImage b = null;
-		if (mimeType.toUpperCase().endsWith("RGB") ||
-				mimeType.toUpperCase().endsWith("RGBA"))
-			b = rgbEncoder.readRGB(is, size);
-		else
-			b = ImageIO.read(is);
+
+		ImageInputStream imageIS = ImageIO.createImageInputStream(is);		
+		b = ImageIO.read(imageIS);
+		if (b == null) {
+			imageIS.reset();
+			b = rgbEncoder.readRGB(imageIS);
+		}
 
 		return b;
 	}
@@ -84,77 +87,22 @@ public class ImageLoader {
 	public boolean isSupportedFileExtension(String extension) {
 		return extension != null ? supportedExtensions.contains(extension.toUpperCase()) : false;
 	}
-	
+
 	private void initSupportedFileFormats(){
 		supportedMIMETypes= new ArrayList<String>();
 		supportedExtensions = new ArrayList<String>();
-		
+
 		for (String mimeType : ImageIO.getReaderMIMETypes())
 			supportedMIMETypes.add(mimeType.toUpperCase());
-		
+
 		for (String extension : ImageIO.getReaderFileSuffixes())
 			supportedExtensions.add(extension.toUpperCase());
-			
+
 		supportedMIMETypes.add("IMAGE/RGB");
 		supportedMIMETypes.add("IMAGE/X-RGB");
 		supportedMIMETypes.add("IMAGE/RGBA");
 		supportedExtensions.add("RGB");
 		supportedExtensions.add("RGBA");
 	}
-	
-	//	public HashMap<String, TexImage> loadAllImage(HashMap<String,String> imageLocalPath){
-	//		HashMap<String, TexImage> texImages = new HashMap<String, TexImage>();
-	//		if (imageLocalPath==null)
-	//			return null;
-	//		Iterator<String> imageURI=imageLocalPath.keySet().iterator();
-	//		String URI;
-	//		while(imageURI.hasNext()){
-	//			URI=imageURI.next();
-	//			texImages.put(URI,new TexImage(loadImage(imageLocalPath.get(URI))));
-	//			URI=null;
-	//		}
-	//		imageURI=null;
-	//		imageLocalPath=null;
-	//		return texImages ;
-	//	}
-
-	//	/**
-	//	 * set this instance in all TexImage in input HashMap.
-	//	 * @param basic
-	//	 */
-	//	public void setImageLoader(HashMap<String, TexImage> basic) {
-	//		if (basic==null)
-	//			return ;
-	//		if (basic.values()!=null){
-	//			Iterator<TexImage> tximag=basic.values().iterator();
-	//			while(tximag.hasNext()){
-	//				tximag.next().setImageLoader(this);
-	//			}
-	//		}
-	//	}
-
-	/*
-	private void chanelDetector(BufferedImage bImage){
-		switch(bImage.getType()){
-		case BufferedImage.TYPE_BYTE_INDEXED:
-		case BufferedImage.TYPE_BYTE_GRAY:
-			this.chanels=1;break;
-
-		case BufferedImage.TYPE_INT_ARGB:
-		case BufferedImage.TYPE_INT_ARGB_PRE:
-		case BufferedImage.TYPE_4BYTE_ABGR:
-		case BufferedImage.TYPE_4BYTE_ABGR_PRE:
-			this.chanels=4;
-			break;
-		default:
-			this.chanels=3;
-		}
-
-	}
-
-	public int getChanels(){
-		return this.chanels;
-	}
-	 */
 
 }
