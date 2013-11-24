@@ -22,55 +22,36 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.packer;
+package org.citygml.textureAtlasAPI.data;
 
-import java.util.ArrayList;
+import java.awt.Transparency;
+import java.awt.image.BufferedImage;
 
-public class TextureAtlas { 
-	private final ArrayList<AtlasRegion> regions;
-	private int bindingBoxHeight;
-	private int bindingBoxWidth;
-	private boolean hasFourChannels;
-    
-    public TextureAtlas(){
-    	regions = new ArrayList<AtlasRegion>();
-    }
-    
-    public boolean hasFourChannels() {
-		return hasFourChannels;
+public class TextureImage {
+	private BufferedImage image;
+
+	public TextureImage(BufferedImage image) {
+		this.image = image;
 	}
-
-	public void setFourChannels(boolean hasFourChannels) {
-		this.hasFourChannels = hasFourChannels;
-	}      
-
-    public void setBindingBox(int w, int h) {
-    	bindingBoxHeight = h;
-    	bindingBoxWidth = w;
-    }
-    
-    public void setBindingBoxWidth(int w) {
-    	bindingBoxWidth = w;
-    }
-    
-    public void setBindingBoxHeight(int h) {
-    	bindingBoxHeight = h;
-    }
-
-    public int getBindingBoxHeight() {
-    	return bindingBoxHeight;
-    }
-    
-    public int getBindingBoxWidth() {
-    	return bindingBoxWidth;
-    }
-
-    public void addRegion(AtlasRegion region) {
-    	regions.add(region);
-    }
-    
-    public ArrayList<AtlasRegion> getRegions() {
-    	return regions;
-    }
-    
+	
+	public BufferedImage getBufferedImage(){
+		return image;
+	}
+	
+	public void setImage(BufferedImage image) {
+		this.image = image;
+	}
+	
+	public int getWidth() {
+		return image.getWidth();
+	}
+	
+	public int getHeight() {
+		return image.getHeight();
+	}
+	
+	public int getChannels(){
+		return image.getTransparency() == Transparency.OPAQUE ? 3 : 4;
+	}
+	
 }

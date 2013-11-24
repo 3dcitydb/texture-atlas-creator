@@ -58,9 +58,11 @@ package org.citygml.textureAtlasAPI.packer;
  */
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-import org.citygml.textureAtlasAPI.packer.comparator.DecreasingAreaComparator;
+import org.citygml.textureAtlasAPI.data.AtlasRegion;
+import org.citygml.textureAtlasAPI.data.TextureAtlas;
 
 public class TouchingPerimeter {
 	private int binWidth;
@@ -103,8 +105,14 @@ public class TouchingPerimeter {
 	 * @param regions
 	 * @return
 	 */
-	public TextureAtlas insert(List<AtlasRegion> regions) {		
-		Collections.sort(regions, new DecreasingAreaComparator());
+	public TextureAtlas insert(List<AtlasRegion> regions) {	
+		// sort regions by area in descending order
+		Collections.sort(regions, new Comparator<AtlasRegion>() {
+			public int compare(AtlasRegion o1, AtlasRegion o2) {
+				return o1.area > o2.area ? -1 : o1.area == o2.area ? 0 : 1;
+			}
+		});
+		
 		TextureAtlas atlas = new TextureAtlas();
 		short level = 0;
 

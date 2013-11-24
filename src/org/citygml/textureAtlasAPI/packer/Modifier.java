@@ -22,25 +22,21 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI;
+package org.citygml.textureAtlasAPI.packer;
 
 import java.awt.Graphics2D;
-import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.citygml.textureAtlasAPI.dataStructure.TextureImage;
-import org.citygml.textureAtlasAPI.dataStructure.TextureImagesInfo;
-import org.citygml.textureAtlasAPI.imageIO.ImageScaling;
-import org.citygml.textureAtlasAPI.packer.AtlasRegion;
-import org.citygml.textureAtlasAPI.packer.Packer;
-import org.citygml.textureAtlasAPI.packer.TextureAtlas;
-//import org.citygml.util.Logger;
-import org.citygml.util.ErrorTypes;
+import org.citygml.textureAtlasAPI.data.AtlasRegion;
+import org.citygml.textureAtlasAPI.data.ErrorTypes;
+import org.citygml.textureAtlasAPI.data.TextureAtlas;
+import org.citygml.textureAtlasAPI.data.TextureImage;
+import org.citygml.textureAtlasAPI.data.TextureImagesInfo;
+import org.citygml.textureAtlasAPI.image.ImageProcessor;
 
 
 /**
@@ -135,7 +131,7 @@ public class Modifier {
 			if (texImage == null && (texImage = texImages.get(texImageName)) == null)
 				continue;
 
-			// check whether buffered image is available
+			// check whether texture image can be decoded
 			if (texImage.getBufferedImage() == null) {
 				acceptedTexImages.put(texImageName, false);
 				log.put(objectId,ErrorTypes.IMAGE_IS_NOT_AVAILABLE);				
@@ -162,7 +158,7 @@ public class Modifier {
 					// Hence, the texture image is not accepted in order to keep the original texturing.
 					acceptedTexImages.put(texImageName, false);
 					log.put(objectId, ErrorTypes.ERROR_IN_COORDINATES);
-					int width = texImage.getBufferedImage().getWidth();
+					int width = texImage.getWidth();
 
 					// remove the texture image from the packer and adapt statistics
 					if (hasFourChannels) {
@@ -199,11 +195,11 @@ public class Modifier {
 
 			// rescale image if requested
 			if (scaleFactor != 1)
-				texImage.setImage(ImageScaling.rescale(texImage.getBufferedImage(), scaleFactor));
+				texImage.setImage(ImageProcessor.rescale(texImage.getBufferedImage(), scaleFactor));
 
 			// rescale texture image if it exceeds the maximum width or height of the atlas
 			if (!imageFitsIntoAtlas(texImage.getBufferedImage())) {
-				BufferedImage scaledImage = ImageScaling.rescale(texImage.getBufferedImage(), atlasMaxWidth, atlasMaxHeight);
+				BufferedImage scaledImage = ImageProcessor.rescale(texImage.getBufferedImage(), atlasMaxWidth, atlasMaxHeight);
 				if (scaledImage == null || !imageFitsIntoAtlas(scaledImage)){
 					acceptedTexImages.put(texImageName, false);
 					log.put(objectId, ErrorTypes.IMAGE_UNBOUNDED_SIZE);
@@ -220,8 +216,8 @@ public class Modifier {
 			// the current object and its texture information is fine.
 			// udpate the data structures correspondingly
 			texCoordsList.put(objectId, texCoords);
-			int width = texImage.getBufferedImage().getWidth();
-			int height = texImage.getBufferedImage().getHeight();
+			int width = texImage.getWidth();
+			int height = texImage.getHeight();
 
 			if (hasFourChannels) {
 				packer4C.addRegion(texImageName, width, height);
@@ -291,19 +287,7 @@ public class Modifier {
 
 				if (region.isRotated) {
 					// rotate texture image
-					BufferedImage image = texImage.getBufferedImage();
-					int type = (image.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
-
-					int width = image.getWidth();
-					int height = image.getHeight();
-					BufferedImage rotatedImage = new BufferedImage(height, width, type);
-
-					// swap pixels
-					for (int i = 0; i < width; i++)
-						for (int j = 0; j < height; j++)
-							rotatedImage.setRGB(j, width-i-1, image.getRGB(i, j));
-
-					texImage.setImage(rotatedImage);
+					texImage.setImage(ImageProcessor.rotate(texImage.getBufferedImage()));
 				}
 
 				// check whether the current atlas is full
@@ -428,22 +412,20 @@ public class Modifier {
 			HashMap<Object, double[]> doubleCoordinateList,
 			HashMap<String,ArrayList<Object>> texImage2objects, 
 			int atlasWidth, int atlasHeigth) {
-		Iterator<AtlasRegion> rectIter = frame.iterator();
-		while (rectIter.hasNext()) {
-			AtlasRegion rect = rectIter.next();
-			for (Object obj : texImage2objects.get(rect.getTexImageName())) {
+		for (AtlasRegion region : frame) {
+			for (Object obj : texImage2objects.get(region.getTexImageName())) {
 				double[] texCoords = doubleCoordinateList.get(obj);
 				StringBuilder builder = new StringBuilder();
 
 				for (int j = 0; j < texCoords.length; j += 2) {
-					if (rect.isRotated){
+					if (region.isRotated){
 						double tmp =texCoords[j];
 						texCoords[j]=1- texCoords[j+1];
 						texCoords[j+1]= tmp;
 					}
 
-					texCoords[j] = (rect.x + (texCoords[j] * rect.width)) / atlasWidth;
-					texCoords[j + 1] = 1 - ((1 - texCoords[j+1]) * rect.height + rect.y) / atlasHeigth;
+					texCoords[j] = (region.x + (texCoords[j] * region.width)) / atlasWidth;
+					texCoords[j + 1] = 1 - ((1 - texCoords[j+1]) * region.height + region.y) / atlasHeigth;
 
 					builder.append(texCoords[j]);
 					builder.append(' ');
@@ -454,7 +436,7 @@ public class Modifier {
 				object2texCoords.put(obj, builder.substring(0, builder.length() - 1));
 			}
 
-			rect.clear();
+			region.clear();
 		}
 	}
 

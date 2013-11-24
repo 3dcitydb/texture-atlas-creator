@@ -22,49 +22,55 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.test;
+package org.citygml.textureAtlasAPI.data;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
+import java.util.ArrayList;
 
-import javax.imageio.ImageIO;
-
-import org.citygml.textureAtlasAPI.image.RGBEncoder;
-
-public class RGBTest {
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-//		RGBEncoder en = new RGBEncoder();
-//		try {
-//			String name="tex5400125";
-//			BufferedImage bi = en.readRGB(name+".rgb");
-////			BufferedImage bi = new BufferedImage(20,20, BufferedImage.TYPE_BYTE_GRAY);
-////			for (int i=0;i<20;i++){
-////				for (int j=0;j<20;j++){
-////					int level = i*10;
-////					int gray = (level << 16) | (level << 8) | level;
-////					bi.setRGB(i, j, level);
-////				}
-////			}
-//			
-//			File f=new File(
-//					bi.getType() == BufferedImage.TYPE_INT_RGB ? name+".jpeg"
-//							: name+".png");
-//			ImageIO
-//					.write(
-//							bi,
-//							bi.getType() == BufferedImage.TYPE_INT_RGB ? "jpeg"
-//									: "png",f);
-//			System.out.println("Finish!");
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-
+public class TextureAtlas { 
+	private final ArrayList<AtlasRegion> regions;
+	private int bindingBoxHeight;
+	private int bindingBoxWidth;
+	private boolean hasFourChannels;
+    
+    public TextureAtlas(){
+    	regions = new ArrayList<AtlasRegion>();
+    }
+    
+    public boolean hasFourChannels() {
+		return hasFourChannels;
 	}
 
+	public void setFourChannels(boolean hasFourChannels) {
+		this.hasFourChannels = hasFourChannels;
+	}      
+
+    public void setBindingBox(int w, int h) {
+    	bindingBoxHeight = h;
+    	bindingBoxWidth = w;
+    }
+    
+    public void setBindingBoxWidth(int w) {
+    	bindingBoxWidth = w;
+    }
+    
+    public void setBindingBoxHeight(int h) {
+    	bindingBoxHeight = h;
+    }
+
+    public int getBindingBoxHeight() {
+    	return bindingBoxHeight;
+    }
+    
+    public int getBindingBoxWidth() {
+    	return bindingBoxWidth;
+    }
+
+    public void addRegion(AtlasRegion region) {
+    	regions.add(region);
+    }
+    
+    public ArrayList<AtlasRegion> getRegions() {
+    	return regions;
+    }
+    
 }

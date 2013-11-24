@@ -22,15 +22,13 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.imageIO;
+package org.citygml.textureAtlasAPI.image;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import javax.imageio.stream.ImageInputStream;
-
-//import org.citygml.util.Logger;
 
 /**
  * This is an encoder for the SGI RGB Image format. 
@@ -41,6 +39,18 @@ import javax.imageio.stream.ImageInputStream;
  * 
  */
 public class RGBEncoder {
+	private static RGBEncoder instance = null;
+	
+	private RGBEncoder() {
+		
+	}
+	
+	public static synchronized RGBEncoder getInstance() {
+		if (instance == null)
+			instance = new RGBEncoder();
+		
+		return instance;
+	}
 
 	public BufferedImage readRGB(ImageInputStream is) throws IOException {
 		if (is == null)
@@ -50,16 +60,15 @@ public class RGBEncoder {
 		RGBHeader header = readHeader(is);
 		if (header.BPC == 2 || // 2 byte per pixel 
 				!header.isMagic ||// it is not RGB
-				header.dimension==1 // one row of data
+				header.dimension == 1 // one row of data
 				) {
-			// not supported
 			return null;
 		}
 
 		switch(header.channels) {
-		case 1:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_BYTE_GRAY);break;
-		case 3:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_INT_RGB);break;
-		case 4:bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_INT_ARGB);break;
+		case 1: bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_BYTE_GRAY); break;
+		case 3: bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_INT_RGB); break;
+		case 4: bi = new BufferedImage(header.xSize, header.ySize, BufferedImage.TYPE_INT_ARGB); break;
 		default: return null;
 		}
 
@@ -69,7 +78,7 @@ public class RGBEncoder {
 				{ 16, 8, 0 },// RGB
 				{ 16, 8, 0, 24 } // RGBA
 		};
-		
+
 		int tmp = 0;
 		byte[] startTableB = null;
 		byte[] lengthTableB = null;
@@ -87,7 +96,7 @@ public class RGBEncoder {
 		int length;
 		while ((length = is.read(buffer)) != -1)
 			bos.write(buffer, 0 , length);
-		
+
 		byte[] all = bos.toByteArray();	
 
 		int[] lineData = new int[header.xSize];
@@ -122,7 +131,6 @@ public class RGBEncoder {
 		}
 
 		is.close();
-		header=null;
 		return bi;
 	}
 
@@ -185,7 +193,7 @@ public class RGBEncoder {
 		// if reset, clear the data.
 		int max = start + len;
 		int rCounter = 0;
-		
+
 		if (header.channels == 1){
 			while (start < max) {
 				int tmp = allData[start++] & 0xff;
@@ -195,7 +203,7 @@ public class RGBEncoder {
 			}
 			return;
 		}
-		
+
 		if (!reset) {
 			while (start < max) {
 				int tmp = allData[start++] & 0xff;
@@ -222,17 +230,16 @@ public class RGBEncoder {
 		if (!reset) {// not reset!
 			while (start < max) {
 				int tmp = allData[start++] & 0xff;
-				
+
 				if ((count = (int) tmp & 0x7f) == 0)
 					return;
-				
+
 				if ((tmp & 0x80) == 0x80) {
 					// copy count byte
 					while (count != 0) {
 						tmp = (int) allData[start++] & 0xff;
 						tmp = tmp << channelShift;
 						result[rCounter] = result[rCounter] | (int) tmp;
-
 						rCounter++;
 						count--;
 					}
@@ -241,7 +248,6 @@ public class RGBEncoder {
 					tmp = tmp << channelShift;
 					while (count != 0) {
 						result[rCounter] = result[rCounter] | (int) tmp;
-
 						rCounter++;
 						count--;
 					}
@@ -250,17 +256,16 @@ public class RGBEncoder {
 		} else { // reset!
 			while (start < max) {
 				int tmp = allData[start++] & 0xff;
-				
+
 				if ((count = (int) tmp & 0x7f) == 0)
 					return;
-				
+
 				if ((tmp & 0x80) == 0x80) {
 					// copy count byte
 					while (count != 0) {
 						tmp = (int) allData[start++] & 0xff;
 						tmp = tmp << channelShift;
-						result[rCounter] = channelShift > 16 ? (int) tmp
-								: (int) tmp | 0xff000000;
+						result[rCounter] = channelShift > 16 ? (int) tmp : (int) tmp | 0xff000000;
 						rCounter++;
 						count--;
 					}
@@ -268,19 +273,18 @@ public class RGBEncoder {
 					tmp = (int) allData[start++] & 0xff;
 					tmp = tmp << channelShift;
 					while (count != 0) {
-						result[rCounter] = channelShift > 16 ? (int) tmp
-								: (int) tmp | 0xff000000;
+						result[rCounter] = channelShift > 16 ? (int) tmp : (int) tmp | 0xff000000;
 						rCounter++;
 						count--;
 					}
 				}
 			}
 		}
-		//		System.err.println("terminated by me!");
+
 		return;
 
 	}
-	
+
 	protected class RGBHeader {
 		boolean isMagic;
 		boolean isCompressed;
@@ -292,39 +296,22 @@ public class RGBEncoder {
 		long pimin;
 		long pimax;
 		long pSize;
+	}
+	
+	public boolean isSupportedMIMEType(String mimeType) {
+		if (mimeType == null)
+			return false;
 
-		@Override
-		public String toString() {
-			StringBuffer sb = new StringBuffer();
-			sb.append("isMagic:");
-			sb.append(isMagic);
-			sb.append("\r\n");
+		String tmp = mimeType.toUpperCase();
+		return ("IMAGE/RGB".equals(tmp) || "IMAGE/X-RGB".equals(tmp) || "IMAGE/RGBA".equals(tmp));
+	}
 
-			sb.append("isCompressed:");
-			sb.append(isCompressed);
-			sb.append("\r\n");
+	public boolean isSupportedFileSuffix(String suffix) {
+		if (suffix == null)
+			return false;
 
-			sb.append("BPC:");
-			sb.append(BPC);
-			sb.append("\r\n");
-
-			sb.append("dimension:");
-			sb.append(dimension);
-			sb.append("\r\n");
-
-			sb.append("size(x,y):");
-			sb.append(xSize + "," + ySize);
-			sb.append("\r\n");
-
-			sb.append("chanels:");
-			sb.append(channels);
-			sb.append("\r\n");
-
-			sb.append("colorMap:");
-			sb.append(colorMap);
-			sb.append("\r\n");
-			return sb.toString();
-		}
-	}	
+		String tmp = suffix.toUpperCase();
+		return ("RGB".equals(tmp) || "RGBA".equals(tmp));
+	}
 }
 

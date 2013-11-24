@@ -22,22 +22,21 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.packer.comparator;
+package org.citygml.textureAtlasAPI.data;
 
-import java.util.Comparator;
-
-import org.citygml.textureAtlasAPI.packer.AtlasRegion;
-
-public class YValueComparator implements Comparator<AtlasRegion> {
-
-	@Override
-	public int compare(AtlasRegion o1, AtlasRegion o2) {
-		if (o1.y > o2.y)
-			return 1;
-		else if (o1.y < o2.y)
-			return -1;
-		
-		return 0;
+public enum ErrorTypes {
+	ERROR_IN_COORDINATES("Wrapping coordinates"),
+	IMAGE_IS_NOT_AVAILABLE("Image file/path is not available"),
+	IMAGE_UNBOUNDED_SIZE("Unbounded image size");
+	
+	private final String name;
+	
+	ErrorTypes(String name) {
+		this.name=name;
 	}
 
+	@Override
+	public String toString() {
+		return name;
+	}
 }

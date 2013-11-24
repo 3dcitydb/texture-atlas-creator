@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.packer;
+package org.citygml.textureAtlasAPI.data;
 
 /**
  * For packing algorithms each texture will be represented as an object of this class.
@@ -76,6 +76,7 @@ public class AtlasRegion {
 		return texImageName;
 	}
 	
+	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof AtlasRegion) {
 			if (((AtlasRegion)obj).getTexImageName() != null && ((AtlasRegion)obj).getTexImageName().equalsIgnoreCase(this.texImageName))

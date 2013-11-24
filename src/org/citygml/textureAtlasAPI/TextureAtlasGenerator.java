@@ -24,7 +24,8 @@
  ******************************************************************************/
 package org.citygml.textureAtlasAPI;
 
-import org.citygml.textureAtlasAPI.dataStructure.TextureImagesInfo;
+import org.citygml.textureAtlasAPI.data.TextureImagesInfo;
+import org.citygml.textureAtlasAPI.packer.Modifier;
 
 /**
  * It is a starting point for using Textureatlas API.

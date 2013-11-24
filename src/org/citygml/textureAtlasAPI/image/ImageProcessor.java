@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.imageIO;
+package org.citygml.textureAtlasAPI.image;
 
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -30,12 +30,7 @@ import java.awt.Transparency;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
-/**
- * In the case that image size is bigger than maximum supported size, 
- * it will resize.
- *
- */
-public class ImageScaling {
+public class ImageProcessor {
 
 	public static BufferedImage rescale(BufferedImage source, int maxW, int maxH) {
 		if (source == null)
@@ -83,6 +78,24 @@ public class ImageScaling {
 		graphics.drawRenderedImage(source, transform);
 		graphics.dispose();
 
+		return target;
+	}
+	
+	public static BufferedImage rotate(BufferedImage source) {
+		if (source == null) 
+			return null;
+		
+		int type = source.getTransparency() == Transparency.OPAQUE ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+		int width = source.getWidth();
+		int height = source.getHeight();
+		
+		BufferedImage target = new BufferedImage(source.getHeight(), source.getWidth(), type);
+
+		// swap pixels
+		for (int i = 0; i < width; i++)
+			for (int j = 0; j < height; j++)
+				target.setRGB(j, width-i-1, source.getRGB(i, j));
+		
 		return target;
 	}
 

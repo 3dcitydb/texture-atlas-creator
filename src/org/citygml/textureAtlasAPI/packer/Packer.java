@@ -28,13 +28,15 @@ package org.citygml.textureAtlasAPI.packer;
 import java.util.LinkedList;
 
 import org.citygml.textureAtlasAPI.TextureAtlasGenerator;
+import org.citygml.textureAtlasAPI.data.AtlasRegion;
+import org.citygml.textureAtlasAPI.data.TextureAtlas;
 
 /**
  * It is the responsible class for packing the textures. Each texture will be represented as 
  * a Rect instance. Based on selected packing algorithm, and bin size, it will pack the textures 
  * in an atlas. Each atlas may have different levels.  
  */
-public class Packer  {
+public class Packer {
 	private LinkedList<AtlasRegion> regions;
 	private int binWidth;
 	private int binHeight;
