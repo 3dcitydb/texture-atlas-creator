@@ -35,41 +35,38 @@ import org.citygml.textureAtlasAPI.packer.Modifier;
  * 
  * Note that all the textures in TexImageInfo should be potentially combinable.
  * 
- * In the case of standalone tool, TexImageInfo4GMLFile should be used instead of TexImageInfo.
- * In this case images will be loaded in this API. 
- * 
  * To see how should input data structured please see TexImageInfo or TexImageInfo4GMLFile according 
  * to type of your usage.
  * 
  * User can also set the packing algorithm which should be used and maximum size of atlas. 
  */
 public class TextureAtlasGenerator {
-    public static final int TPIM = 1;
-    public static final int TPIM_WO_ROTATION = 2;
-	
-	private int packingAlgorithm;
+	public static final int TPIM = 1;
+	public static final int TPIM_WO_ROTATION = 2;
+
+	private int packingAlgorithm = TPIM;
 	private int atlasMaxWidth;
 	private int atlasMaxHeight;
-	
+
 	private boolean usePOTS = false;
 	private double scaleFactor = 1;
-	
+
 	public TextureAtlasGenerator() {
 		this(TPIM, 1024, 1024);
 	}
-	
+
 	public TextureAtlasGenerator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight) {
 		this(packingAlgorithm, atlasMaxWidth, atlasMaxHeight, false);
 	}
-	  
+
 	public TextureAtlasGenerator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS) {
-		this.packingAlgorithm = packingAlgorithm;
 		this.atlasMaxHeight = atlasMaxHeight;
 		this.atlasMaxWidth= atlasMaxWidth;
 		this.usePOTS = usePOTS;
+		setPackingAlgorithm(packingAlgorithm);
 		scaleFactor = 1;				
 	}
-	
+
 	public double getScaleFactor() {
 		return scaleFactor;
 	}
@@ -83,6 +80,9 @@ public class TextureAtlasGenerator {
 	}
 
 	public void setPackingAlgorithm(int packingAlgorithm) {
+		if (packingAlgorithm < 1 || packingAlgorithm > 2)
+			packingAlgorithm = TPIM;
+		
 		this.packingAlgorithm = packingAlgorithm;
 	}
 
@@ -101,7 +101,7 @@ public class TextureAtlasGenerator {
 	public void setAtlasMaxHeight(int atlasMaxHeight) {
 		this.atlasMaxHeight = atlasMaxHeight;
 	}
-	
+
 	public void setUsePOTS(boolean usePOTS) {
 		this.usePOTS = usePOTS;
 	}
@@ -113,11 +113,10 @@ public class TextureAtlasGenerator {
 	public void convert(TextureImagesInfo tii) {	
 		convert(tii, packingAlgorithm);
 	}
-	
-	public void convert(TextureImagesInfo tii, int packingAlgorithm){	
-		this.packingAlgorithm = packingAlgorithm;
-		Modifier modifier = new Modifier(packingAlgorithm, atlasMaxWidth, atlasMaxHeight, usePOTS, scaleFactor);
-		
-		 modifier.run(tii);
+
+	public void convert(TextureImagesInfo tii, int packingAlgorithm) {
+		setPackingAlgorithm(packingAlgorithm);
+		Modifier modifier = new Modifier(this.packingAlgorithm, atlasMaxWidth, atlasMaxHeight, usePOTS, scaleFactor);
+		modifier.run(tii);
 	}
 }

@@ -142,7 +142,7 @@ public class TouchingPerimeter {
 
 			// check whether it is finished or not.
 			if (bestRegionIndex == -1) {
-				if (regions.size() > 0){
+				if (regions.size() > 0) {
 					// one atlas is complete but some other rects are remaining. add one level and reset.
 					level++;
 					atlas.setBindingBox(atlas.getBindingBoxWidth() + maxW, atlas.getBindingBoxHeight() + maxH);
@@ -154,7 +154,7 @@ public class TouchingPerimeter {
 
 			// put the best texture in its position.
 			region = regions.get(bestRegionIndex);			
-			putRegion((AtlasRegion)region);
+			putRegion(region);
 
 			if (region.x + region.width > maxW)
 				maxW = region.x + region.width;
