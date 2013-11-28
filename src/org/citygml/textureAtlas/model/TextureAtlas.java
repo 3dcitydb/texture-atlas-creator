@@ -22,18 +22,18 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.data;
+package org.citygml.textureAtlas.model;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class TextureAtlas { 
-	private final ArrayList<AtlasRegion> regions;
+	private LinkedList<AtlasRegion> regions;
 	private int bindingBoxHeight;
 	private int bindingBoxWidth;
 	private boolean hasFourChannels;
     
     public TextureAtlas(){
-    	regions = new ArrayList<AtlasRegion>();
+    	regions = new LinkedList<AtlasRegion>();
     }
     
     public boolean hasFourChannels() {
@@ -69,7 +69,11 @@ public class TextureAtlas {
     	regions.add(region);
     }
     
-    public ArrayList<AtlasRegion> getRegions() {
+    public void setRegions(LinkedList<AtlasRegion> regions) {
+    	this.regions = regions;
+    }
+    
+    public LinkedList<AtlasRegion> getRegions() {
     	return regions;
     }
     

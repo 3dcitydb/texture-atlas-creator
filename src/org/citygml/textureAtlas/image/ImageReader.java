@@ -23,7 +23,7 @@
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  * @author Claus Nagel <c.nagel@virtualcitysystems.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.image;
+package org.citygml.textureAtlas.image;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -34,7 +34,7 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
 
-import org.citygml.textureAtlasAPI.data.TextureImage;
+import org.citygml.textureAtlas.model.TextureImage;
 
 public class ImageReader {
 	

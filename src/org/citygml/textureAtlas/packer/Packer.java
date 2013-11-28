@@ -22,25 +22,23 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.packer;
+package org.citygml.textureAtlas.packer;
 
 
 import java.util.LinkedList;
 
-import org.citygml.textureAtlasAPI.TextureAtlasGenerator;
-import org.citygml.textureAtlasAPI.data.AtlasRegion;
-import org.citygml.textureAtlasAPI.data.TextureAtlas;
+import org.citygml.textureAtlas.TextureAtlasCreator;
+import org.citygml.textureAtlas.algorithm.LightmapAlgorithm;
+import org.citygml.textureAtlas.algorithm.PackingAlgorithm;
+import org.citygml.textureAtlas.algorithm.TouchingPerimeterAlgorithm;
+import org.citygml.textureAtlas.model.AtlasRegion;
+import org.citygml.textureAtlas.model.TextureAtlas;
 
-/**
- * It is the responsible class for packing the textures. Each texture will be represented as 
- * a Rect instance. Based on selected packing algorithm, and bin size, it will pack the textures 
- * in an atlas. Each atlas may have different levels.  
- */
 public class Packer {
-	private LinkedList<AtlasRegion> regions;
+	private final LinkedList<AtlasRegion> regions;
 	private int binWidth;
 	private int binHeight;
-	private boolean fourChannel;
+	private final boolean fourChannel;
 	private int algorithm;
 
 	public Packer(int binWidth, int binHeight, int algorithm, boolean fourChannel) {
@@ -53,10 +51,6 @@ public class Packer {
 
 	public boolean isFourChannel() {
 		return fourChannel;
-	}
-
-	public void setFourChannel(boolean fourChannel) {
-		this.fourChannel = fourChannel;
 	}
 
 	public void setBinSize(int width, int height) {
@@ -82,20 +76,24 @@ public class Packer {
 
 	public TextureAtlas pack(boolean usePOT) {
 		TextureAtlas atlas = null;
+		PackingAlgorithm packingAlgorithm = null;
 
 		switch(algorithm) {
-		case TextureAtlasGenerator.TPIM:
-		case TextureAtlasGenerator.TPIM_WO_ROTATION:
-			TouchingPerimeter tpPacker = new TouchingPerimeter(binWidth, binHeight, usePOT);
-			tpPacker.setUseRotation(algorithm == TextureAtlasGenerator.TPIM);
-			atlas = tpPacker.insert(regions);
+//		case TextureAtlasGenerator.TPIM:
+		case TextureAtlasCreator.TPIM_WO_ROTATION:
+			packingAlgorithm = new TouchingPerimeterAlgorithm(binWidth, binHeight, usePOT, algorithm == TextureAtlasCreator.TPIM);
+			break;
+		case TextureAtlasCreator.TPIM:
+			packingAlgorithm = new LightmapAlgorithm(binWidth, binHeight, true);
 			break;
 		default:
 			// Type of algorithm is not correctly set.
 			return null;
 		}
 
+		atlas = packingAlgorithm.createTextureAtlas(regions);
 		atlas.setFourChannels(fourChannel);
+		
 		return atlas;
 	}
 

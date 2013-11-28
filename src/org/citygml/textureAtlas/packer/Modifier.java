@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.packer;
+package org.citygml.textureAtlas.packer;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -31,30 +31,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.citygml.textureAtlasAPI.data.AtlasRegion;
-import org.citygml.textureAtlasAPI.data.ErrorTypes;
-import org.citygml.textureAtlasAPI.data.TextureAtlas;
-import org.citygml.textureAtlasAPI.data.TextureImage;
-import org.citygml.textureAtlasAPI.data.TextureImagesInfo;
-import org.citygml.textureAtlasAPI.image.ImageProcessor;
+import org.citygml.textureAtlas.image.ImageProcessor;
+import org.citygml.textureAtlas.model.AtlasRegion;
+import org.citygml.textureAtlas.model.TextureAtlas;
+import org.citygml.textureAtlas.model.TextureImage;
+import org.citygml.textureAtlas.model.TextureImagesInfo;
 
-
-/**
- * This class is responsible for creating atlases, modifying coordinates and names for an instance of 
- * TexImageInfo. However, it does not modify unloaded TexImages and the one which has coordinates out of 
- * the rage [0,1].
- * Remaining textures will be divide in two groups: with/without alpha channel textures. They will be 
- * combined separately. As a result, atlases will be in PNG/JPEG image formats.
- * 
- */
 public class Modifier {
 	private final int atlasMaxWidth;
 	private final int atlasMaxHeight;
 	private final int packingAlgorithm;	
 	private final boolean usePOTS;
 	private final double scaleFactor;
-
-	private HashMap<Object, ErrorTypes> log;
 
 	public Modifier(int packingAlgorithm,  int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS, double scaleFactor) {
 		this.packingAlgorithm = packingAlgorithm;
@@ -69,10 +57,6 @@ public class Modifier {
 		}
 	}
 
-	public HashMap<Object, ErrorTypes> getLOG(){
-		return log;
-	}
-
 	public void run(TextureImagesInfo ti) {
 		int atlasCounter = 0;
 		String atlasName = null;
@@ -81,19 +65,10 @@ public class Modifier {
 		HashMap<Object, String> object2texCoords = ti.getTexCoordinates();
 		HashMap<Object, String> object2texImage = ti.getTexImageURIs();
 
-		if (log == null)
-			this.log =new HashMap<Object, ErrorTypes>(); 
-		else
-			log.clear();
-
 		HashMap<String, ArrayList<Object>> texImage2objects = new HashMap<String, ArrayList<Object>>();
 		HashMap<String, Boolean> acceptedTexImages = new HashMap<String, Boolean>();
 		HashMap<String, String> texImageNameMapping = new HashMap<String, String>();
 		HashMap<Object, double[]> texCoordsList = new HashMap<Object, double[]>();
-
-		int totalWidth3c = 0, maxw3c = 0;
-		int totalWidth4c = 0, maxw4c = 0;
-		long area3c = 0, area4c = 0;
 
 		// create packers for 3 and 4 channels textures.
 		Packer packer3C = new Packer(atlasMaxWidth, atlasMaxHeight, packingAlgorithm, false);
@@ -134,7 +109,6 @@ public class Modifier {
 			// check whether texture image can be decoded
 			if (texImage.getBufferedImage() == null) {
 				acceptedTexImages.put(texImageName, false);
-				log.put(objectId,ErrorTypes.IMAGE_IS_NOT_AVAILABLE);				
 				continue;			
 			}
 
@@ -157,22 +131,12 @@ public class Modifier {
 					// could be successfully parsed. Now we failed to parse the texture coordinates of this object.
 					// Hence, the texture image is not accepted in order to keep the original texturing.
 					acceptedTexImages.put(texImageName, false);
-					log.put(objectId, ErrorTypes.ERROR_IN_COORDINATES);
-					int width = texImage.getWidth();
 
-					// remove the texture image from the packer and adapt statistics
+					// remove the texture image from the packer
 					if (hasFourChannels) {
-						if (packer4C.removeRegion(texImageName)) {
-							totalWidth4c -= width;
-							if (totalWidth4c < maxw4c)
-								maxw4c = totalWidth4c;
-						}
+						packer4C.removeRegion(texImageName);
 					} else {
-						if (packer3C.removeRegion(texImageName)) {
-							totalWidth3c -= width;
-							if (totalWidth3c < maxw3c)
-								maxw3c = totalWidth3c;
-						}
+						packer3C.removeRegion(texImageName);
 					}
 
 					continue;
@@ -189,7 +153,6 @@ public class Modifier {
 			double[] texCoords = checkAndGetTexCoordinates(object2texCoords.get(objectId));
 			if (texCoords == null) {
 				acceptedTexImages.put(texImageName, false);
-				log.put(objectId, ErrorTypes.ERROR_IN_COORDINATES);
 				continue;
 			}
 
@@ -202,7 +165,6 @@ public class Modifier {
 				BufferedImage scaledImage = ImageProcessor.rescale(texImage.getBufferedImage(), atlasMaxWidth, atlasMaxHeight);
 				if (scaledImage == null || !imageFitsIntoAtlas(scaledImage)){
 					acceptedTexImages.put(texImageName, false);
-					log.put(objectId, ErrorTypes.IMAGE_UNBOUNDED_SIZE);
 					continue;
 				}
 
@@ -221,18 +183,8 @@ public class Modifier {
 
 			if (hasFourChannels) {
 				packer4C.addRegion(texImageName, width, height);
-				if (width > maxw4c)
-					maxw4c = width;
-
-				totalWidth4c += width;
-				area4c += width * height;
 			} else {
 				packer3C.addRegion(texImageName, width,height);
-				if (width > maxw3c)
-					maxw3c = width;
-
-				totalWidth3c += width;
-				area3c += width * height;
 			}
 
 			acceptedTexImages.put(texImageName, true);
@@ -254,9 +206,9 @@ public class Modifier {
 
 		ArrayList<TextureAtlas> atlasMR = new ArrayList<TextureAtlas>(2);
 		if (packer3C.getRegions() != 0)
-			atlasMR.add(pack(packer3C, maxw3c, totalWidth3c, area3c));
+			atlasMR.add(pack(packer3C));
 		if (packer4C.getRegions() != 0)
-			atlasMR.add(pack(packer4C, maxw4c, totalWidth4c, area4c));
+			atlasMR.add(pack(packer4C));
 
 		// for all available atlases modify the coordinates and image names
 		for (TextureAtlas atlas : atlasMR) {	
@@ -381,7 +333,7 @@ public class Modifier {
 		return (image.getWidth() <= atlasMaxWidth && image.getHeight() <= atlasMaxHeight);
 	}
 
-	private TextureAtlas pack(Packer packer, int maxWidth, int totalWidth, long area) {
+	private TextureAtlas pack(Packer packer) {
 		packer.setBinSize(atlasMaxWidth, atlasMaxHeight);
 		return packer.pack(usePOTS);
 	}

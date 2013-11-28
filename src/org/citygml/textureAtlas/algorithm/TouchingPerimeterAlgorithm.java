@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.packer;
+package org.citygml.textureAtlas.algorithm;
 
 /**
  * This algorithm is based on source code developed and released to the public by Jukka Jylänki.
@@ -56,35 +56,31 @@ package org.citygml.textureAtlasAPI.packer;
 	TPIM_WITHOUT_ROTATION:
 		It is an extension of TPIM algorithm which does not rotate textures.
  */
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.Iterator;
+import java.util.LinkedList;
 
-import org.citygml.textureAtlasAPI.data.AtlasRegion;
-import org.citygml.textureAtlasAPI.data.TextureAtlas;
+import org.citygml.textureAtlas.model.AtlasRegion;
+import org.citygml.textureAtlas.model.TextureAtlas;
 
-public class TouchingPerimeter {
+public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 	private int binWidth;
 	private int binHeight;
 	private boolean useRotation = false;	
 
-	private List<AtlasRegion> usedRectangles = new ArrayList<AtlasRegion>();
-	private List<AtlasRegion> freeRectangles = new ArrayList<AtlasRegion>();
+	private LinkedList<AtlasRegion> usedRectangles = new LinkedList<AtlasRegion>();
+	private LinkedList<AtlasRegion> freeRectangles = new LinkedList<AtlasRegion>();
 
 	private boolean usePOTDimension = false;
 	private int maxH = 0, maxW = 0;
 
-	public TouchingPerimeter(int width, int height, boolean usePOTDimension) {
+	public TouchingPerimeterAlgorithm(int width, int height, boolean usePOTDimension, boolean useRotation) {
 		binWidth = width;
 		binHeight = height;
 		this.usePOTDimension = usePOTDimension;
-
-		reset();	
-	}
-
-	public void setUseRotation(boolean useRotation) {
 		this.useRotation = useRotation;
+		
+		reset();	
 	}
 
 	public void reset(){
@@ -99,19 +95,10 @@ public class TouchingPerimeter {
 		maxW = 0;
 	}
 
-	/**
-	 * Main method. At first size of bin should be set and in the case of  TPIM_WITHOUT_ROTATION the 
-	 * setUseRotation(false) method should be called before this method.
-	 * @param regions
-	 * @return
-	 */
-	public TextureAtlas insert(List<AtlasRegion> regions) {	
+	@Override
+	public TextureAtlas createTextureAtlas(LinkedList<AtlasRegion> regions) {	
 		// sort regions by area in descending order
-		Collections.sort(regions, new Comparator<AtlasRegion>() {
-			public int compare(AtlasRegion o1, AtlasRegion o2) {
-				return o1.area > o2.area ? -1 : o1.area == o2.area ? 0 : 1;
-			}
-		});
+		Collections.sort(regions, new DescendingAreaComparator());
 		
 		TextureAtlas atlas = new TextureAtlas();
 		short level = 0;
@@ -125,8 +112,10 @@ public class TouchingPerimeter {
 			bestRegionIndex = -1;
 
 			// find the one that fits as best as possible (max score) to the current configuration.
-			for (int i = 0; i < regions.size(); i++) {
-				region = regions.get(i);
+			int i = 0;
+			Iterator<AtlasRegion> iter = regions.iterator();
+			while (iter.hasNext()) {
+				region = iter.next();
 
 				// may be in previous round it was rotated.
 				if (region.isRotated)
@@ -138,6 +127,8 @@ public class TouchingPerimeter {
 					bestScore = region.score;				
 					bestRegionIndex = i;
 				}
+
+				i++;
 			}
 
 			// check whether it is finished or not.

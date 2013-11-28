@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.data;
+package org.citygml.textureAtlas.model;
 
 import java.util.HashMap;
 

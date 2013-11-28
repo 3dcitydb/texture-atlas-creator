@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI.data;
+package org.citygml.textureAtlas.model;
 
 /**
  * For packing algorithms each texture will be represented as an object of this class.
@@ -46,7 +46,13 @@ public class AtlasRegion {
 		this.texImageName = texImageName;
 		this.width = width;
 		this.height = height;
-		this.area = width*height;
+		this.area = width * height;
+	}
+	
+	public AtlasRegion(String texImageName, int x, int y, int width, int height) {
+		this(texImageName, width, height);
+		this.x = x;
+		this.y = y;
 	}
 
 	public AtlasRegion(AtlasRegion r) {
@@ -66,7 +72,7 @@ public class AtlasRegion {
 		isRotated = !isRotated;
 	}
 
-	public void setPosition(int x, int y, short level){
+	public void setPosition(int x, int y, short level) {
 		this.x = x;
 		this.y = y;
 		this.level = level;

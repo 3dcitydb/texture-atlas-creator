@@ -22,44 +22,32 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlasAPI;
+package org.citygml.textureAtlas;
 
-import org.citygml.textureAtlasAPI.data.TextureImagesInfo;
-import org.citygml.textureAtlasAPI.packer.Modifier;
+import org.citygml.textureAtlas.model.TextureImagesInfo;
+import org.citygml.textureAtlas.packer.Modifier;
 
-/**
- * It is a starting point for using Textureatlas API.
- * After setting properties, call the convert(TexImageInfo,...) method.
- * It will return modified TexImageInfo. Check getLOG() or getLOGInText
- * to see the message related to current conversion.
- * 
- * Note that all the textures in TexImageInfo should be potentially combinable.
- * 
- * To see how should input data structured please see TexImageInfo or TexImageInfo4GMLFile according 
- * to type of your usage.
- * 
- * User can also set the packing algorithm which should be used and maximum size of atlas. 
- */
-public class TextureAtlasGenerator {
-	public static final int TPIM = 1;
-	public static final int TPIM_WO_ROTATION = 2;
+public class TextureAtlasCreator {
+	public static final int SIMPLE = 1;
+	public static final int TPIM = 2;
+	public static final int TPIM_WO_ROTATION = 3;
 
-	private int packingAlgorithm = TPIM;
+	private int packingAlgorithm;
 	private int atlasMaxWidth;
 	private int atlasMaxHeight;
 
 	private boolean usePOTS = false;
 	private double scaleFactor = 1;
 
-	public TextureAtlasGenerator() {
-		this(TPIM, 1024, 1024);
+	public TextureAtlasCreator() {
+		this(SIMPLE, 1024, 1024);
 	}
 
-	public TextureAtlasGenerator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight) {
+	public TextureAtlasCreator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight) {
 		this(packingAlgorithm, atlasMaxWidth, atlasMaxHeight, false);
 	}
 
-	public TextureAtlasGenerator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS) {
+	public TextureAtlasCreator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS) {
 		this.atlasMaxHeight = atlasMaxHeight;
 		this.atlasMaxWidth= atlasMaxWidth;
 		this.usePOTS = usePOTS;
@@ -80,8 +68,8 @@ public class TextureAtlasGenerator {
 	}
 
 	public void setPackingAlgorithm(int packingAlgorithm) {
-		if (packingAlgorithm < 1 || packingAlgorithm > 2)
-			packingAlgorithm = TPIM;
+		if (packingAlgorithm < 1 || packingAlgorithm > 3)
+			packingAlgorithm = SIMPLE;
 		
 		this.packingAlgorithm = packingAlgorithm;
 	}
