@@ -40,7 +40,7 @@ public class AtlasRegion {
 	public int y;
 	public boolean isRotated;
 	public int score = Integer.MIN_VALUE;
-	public short level;
+	public int level;
 
 	public AtlasRegion(String texImageName, int width, int height) {
 		this.texImageName = texImageName;

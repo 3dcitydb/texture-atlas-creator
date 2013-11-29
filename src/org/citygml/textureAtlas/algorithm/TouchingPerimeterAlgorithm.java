@@ -101,7 +101,7 @@ public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 		Collections.sort(regions, new DescendingAreaComparator());
 		
 		TextureAtlas atlas = new TextureAtlas();
-		short level = 0;
+		int level = 0;
 
 		AtlasRegion region = null;
 		int bestScore, bestRegionIndex;

@@ -25,11 +25,10 @@ public class LightmapAlgorithm implements PackingAlgorithm {
 		atlas.setBindingBox(atlasWidth, atlasHeight);
 
 		// sort regions
-		Collections.sort(regions, new DescendingPerimeterComparator());
+		Collections.sort(regions, new DescendingDiagonalComparator());
 
-		short level = 0;
 		List<Node> roots = new ArrayList<Node>();
-		roots.add(new Node(0, 0, atlasWidth, atlasHeight, level));
+		roots.add(new Node(0, 0, atlasWidth, atlasHeight));
 
 		for (AtlasRegion region : regions) {
 			boolean added = false;
@@ -42,18 +41,30 @@ public class LightmapAlgorithm implements PackingAlgorithm {
 			}
 
 			if (!added) {
-				Node root = new Node(0, 0, atlasWidth, atlasHeight, ++level);
+				Node root = new Node(0, 0, atlasWidth, atlasHeight);
 				root.insert(region);
 				roots.add(root);
 			}
 		}
 
-		atlas.setRegions(regions);
-		
-		// sort regions by length
-		Collections.sort(atlas.getRegions(), new AscendingLengthComparator());
+		// fill texture atlas from root nodes
+		for (int i = 0; i < roots.size(); i++)
+			fillAtlas(atlas, roots.get(i), i);
 
 		return atlas;
+	}
+
+	private void fillAtlas(TextureAtlas atlas, Node node, int level) {
+		if (node == null)
+			return;
+
+		if (node.region.texImageName != null) {
+			node.region.level = level;
+			atlas.addRegion(node.region);
+		}
+
+		fillAtlas(atlas, node.childs[0], level);
+		fillAtlas(atlas, node.childs[1], level);
 	}
 
 	private class Node {
@@ -61,10 +72,9 @@ public class LightmapAlgorithm implements PackingAlgorithm {
 		private AtlasRegion region;
 		private short level;
 
-		private Node(int x, int y, int width, int height, short level) {
+		private Node(int x, int y, int width, int height) {
 			childs = new Node[2];
 			region = new AtlasRegion(null, x, y, width, height);
-			this.level = level;
 		}
 
 		private boolean isLeaf() {
@@ -99,11 +109,11 @@ public class LightmapAlgorithm implements PackingAlgorithm {
 				int dh = region.height - candidate.height;
 
 				if (dw > dh) {
-					childs[0] = new Node(region.x, region.y, candidate.width, region.height, level);
-					childs[1] = new Node(region.x + candidate.width, region.y, region.width - candidate.width, region.height, level);
+					childs[0] = new Node(region.x, region.y, candidate.width, region.height);
+					childs[1] = new Node(region.x + candidate.width, region.y, region.width - candidate.width, region.height);
 				} else {
-					childs[0] = new Node(region.x, region.y, region.width, candidate.height, level);
-					childs[1] = new Node(region.x, region.y + candidate.height, region.width, region.height - candidate.height, level);
+					childs[0] = new Node(region.x, region.y, region.width, candidate.height);
+					childs[1] = new Node(region.x, region.y + candidate.height, region.width, region.height - candidate.height);
 				}
 
 				return childs[0].insert(candidate);
