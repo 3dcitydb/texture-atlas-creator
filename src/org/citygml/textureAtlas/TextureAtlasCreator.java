@@ -28,7 +28,7 @@ import org.citygml.textureAtlas.model.TextureImagesInfo;
 import org.citygml.textureAtlas.packer.Modifier;
 
 public class TextureAtlasCreator {
-	public static final int SIMPLE = 1;
+	public static final int BASIC = 1;
 	public static final int TPIM = 2;
 	public static final int TPIM_WO_ROTATION = 3;
 
@@ -40,7 +40,7 @@ public class TextureAtlasCreator {
 	private double scaleFactor = 1;
 
 	public TextureAtlasCreator() {
-		this(SIMPLE, 1024, 1024);
+		this(BASIC, 1024, 1024);
 	}
 
 	public TextureAtlasCreator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight) {
@@ -69,7 +69,7 @@ public class TextureAtlasCreator {
 
 	public void setPackingAlgorithm(int packingAlgorithm) {
 		if (packingAlgorithm < 1 || packingAlgorithm > 3)
-			packingAlgorithm = SIMPLE;
+			packingAlgorithm = BASIC;
 		
 		this.packingAlgorithm = packingAlgorithm;
 	}

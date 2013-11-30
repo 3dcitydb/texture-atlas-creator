@@ -79,12 +79,12 @@ public class Packer {
 		PackingAlgorithm packingAlgorithm = null;
 
 		switch(algorithm) {
-//		case TextureAtlasGenerator.TPIM:
-		case TextureAtlasCreator.TPIM_WO_ROTATION:
-			packingAlgorithm = new TouchingPerimeterAlgorithm(binWidth, binHeight, usePOT, algorithm == TextureAtlasCreator.TPIM);
+		case TextureAtlasCreator.BASIC:
+			packingAlgorithm = new LightmapAlgorithm(binWidth, binHeight, true);
 			break;
 		case TextureAtlasCreator.TPIM:
-			packingAlgorithm = new LightmapAlgorithm(binWidth, binHeight, true);
+		case TextureAtlasCreator.TPIM_WO_ROTATION:
+			packingAlgorithm = new TouchingPerimeterAlgorithm(binWidth, binHeight, usePOT, algorithm == TextureAtlasCreator.TPIM);
 			break;
 		default:
 			// Type of algorithm is not correctly set.
