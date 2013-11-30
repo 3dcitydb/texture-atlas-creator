@@ -15,7 +15,7 @@
 		<mkdir dir="${dir.build}"/>
 		<mkdir dir="${dir.build}/build"/>
 		<mkdir dir="${dir.build}/build/classes"/>
-		<javac srcdir="src/org/citygml/textureAtlasAPI" destdir="${dir.build}/build/classes"/>
+		<javac srcdir="src/org/citygml/textureAtlas" destdir="${dir.build}/build/classes"/>
 	</target>
 
 	<target name="dist" depends="compile">
