@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlas.algorithm;
+package org.citydb.textureAtlas.algorithm;
 
 /**
  * This algorithm is based on source code developed and released to the public by Jukka Jylänki.
@@ -60,8 +60,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import org.citygml.textureAtlas.model.AtlasRegion;
-import org.citygml.textureAtlas.model.TextureAtlas;
+import org.citydb.textureAtlas.model.AtlasRegion;
+import org.citydb.textureAtlas.model.TextureAtlas;
 
 public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 	private int binWidth;

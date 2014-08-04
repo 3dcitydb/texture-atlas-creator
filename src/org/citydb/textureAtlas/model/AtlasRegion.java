@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlas.model;
+package org.citydb.textureAtlas.model;
 
 /**
  * For packing algorithms each texture will be represented as an object of this class.

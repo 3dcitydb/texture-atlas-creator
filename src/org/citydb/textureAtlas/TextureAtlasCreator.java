@@ -22,10 +22,10 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlas;
+package org.citydb.textureAtlas;
 
-import org.citygml.textureAtlas.model.TextureImagesInfo;
-import org.citygml.textureAtlas.packer.Modifier;
+import org.citydb.textureAtlas.model.TextureImagesInfo;
+import org.citydb.textureAtlas.packer.Modifier;
 
 public class TextureAtlasCreator {
 	public static final int BASIC = 1;

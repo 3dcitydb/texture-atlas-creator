@@ -1,8 +1,8 @@
-package org.citygml.textureAtlas.algorithm;
+package org.citydb.textureAtlas.algorithm;
 
 import java.util.Comparator;
 
-import org.citygml.textureAtlas.model.AtlasRegion;
+import org.citydb.textureAtlas.model.AtlasRegion;
 
 public class DescendingDiagonalComparator implements Comparator<AtlasRegion> {
 	@Override

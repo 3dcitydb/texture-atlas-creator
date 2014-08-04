@@ -1,12 +1,12 @@
-package org.citygml.textureAtlas.algorithm;
+package org.citydb.textureAtlas.algorithm;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.citygml.textureAtlas.model.AtlasRegion;
-import org.citygml.textureAtlas.model.TextureAtlas;
+import org.citydb.textureAtlas.model.AtlasRegion;
+import org.citydb.textureAtlas.model.TextureAtlas;
 
 public class LightmapAlgorithm implements PackingAlgorithm {
 	private int atlasWidth;

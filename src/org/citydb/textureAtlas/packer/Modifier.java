@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlas.packer;
+package org.citydb.textureAtlas.packer;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -31,11 +31,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.citygml.textureAtlas.image.ImageProcessor;
-import org.citygml.textureAtlas.model.AtlasRegion;
-import org.citygml.textureAtlas.model.TextureAtlas;
-import org.citygml.textureAtlas.model.TextureImage;
-import org.citygml.textureAtlas.model.TextureImagesInfo;
+import org.citydb.textureAtlas.image.ImageProcessor;
+import org.citydb.textureAtlas.model.AtlasRegion;
+import org.citydb.textureAtlas.model.TextureAtlas;
+import org.citydb.textureAtlas.model.TextureImage;
+import org.citydb.textureAtlas.model.TextureImagesInfo;
 
 public class Modifier {
 	private final int atlasMaxWidth;

@@ -1,13 +1,14 @@
-package org.citygml.textureAtlas.algorithm;
+package org.citydb.textureAtlas.algorithm;
 
 import java.util.Comparator;
 
-import org.citygml.textureAtlas.model.AtlasRegion;
+import org.citydb.textureAtlas.model.AtlasRegion;
 
 public class MultiComparator implements Comparator<AtlasRegion> {
 	private Comparator<AtlasRegion>[] comparators;
 	
-	public MultiComparator(Comparator<AtlasRegion>... comparators) {
+	@SuppressWarnings("unchecked")
+	protected MultiComparator(Comparator<AtlasRegion>... comparators) {
 		this.comparators = comparators;
 	}
 	

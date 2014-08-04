@@ -22,17 +22,17 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlas.packer;
+package org.citydb.textureAtlas.packer;
 
 
 import java.util.LinkedList;
 
-import org.citygml.textureAtlas.TextureAtlasCreator;
-import org.citygml.textureAtlas.algorithm.LightmapAlgorithm;
-import org.citygml.textureAtlas.algorithm.PackingAlgorithm;
-import org.citygml.textureAtlas.algorithm.TouchingPerimeterAlgorithm;
-import org.citygml.textureAtlas.model.AtlasRegion;
-import org.citygml.textureAtlas.model.TextureAtlas;
+import org.citydb.textureAtlas.TextureAtlasCreator;
+import org.citydb.textureAtlas.algorithm.LightmapAlgorithm;
+import org.citydb.textureAtlas.algorithm.PackingAlgorithm;
+import org.citydb.textureAtlas.algorithm.TouchingPerimeterAlgorithm;
+import org.citydb.textureAtlas.model.AtlasRegion;
+import org.citydb.textureAtlas.model.TextureAtlas;
 
 public class Packer {
 	private final LinkedList<AtlasRegion> regions;

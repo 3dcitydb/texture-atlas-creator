@@ -22,7 +22,7 @@
  * 
  * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
  ******************************************************************************/
-package org.citygml.textureAtlas.image;
+package org.citydb.textureAtlas.image;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
