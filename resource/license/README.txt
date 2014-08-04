@@ -1,8 +1,7 @@
-Texture Atlas API v0.5 
+3D City Database Texture Atlas Creator v1.0 
 
-  This library makes one or more atlases from textures. 
-  This library is free software and comes WITHOUT ANY WARRANTY. 
-  See the file LICENSE for more details.
+  This program is free software and comes WITHOUT ANY WARRANTY.
+  See the DISCLAIMER at the end of this document for more details.
   
 0. Index
 --------
@@ -10,17 +9,16 @@ Texture Atlas API v0.5
 1. License
 2. Copyright
 3. About
-4. System requirements
-5. How to use it
-6. Developers
-7. Contact
-8. Websites
+4. Developers
+5. Contact
+6. Websites
+7. Disclaimer
 
 
 1. License
 ----------
 
-The textureAtlas Java class library is free software under
+The 3D City Database Texture Atlas Creator is free software under
 the GNU Lesser General Public License Version 3.0. See the file LICENSE 
 for more details. For a copy of the GNU Lesser General Public License see 
 the files COPYING and COPYING.LESSER or visit http://www.gnu.org/licenses/.
@@ -37,7 +35,7 @@ http://www.gis.tu-berlin.de/
 
 3. About
 --------
-textureAtlas is a Java class library and API for compacting several
+The 3D City Database Texture Atlas Creator is a library for compacting several
 texture images together into one or several atlases (depending on 
 atlas' size settings) and adapting texture coordinates accordingly. 
 
@@ -47,7 +45,7 @@ Feature list:
 	* In each run, group textures, which have similar properties,
 	to one or more texture atlases.
 	* Maximum atlas size as an input.
-	* Five different packing algorithms.
+	* Three different packing algorithms.
 	* Different image formats as input like RGB, JPEG, PNG. Oracle's OrdImage 
 	is also supported.
 	* Different image output formats based on transparency of its content.
@@ -82,40 +80,9 @@ Different packing algorithms:
 	TPIM_WITHOUT_ROTATION:
 		It is an extension of TPIM algorithm which does not rotate textures.
 			
-	SLEA:
-		Sleator's algorithm is a two-dimentional bin packing. It starts by packing
-		all the items which has a width greater than half of the bin's width on top of
-		each other. Then the remaining items will be sorted according to non-increasing
-		height. 
-		The bin will be split to two halves. Next items will be placed from left to right 
-		in the left half and when it can not accommodate, the left half will be close and items 
-		will be placed in right half. Next level of halves, will be started with different 
-		bottom height according to maximum height in previous level of left and right side.
-
-		For more information please refer to:
-		D. Sleator , A 2.5 times optimal algorithm for packing in two
-		dimensions. Information Processing Letters 10 (1980), pp. 37-40.
-
-	NFDH:
-		The Next-Fit Decreasing Height (NFDH) algorithm starts by sorting items according 
-		to non-increasing height. Then it packs a next item, left side, 
-		on the current level if it fits. Otherwise, the level will be closed, and a new level 
-		will be created (as a horizontal line drawn on the top of the tallest item packed 
-		on the current level), and the item is packed, left justified, on it.
-		
-		Given from:
-		Lodi, Andrea, Martello, Silvano and Monaci, Michele, (2002), Two-dimensional packing 
-	 	problems: A survey, European Journal of Operational Research, 141, issue 2, p. 241-252
-	 
-	FFDH:
-		The First-Fit Decreasing Height (FFDH) algorithm starts by sorting items according 
-		to non-increasing height. It packs the next item, left justified, on the first level 
-		where it fits. If there is not any level to accommodate it, a new level is created
-		as in NFDH.
-		
-		Given from:
-		Lodi, Andrea, Martello, Silvano and Monaci, Michele, (2002), Two-dimensional packing 
-		problems: A survey, European Journal of Operational Research, 141, issue 2, p. 241-252
+	BASIC:
+		An implementation the lightmap packing algorithm presented by 
+		Jim Scott at http://www.blackpawn.com/texts/lightmaps/.
 
 RGB Endocder:
 	The SGI RGB Image format is supported by this API. An encoder is developed based on file format
@@ -124,42 +91,48 @@ RGB Endocder:
 	file format please refer to http://paulbourke.net/dataformats/sgirgb/sgiversion.html (active 
 	in 2011).
 	
-4. System requirements
-----------------------
-
-* Java JRE or JDK >= 1.5
-* Oracle ordim Java library. Found under ORACLE_HOME\ord\jlib. It is also available in the same
- directory with textureAtlas Java library.
-
-
-5. How to use it
-----------------
-
-Simply modify your Java classpath to include textureAtlas 
-Java library file and ordim Java library file.
-
-   
-6. Developers
+	  
+4. Developers
 -------------
 
-Babak Naderi <b.naderi@mailbox.tu-berlin.de>
+Claus Nagel <cnagel@virtualcitysystems.de>
+Babak Naderi
 
 
-7. Contact
+5. Contact
 ----------
 
-b.naderi@mailbox.tu-berlin.de
+cnagel@virtualcitysystems.de
 
 
-8. Websites
+6. Websites
 -----------
 
-Official citygml4j website: 
-http://www.gis.tu-berlin.de/software
+Official 3D City Database website: 
+http://www.3dcitydb.org/
 
 Related websites:
-http://www.igg.tu-berlin.de/
+https://github.com/3dcitydb
 http://www.citygml.org/
 http://www.3dcitydb.net/
 http://www.citygmlwiki.org/
 http://www.opengeospatial.org/standards/citygml
+
+
+7. Disclaimer
+-------------
+
+THIS SOFTWARE IS PROVIDED BY IGG "AS IS" AND "WITH ALL FAULTS." 
+IGG MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY KIND CONCERNING THE 
+QUALITY, SAFETY OR SUITABILITY OF THE SOFTWARE, EITHER EXPRESSED OR 
+IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF 
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
+
+IGG MAKES NO REPRESENTATIONS OR WARRANTIES AS TO THE TRUTH, ACCURACY OR 
+COMPLETENESS OF ANY STATEMENTS, INFORMATION OR MATERIALS CONCERNING THE 
+SOFTWARE THAT IS CONTAINED ON AND WITHIN ANY OF THE WEBSITES OWNED AND 
+OPERATED BY IGG.
+
+IN NO EVENT WILL IGG BE LIABLE FOR ANY INDIRECT, PUNITIVE, SPECIAL, 
+INCIDENTAL OR CONSEQUENTIAL DAMAGES HOWEVER THEY MAY ARISE AND EVEN IF 
+IGG HAVE BEEN PREVIOUSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.

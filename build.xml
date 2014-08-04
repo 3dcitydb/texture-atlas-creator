@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project name="Texture Atlas" default="dist">
-	<property name="api.version" value="0.5" />
-	<property name="app.version" value="0.3" />
+<project name="Texture Atlas Creator" default="dist">
 	<property name="vendor.homepage" value="http://www.igg.tu-berlin.de/"/>
 	<property name="app.vendor" value="IGG, Technical University Berlin, Germany, ${vendor.homepage}" />
 	<property name="dir.build" value="${basedir}/build" />
 
 	<target name="clean">
 		<delete dir="${dir.build}/build"/>
-		<delete dir="${dir.build}/api"/>
+		<delete dir="${dir.build}/lib"/>
 	</target>
 
 	<target name="compile" depends="clean">
@@ -19,11 +17,12 @@
 	</target>
 
 	<target name="dist" depends="compile">
-		<replace file="resource/license/README" token="!api.version!" value="${api.version}" />
-		<mkdir dir="${dir.build}/api"/>
-		<jar destfile="${dir.build}/api/textureAtlas.jar" basedir="${dir.build}/build/classes">
+		<mkdir dir="${dir.build}/lib"/>
+		
+		<jar destfile="${dir.build}/lib/texture-atlas-creator.jar" basedir="${dir.build}/build/classes">
 			<fileset dir="resource/license" includes="**/*" />
 		</jar>
+		
 		<delete dir="${dir.build}/build"/>
 	</target>
 
