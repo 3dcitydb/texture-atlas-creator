@@ -86,7 +86,7 @@ public class Modifier {
 			Object objectId = entry.getKey();
 			String texImageName = entry.getValue();
 			TextureImage texImage = null;
-
+			
 			// change the name of the texture image if not already done so
 			String mapping = texImageNameMapping.get(texImageName);
 			if (mapping == null) {
@@ -94,15 +94,17 @@ public class Modifier {
 
 				if (texImage != null && texImage.getBufferedImage() != null) {
 					mapping = getNewTexImageName(texImageName, texImage.getChannels());
-					object2texImage.put(objectId, mapping);
 					texImages.remove(texImageName);
 					texImages.put(mapping, texImage);
 					texImageNameMapping.put(texImageName, mapping);
 				}
 			}
-
-			// update image
+			
+			// update texture image mapping
 			texImageName = mapping;
+			object2texImage.put(objectId, mapping);
+			
+			// check whether texture image could be read
 			if (texImage == null && (texImage = texImages.get(texImageName)) == null)
 				continue;
 
