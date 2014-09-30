@@ -97,7 +97,8 @@ public class Modifier {
 					texImages.remove(texImageName);
 					texImages.put(mapping, texImage);
 					texImageNameMapping.put(texImageName, mapping);
-				}
+				} else
+					continue;
 			}
 			
 			// update texture image mapping
