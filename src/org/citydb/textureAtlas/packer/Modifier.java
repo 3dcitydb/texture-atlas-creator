@@ -151,6 +151,10 @@ public class Modifier {
 				texImage2objects.get(texImageName).add(objectId);	
 				continue;
 			}
+			
+			// rescale image if requested
+			if (scaleFactor != 1)
+				texImage.setImage(ImageProcessor.rescale(texImage.getBufferedImage(), scaleFactor));
 
 			// check texture coordinates of object
 			double[] texCoords = checkAndGetTexCoordinates(object2texCoords.get(objectId));
@@ -158,10 +162,6 @@ public class Modifier {
 				acceptedTexImages.put(texImageName, false);
 				continue;
 			}
-
-			// rescale image if requested
-			if (scaleFactor != 1)
-				texImage.setImage(ImageProcessor.rescale(texImage.getBufferedImage(), scaleFactor));
 
 			// rescale texture image if it exceeds the maximum width or height of the atlas
 			if (!imageFitsIntoAtlas(texImage.getBufferedImage())) {
