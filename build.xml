@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project name="Texture Atlas Creator" default="dist">
-	<property name="vendor.homepage" value="http://www.igg.tu-berlin.de/"/>
-	<property name="app.vendor" value="IGG, Technical University Berlin, Germany, ${vendor.homepage}" />
+	<property name="app.version" value="1.1" />
+	<property name="app.name" value="Texture Atlas Creator" />
+	<property name="app.name.short" value="texture-atlas-creator" />
+	<property name="vendor.homepage" value="http://www.gis.bgu.tum.de/"/>
+	<property name="app.vendor" value="Chair of Geoinformatics, Technische Universitaet Muenchen, Germany, ${vendor.homepage}" />
+	<property name="jar.name" value="${app.name.short}-${app.version}.jar" />
 	<property name="dir.build" value="${basedir}/build" />
+
+	<tstamp>
+		<format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+	</tstamp>
 
 	<target name="clean">
 		<delete dir="${dir.build}/build"/>
@@ -18,11 +26,18 @@
 
 	<target name="dist" depends="compile">
 		<mkdir dir="${dir.build}/lib"/>
-		
-		<jar destfile="${dir.build}/lib/texture-atlas-creator.jar" basedir="${dir.build}/build/classes">
+
+		<jar destfile="${dir.build}/lib/${jar.name}" basedir="${dir.build}/build/classes">
 			<fileset dir="resource/license" includes="**/*" />
+			<manifest>
+				<attribute name="Built-Id" value="${user.name}-${app.name.short}-${app.version}" />
+				<attribute name="Built-Date" value="${TODAY}" />
+				<attribute name="Implementation-Title" value="${app.name}" />
+				<attribute name="Implementation-Version" value="${app.version}" />
+				<attribute name="Implementation-Vendor" value="${app.vendor}" />
+			</manifest>
 		</jar>
-		
+
 		<delete dir="${dir.build}/build"/>
 	</target>
 
