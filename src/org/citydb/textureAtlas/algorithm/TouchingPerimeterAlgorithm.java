@@ -1,27 +1,30 @@
-/*******************************************************************************
- * This file is part of the Texture Atlas Generation Tool.
- * Copyright (c) 2010 - 2011
- * Institute for Geodesy and Geoinformation Science
- * Technische Universitaet Berlin, Germany
- * http://www.gis.tu-berlin.de/
+/*
+ * 3D City Database Texture Atlas Creator
+ * http://www.3dcitydb.org/
  * 
- * The Texture Atlas Generation Tool is free software:
- * you can redistribute it and/or modify it under the terms of the
- * GNU Lesser General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Copyright 2013 - 2016
+ * Chair of Geoinformatics
+ * Technical University of Munich, Germany
+ * https://www.gis.bgu.tum.de/
  * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
+ * The 3D City Database is jointly developed with the following
+ * cooperation partners:
  * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program. If not, see
- * <http://www.gnu.org/licenses/>.
+ * virtualcitySYSTEMS GmbH, Berlin <http://www.virtualcitysystems.de/>
+ * M.O.S.S. Computer Grafik Systeme GmbH, Taufkirchen <http://www.moss.de/>
  * 
- * @author Babak Naderi <b.naderi@mailbox.tu-berlin.de>
- ******************************************************************************/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *     
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.citydb.textureAtlas.algorithm;
 
 /**
@@ -63,17 +66,41 @@ import java.util.LinkedList;
 import org.citydb.textureAtlas.model.AtlasRegion;
 import org.citydb.textureAtlas.model.TextureAtlas;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class TouchingPerimeterAlgorithm.
+ */
 public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
+	
+	/** The bin width. */
 	private int binWidth;
+	
+	/** The bin height. */
 	private int binHeight;
+	
+	/** The use rotation. */
 	private boolean useRotation = false;	
 
+	/** The used rectangles. */
 	private LinkedList<AtlasRegion> usedRectangles = new LinkedList<AtlasRegion>();
+	
+	/** The free rectangles. */
 	private LinkedList<AtlasRegion> freeRectangles = new LinkedList<AtlasRegion>();
 
+	/** The use POT dimension. */
 	private boolean usePOTDimension = false;
+	
+	/** The max W. */
 	private int maxH = 0, maxW = 0;
 
+	/**
+	 * Instantiates a new touching perimeter algorithm.
+	 *
+	 * @param width the width
+	 * @param height the height
+	 * @param usePOTDimension the use POT dimension
+	 * @param useRotation the use rotation
+	 */
 	public TouchingPerimeterAlgorithm(int width, int height, boolean usePOTDimension, boolean useRotation) {
 		binWidth = width;
 		binHeight = height;
@@ -83,6 +110,9 @@ public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 		reset();	
 	}
 
+	/**
+	 * Reset.
+	 */
 	public void reset(){
 		AtlasRegion freeRegion = new AtlasRegion("", binWidth, binHeight);
 		freeRegion.x = 0;
@@ -95,6 +125,9 @@ public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 		maxW = 0;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.citydb.textureAtlas.algorithm.PackingAlgorithm#createTextureAtlas(java.util.LinkedList)
+	 */
 	@Override
 	public TextureAtlas createTextureAtlas(LinkedList<AtlasRegion> regions) {	
 		// sort regions by area in descending order
@@ -165,7 +198,8 @@ public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 	/**
 	 * rec.x and rec.y are set previously. 
 	 * calculate new free areas which are made by adding this rectangle.
-	 * @param rec
+	 *
+	 * @param region the region
 	 */
 	private void putRegion(AtlasRegion region) {	
 		for (int i = 0; i < freeRectangles.size(); i++) {	
@@ -179,11 +213,22 @@ public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 		usedRectangles.add(region);
 	}
 
+	/**
+	 * Score region.
+	 *
+	 * @param region the region
+	 */
 	private void scoreRegion(AtlasRegion region) {
 		if (!findBestFreePosition(region))
 			region.score = Integer.MIN_VALUE;
 	}
 
+	/**
+	 * Gets the min covered POT.
+	 *
+	 * @param len the len
+	 * @return the min covered POT
+	 */
 	private int getMinCoveredPOT(int len) {
 		int pot = (int) Math.floor(Math.log10(len) / Math.log10(2));
 		if (Math.pow(2, pot) == len)
@@ -194,11 +239,12 @@ public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 
 	/**
 	 * score based amount of contact. input parameters are candidate position.
-	 * @param x
-	 * @param y
-	 * @param width
-	 * @param height
-	 * @return
+	 *
+	 * @param x the x
+	 * @param y the y
+	 * @param width the width
+	 * @param height the height
+	 * @return the int
 	 */
 	private int scorePlace(int x, int y, int width, int height) {
 		int score = 0;
@@ -230,6 +276,15 @@ public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 		return score;
 	}
 
+	/**
+	 * Adjacent length.
+	 *
+	 * @param p1start the p 1 start
+	 * @param p1end the p 1 end
+	 * @param p2start the p 2 start
+	 * @param p2end the p 2 end
+	 * @return the int
+	 */
 	private int adjacentLength(int p1start, int p1end, int p2start, int p2end) {
 		if (p1end < p2start || p2end < p1start)
 			return 0;
@@ -240,10 +295,9 @@ public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 	/**
 	 * Try to find best position for the input Rect from all free positions in freeRectangles.
 	 * put the best score in Rect.score1
-	 * 
-	 * @param width
-	 * @param height
-	 * @return
+	 *
+	 * @param rect the rect
+	 * @return true, if successful
 	 */
 	private boolean findBestFreePosition(AtlasRegion rect) {
 		AtlasRegion bestPosition = null;
@@ -289,9 +343,10 @@ public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 	
 	/**
 	 * check whether the freeRecr is affected by the new position of newRect.	
-	 * @param freeRect
-	 * @param newRect
-	 * @return
+	 *
+	 * @param freeRect the free rect
+	 * @param newRect the new rect
+	 * @return true, if is affected
 	 */
 	private boolean isAffected(AtlasRegion freeRect, AtlasRegion newRect) {
 		// check whether they are intersecting
@@ -371,6 +426,13 @@ public class TouchingPerimeterAlgorithm implements PackingAlgorithm {
 		}
 	}
 	
+	/**
+	 * Bcontains A.
+	 *
+	 * @param a the a
+	 * @param b the b
+	 * @return true, if successful
+	 */
 	private boolean BcontainsA(AtlasRegion a, AtlasRegion b) {
 		return a.x >= b.x && a.y >= b.y 
 				&& a.x + a.width <= b.x + b.width 

@@ -1,7 +1,9 @@
-3D City Database Texture Atlas Creator v1.0 
+3D City Database Texture Atlas Creator v1.2 
 
-  This program is free software and comes WITHOUT ANY WARRANTY.
-  See the DISCLAIMER at the end of this document for more details.
+  This software is free software and is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. 
   
 0. Index
 --------
@@ -18,32 +20,33 @@
 1. License
 ----------
 
-The 3D City Database Texture Atlas Creator is free software under
-the GNU Lesser General Public License Version 3.0. See the file LICENSE 
-for more details. For a copy of the GNU Lesser General Public License see 
-the files COPYING and COPYING.LESSER or visit http://www.gnu.org/licenses/.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this software except in compliance with the License.
+You may obtain a copy of the License at
+ 
+    http://www.apache.org/licenses/LICENSE-2.0
 
 
 2. Copyright
 ------------
 
-(c) 2010 - 2011
-Institute for Geodesy and Geoinformation Science (IGG)
-Technische Universitaet Berlin, Germany
-http://www.gis.tu-berlin.de/
+(C) 2013 - 2016
+Chair of Geoinformatics
+Technical University of Munich, Germany
+https://www.gis.bgu.tum.de/
 
 
 3. About
 --------
 The 3D City Database Texture Atlas Creator is a library for compacting several
 texture images together into one or several atlases (depending on 
-atlas' size settings) and adapting texture coordinates accordingly. 
+atlas size settings) and adapting texture coordinates accordingly. 
 
 As a result the overall size of the resources will be significantly decreased.
  
 Feature list:
 	* In each run, group textures, which have similar properties,
-	to one or more texture atlases.
+	  to one or more texture atlases.
 	* Maximum atlas size as an input.
 	* Three different packing algorithms.
 	* Different image formats as input like RGB, JPEG, PNG. Oracle's OrdImage 
@@ -112,9 +115,9 @@ Official 3D City Database website:
 http://www.3dcitydb.org/
 
 Related websites:
-https://github.com/3dcitydb
+https://github.com/3dcitydb/
+https://www.gis.bgu.tum.de/
 http://www.citygml.org/
-http://www.3dcitydb.net/
 http://www.citygmlwiki.org/
 http://www.opengeospatial.org/standards/citygml
 
@@ -122,17 +125,18 @@ http://www.opengeospatial.org/standards/citygml
 7. Disclaimer
 -------------
 
-THIS SOFTWARE IS PROVIDED BY IGG "AS IS" AND "WITH ALL FAULTS." 
-IGG MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY KIND CONCERNING THE 
+THIS SOFTWARE IS PROVIDED BY THE CHAIR OF GEOINFORMATION FROM TU MUNICH
+(TUMGI) "AS IS" AND "WITH ALL FAULTS." 
+TUMGI MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY KIND CONCERNING THE 
 QUALITY, SAFETY OR SUITABILITY OF THE SOFTWARE, EITHER EXPRESSED OR 
 IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF 
 MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
 
-IGG MAKES NO REPRESENTATIONS OR WARRANTIES AS TO THE TRUTH, ACCURACY OR 
+TUMGI MAKES NO REPRESENTATIONS OR WARRANTIES AS TO THE TRUTH, ACCURACY OR 
 COMPLETENESS OF ANY STATEMENTS, INFORMATION OR MATERIALS CONCERNING THE 
 SOFTWARE THAT IS CONTAINED ON AND WITHIN ANY OF THE WEBSITES OWNED AND 
-OPERATED BY IGG.
+OPERATED BY TUMGI.
 
-IN NO EVENT WILL IGG BE LIABLE FOR ANY INDIRECT, PUNITIVE, SPECIAL, 
+IN NO EVENT WILL TUMGI BE LIABLE FOR ANY INDIRECT, PUNITIVE, SPECIAL, 
 INCIDENTAL OR CONSEQUENTIAL DAMAGES HOWEVER THEY MAY ARISE AND EVEN IF 
-IGG HAVE BEEN PREVIOUSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+TUMGI HAVE BEEN PREVIOUSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
