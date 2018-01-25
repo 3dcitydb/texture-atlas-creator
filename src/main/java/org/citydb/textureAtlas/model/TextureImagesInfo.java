@@ -36,15 +36,15 @@ import java.util.HashMap;
  *  
  * This is a data structure for set/get data to Texture Atlas Generator API.
  * 
- * <I>HashMap<Object, String> texImageURIs</I>
+ * <I>HashMap&lt;Object, String&gt; texImageURIs</I>
  * texImgeURIs contains  a key (the surface-geometry id (Long) in DB usage and TargetURI+' '+Ring(String) in GML loader)
  * and corresponding imageURI(String). By using imageURI as a key for texImages hashmap, texture will be available.
  * 
- * <I>HashMap<Object, String> texCoordinates</I>
+ * <I>HashMap&lt;Object, String&gt; texCoordinates</I>
  * texCoordingates contains a key (the surface-geometry id (Long) in DB usage and TargetURI+' '+Ring(String) in GML loader)
  * and corresponding texture coordinates in the same format as in the database (string tokenizable via whitespace)
  * 
- * <I>HashMap<String, TexImage> texImages</I>
+ * <I>HashMap&lt;String, TexImage&gt; texImages</I>
  * textImages contains an imageURI(String) and the corresponding TexImage object which is a texture.
  */
 public class TextureImagesInfo {
