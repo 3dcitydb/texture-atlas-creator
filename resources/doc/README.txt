@@ -1,9 +1,12 @@
-3D City Database Texture Atlas Creator v1.2 
+3D City Database Texture Atlas Creator
 
-  This software is free software and is distributed on an "AS IS" BASIS,
+Version @version@ (@date@)
+
+  This library is free software and is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
-  limitations under the License. 
+  limitations under the License.
+
   
 0. Index
 --------
@@ -30,7 +33,7 @@ You may obtain a copy of the License at
 2. Copyright
 ------------
 
-(C) 2013 - 2016
+(C) 2013-@copyright@,
 Chair of Geoinformatics
 Technical University of Munich, Germany
 https://www.gis.bgu.tum.de/
@@ -99,7 +102,6 @@ RGB Endocder:
 -------------
 
 Claus Nagel <cnagel@virtualcitysystems.de>
-Babak Naderi
 
 
 5. Contact

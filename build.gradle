@@ -1,0 +1,115 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+    id "com.jfrog.bintray" version "1.7.3"
+}
+
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+group 'org.citydb'
+version '1.4'
+
+sourceCompatibility = 1.8
+
+ext {
+    date = new Date()
+}
+
+repositories {
+    jcenter()
+}
+
+jar {
+    manifest {
+        attributes('Implementation-Title': project.name,
+                'Implementation-Version': project.version
+        )
+    }
+    into('META-INF') {
+        from 'LICENSE'
+        from('resources/doc/README.txt') {
+            filter(ReplaceTokens, tokens: [
+                    version: project.version,
+                    date: date.format('yyy-MM-dd'),
+                    copyright: date.format('yyyy')
+            ])
+        }
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+def createPom = {
+    name project.name
+    url 'https://github.com/3dcitydb'
+    licenses {
+        license {
+            name 'The Apache License, Version 2.0'
+            url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
+    }
+    developers {
+        developer {
+            id 'clausnagel'
+            name 'Claus Nagel'
+            email 'claus.nagel@gmail.com'
+            roles {
+                role 'architect'
+                role 'developer'
+            }
+            timezone '+1'
+        }
+    }
+    scm {
+        url 'https://github.com/3dcitydb/texture-atlas-creator'
+        connection 'scm:git:https://github.com/3dcitydb/texture-atlas-creator.git'
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            pom.withXml {
+                def parent = asNode()
+                asNode().children().last() + createPom
+            }
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+
+    publications = ['mavenJava']
+    pkg {
+        repo = 'maven'
+        name = project.name
+        desc = project.description
+        websiteUrl = 'https://github.com/3dcitydb'
+        vcsUrl = 'scm:git:https://github.com/3dcitydb/texture-atlas-creator.git'
+        issueTrackerUrl = 'https://github.com/3dcitydb/texture-atlas-creator/issues'
+        labels = ['3dcitydb', 'texture-atlas']
+        licenses = ['Apache-2.0']
+        version {
+            name = project.version
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.5'
+}
