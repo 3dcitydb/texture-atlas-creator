@@ -97,6 +97,7 @@ bintray {
     publications = ['mavenJava']
     pkg {
         repo = 'maven'
+        userOrg = '3dcitydb'
         name = project.name
         desc = project.description
         websiteUrl = 'https://github.com/3dcitydb'
