@@ -9,6 +9,7 @@ apply plugin: 'maven-publish'
 
 group 'org.citydb'
 version '1.4.0'
+description 'Library for creating texture atlases for CityGML'
 
 sourceCompatibility = 1.8
 
