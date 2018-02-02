@@ -103,7 +103,6 @@ bintray {
         websiteUrl = 'https://github.com/3dcitydb'
         vcsUrl = 'scm:git:https://github.com/3dcitydb/texture-atlas-creator.git'
         issueTrackerUrl = 'https://github.com/3dcitydb/texture-atlas-creator/issues'
-        labels = ['3dcitydb', 'texture-atlas']
         licenses = ['Apache-2.0']
         version {
             name = project.version
