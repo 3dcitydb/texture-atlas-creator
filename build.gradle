@@ -1,15 +1,14 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-    id "com.jfrog.bintray" version "1.8.0"
+    id 'java'
+    id 'maven-publish'
+    id 'com.jfrog.bintray' version '1.8.4'
 }
-
-apply plugin: 'java'
-apply plugin: 'maven-publish'
 
 group 'org.citydb'
 version '1.4.0'
-description 'Library for creating texture atlases for CityGML'
+description 'Library for creating texture atlases for the 3D City Database'
 
 sourceCompatibility = 1.8
 
@@ -49,42 +48,36 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
-def createPom = {
-    name project.name
-    url 'https://github.com/3dcitydb'
-    licenses {
-        license {
-            name 'The Apache License, Version 2.0'
-            url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-            distribution 'repo'
-        }
-    }
-    developers {
-        developer {
-            id 'clausnagel'
-            name 'Claus Nagel'
-            email 'claus.nagel@gmail.com'
-            roles {
-                role 'architect'
-                role 'developer'
-            }
-            timezone '+1'
-        }
-    }
-    scm {
-        url 'https://github.com/3dcitydb/texture-atlas-creator'
-        connection 'scm:git:https://github.com/3dcitydb/texture-atlas-creator.git'
-    }
-}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
             artifact sourcesJar
             artifact javadocJar
-            pom.withXml {
-                asNode().children().last() + createPom
+            pom {
+                name = project.name
+                description = project.description
+                url = 'https://github.com/3dcitydb'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution = 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'clausnagel'
+                        name = 'Claus Nagel'
+                        email = 'claus.nagel@gmail.com'
+                        roles = ['architect', 'developer']
+                        timezone = '+1'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/3dcitydb/texture-atlas-creator'
+                    connection = 'scm:git:https://github.com/3dcitydb/texture-atlas-creator.git'
+                }
             }
         }
     }
@@ -108,8 +101,4 @@ bintray {
             name = project.version
         }
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.5.1'
 }
