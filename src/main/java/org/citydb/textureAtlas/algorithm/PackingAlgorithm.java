@@ -27,22 +27,23 @@
  */
 package org.citydb.textureAtlas.algorithm;
 
-import java.util.LinkedList;
-
 import org.citydb.textureAtlas.model.AtlasRegion;
 import org.citydb.textureAtlas.model.TextureAtlas;
 
+import java.util.LinkedList;
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Interface PackingAlgorithm.
  */
 public interface PackingAlgorithm {
-	
-	/**
-	 * Creates the texture atlas.
-	 *
-	 * @param regions the regions
-	 * @return the texture atlas
-	 */
-	public TextureAtlas createTextureAtlas(LinkedList<AtlasRegion> regions);
+
+    /**
+     * Creates the texture atlas.
+     *
+     * @param regions the regions
+     * @return the texture atlas
+     */
+    public TextureAtlas createTextureAtlas(LinkedList<AtlasRegion> regions);
 }

@@ -27,21 +27,22 @@
  */
 package org.citydb.textureAtlas.algorithm;
 
-import java.util.Comparator;
-
 import org.citydb.textureAtlas.model.AtlasRegion;
 
+import java.util.Comparator;
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class DescendingAreaComparator.
  */
 public class DescendingAreaComparator implements Comparator<AtlasRegion> {
-	
-	/* (non-Javadoc)
-	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public int compare(AtlasRegion o1, AtlasRegion o2) {
-		return o1.area > o2.area ? -1 : o1.area == o2.area ? 0 : 1;
-	}
+
+    /* (non-Javadoc)
+     * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+     */
+    @Override
+    public int compare(AtlasRegion o1, AtlasRegion o2) {
+        return o1.area > o2.area ? -1 : o1.area == o2.area ? 0 : 1;
+    }
 }

@@ -27,198 +27,209 @@
  */
 package org.citydb.textureAtlas.algorithm;
 
+import org.citydb.textureAtlas.model.AtlasRegion;
+import org.citydb.textureAtlas.model.TextureAtlas;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.citydb.textureAtlas.model.AtlasRegion;
-import org.citydb.textureAtlas.model.TextureAtlas;
-
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class LightmapAlgorithm.
  */
 public class LightmapAlgorithm implements PackingAlgorithm {
-	
-	/** The atlas width. */
-	private int atlasWidth;
-	
-	/** The atlas height. */
-	private int atlasHeight;
-	
-	/** The use rotation. */
-	private boolean useRotation;
 
-	/**
-	 * Instantiates a new lightmap algorithm.
-	 *
-	 * @param atlasWidth the atlas width
-	 * @param atlasHeight the atlas height
-	 * @param useRotation the use rotation
-	 */
-	public LightmapAlgorithm(int atlasWidth, int atlasHeight, boolean useRotation) {
-		this.atlasWidth = atlasWidth;
-		this.atlasHeight = atlasHeight;
-		this.useRotation = useRotation;
-	}
+    /**
+     * The atlas width.
+     */
+    private int atlasWidth;
 
-	/* (non-Javadoc)
-	 * @see org.citydb.textureAtlas.algorithm.PackingAlgorithm#createTextureAtlas(java.util.LinkedList)
-	 */
-	@Override
-	public TextureAtlas createTextureAtlas(LinkedList<AtlasRegion> regions) {
-		TextureAtlas atlas = new TextureAtlas();
-		atlas.setBindingBox(atlasWidth, atlasHeight);
+    /**
+     * The atlas height.
+     */
+    private int atlasHeight;
 
-		// sort regions
-		Collections.sort(regions, new DescendingDiagonalComparator());
+    /**
+     * The use rotation.
+     */
+    private boolean useRotation;
 
-		List<Node> roots = new ArrayList<Node>();
-		roots.add(new Node(0, 0, atlasWidth, atlasHeight));
+    /**
+     * Instantiates a new lightmap algorithm.
+     *
+     * @param atlasWidth  the atlas width
+     * @param atlasHeight the atlas height
+     * @param useRotation the use rotation
+     */
+    public LightmapAlgorithm(int atlasWidth, int atlasHeight, boolean useRotation) {
+        this.atlasWidth = atlasWidth;
+        this.atlasHeight = atlasHeight;
+        this.useRotation = useRotation;
+    }
 
-		for (AtlasRegion region : regions) {
-			boolean added = false;
+    /* (non-Javadoc)
+     * @see org.citydb.textureAtlas.algorithm.PackingAlgorithm#createTextureAtlas(java.util.LinkedList)
+     */
+    @Override
+    public TextureAtlas createTextureAtlas(LinkedList<AtlasRegion> regions) {
+        TextureAtlas atlas = new TextureAtlas();
+        atlas.setBindingBox(atlasWidth, atlasHeight);
 
-			for (Node root : roots) {
-				if (root.insert(region) != null) {
-					added = true;
-					break;
-				}
-			}
+        // sort regions
+        Collections.sort(regions, new DescendingDiagonalComparator());
 
-			if (!added) {
-				Node root = new Node(0, 0, atlasWidth, atlasHeight);
-				root.insert(region);
-				roots.add(root);
-			}
-		}
+        List<Node> roots = new ArrayList<Node>();
+        roots.add(new Node(0, 0, atlasWidth, atlasHeight));
 
-		// fill texture atlas from root nodes
-		for (int i = 0; i < roots.size(); i++)
-			fillAtlas(atlas, roots.get(i), i);
+        for (AtlasRegion region : regions) {
+            boolean added = false;
 
-		return atlas;
-	}
+            for (Node root : roots) {
+                if (root.insert(region) != null) {
+                    added = true;
+                    break;
+                }
+            }
 
-	/**
-	 * Fill atlas.
-	 *
-	 * @param atlas the atlas
-	 * @param node the node
-	 * @param level the level
-	 */
-	private void fillAtlas(TextureAtlas atlas, Node node, int level) {
-		if (node == null)
-			return;
+            if (!added) {
+                Node root = new Node(0, 0, atlasWidth, atlasHeight);
+                root.insert(region);
+                roots.add(root);
+            }
+        }
 
-		if (node.region.texImageName != null) {
-			node.region.level = level;
-			atlas.addRegion(node.region);
-		}
+        // fill texture atlas from root nodes
+        for (int i = 0; i < roots.size(); i++)
+            fillAtlas(atlas, roots.get(i), i);
 
-		fillAtlas(atlas, node.childs[0], level);
-		fillAtlas(atlas, node.childs[1], level);
-	}
+        return atlas;
+    }
 
-	/**
-	 * The Class Node.
-	 */
-	private class Node {
-		
-		/** The childs. */
-		private Node[] childs;
-		
-		/** The region. */
-		private AtlasRegion region;
-		
-		/** The level. */
-		private short level;
+    /**
+     * Fill atlas.
+     *
+     * @param atlas the atlas
+     * @param node  the node
+     * @param level the level
+     */
+    private void fillAtlas(TextureAtlas atlas, Node node, int level) {
+        if (node == null)
+            return;
 
-		/**
-		 * Instantiates a new node.
-		 *
-		 * @param x the x
-		 * @param y the y
-		 * @param width the width
-		 * @param height the height
-		 */
-		private Node(int x, int y, int width, int height) {
-			childs = new Node[2];
-			region = new AtlasRegion(null, x, y, width, height);
-		}
+        if (node.region.texImageName != null) {
+            node.region.level = level;
+            atlas.addRegion(node.region);
+        }
 
-		/**
-		 * Checks if is leaf.
-		 *
-		 * @return true, if is leaf
-		 */
-		private boolean isLeaf() {
-			return childs[0] == null && childs[1] == null;
-		}
+        fillAtlas(atlas, node.childs[0], level);
+        fillAtlas(atlas, node.childs[1], level);
+    }
 
-		/**
-		 * Insert.
-		 *
-		 * @param candidate the candidate
-		 * @return the node
-		 */
-		private Node insert(AtlasRegion candidate) {
-			if (!isLeaf()) {
-				Node node = childs[0].insert(candidate);
-				if (node != null)
-					return node;
+    /**
+     * The Class Node.
+     */
+    private class Node {
 
-				return childs[1].insert(candidate);
-			}
+        /**
+         * The childs.
+         */
+        private Node[] childs;
 
-			else {
-				if (region.texImageName != null)
-					return null;
+        /**
+         * The region.
+         */
+        private AtlasRegion region;
 
-				if (!fitsInRegion(candidate))
-					return null;
+        /**
+         * The level.
+         */
+        private short level;
 
-				if (candidate.width == region.width && candidate.height == region.height) {
-					candidate.x = region.x;
-					candidate.y = region.y;
-					candidate.level = level;
-					region = candidate;
-					return this;
-				}
+        /**
+         * Instantiates a new node.
+         *
+         * @param x      the x
+         * @param y      the y
+         * @param width  the width
+         * @param height the height
+         */
+        private Node(int x, int y, int width, int height) {
+            childs = new Node[2];
+            region = new AtlasRegion(null, x, y, width, height);
+        }
 
-				int dw = region.width - candidate.width;
-				int dh = region.height - candidate.height;
+        /**
+         * Checks if is leaf.
+         *
+         * @return true, if is leaf
+         */
+        private boolean isLeaf() {
+            return childs[0] == null && childs[1] == null;
+        }
 
-				if (dw > dh) {
-					childs[0] = new Node(region.x, region.y, candidate.width, region.height);
-					childs[1] = new Node(region.x + candidate.width, region.y, region.width - candidate.width, region.height);
-				} else {
-					childs[0] = new Node(region.x, region.y, region.width, candidate.height);
-					childs[1] = new Node(region.x, region.y + candidate.height, region.width, region.height - candidate.height);
-				}
+        /**
+         * Insert.
+         *
+         * @param candidate the candidate
+         * @return the node
+         */
+        private Node insert(AtlasRegion candidate) {
+            if (!isLeaf()) {
+                Node node = childs[0].insert(candidate);
+                if (node != null)
+                    return node;
 
-				return childs[0].insert(candidate);
-			}
-		}
+                return childs[1].insert(candidate);
+            } else {
+                if (region.texImageName != null)
+                    return null;
 
-		/**
-		 * Fits in region.
-		 *
-		 * @param candidate the candidate
-		 * @return true, if successful
-		 */
-		private boolean fitsInRegion(AtlasRegion candidate) {
-			boolean fits = candidate.width <= region.width && candidate.height <= region.height;
-			if (!fits && useRotation) {
-				fits = candidate.height <= region.width && candidate.width <= region.height;
-				if (fits)
-					candidate.rotate();
-			}
+                if (!fitsInRegion(candidate))
+                    return null;
 
-			return fits;
-		}
+                if (candidate.width == region.width && candidate.height == region.height) {
+                    candidate.x = region.x;
+                    candidate.y = region.y;
+                    candidate.level = level;
+                    region = candidate;
+                    return this;
+                }
 
-	}
+                int dw = region.width - candidate.width;
+                int dh = region.height - candidate.height;
+
+                if (dw > dh) {
+                    childs[0] = new Node(region.x, region.y, candidate.width, region.height);
+                    childs[1] = new Node(region.x + candidate.width, region.y, region.width - candidate.width, region.height);
+                } else {
+                    childs[0] = new Node(region.x, region.y, region.width, candidate.height);
+                    childs[1] = new Node(region.x, region.y + candidate.height, region.width, region.height - candidate.height);
+                }
+
+                return childs[0].insert(candidate);
+            }
+        }
+
+        /**
+         * Fits in region.
+         *
+         * @param candidate the candidate
+         * @return true, if successful
+         */
+        private boolean fitsInRegion(AtlasRegion candidate) {
+            boolean fits = candidate.width <= region.width && candidate.height <= region.height;
+            if (!fits && useRotation) {
+                fits = candidate.height <= region.width && candidate.width <= region.height;
+                if (fits)
+                    candidate.rotate();
+            }
+
+            return fits;
+        }
+
+    }
 
 }

@@ -29,55 +29,55 @@ package org.citydb.textureAtlas.model;
 
 import java.util.LinkedList;
 
-public class TextureAtlas { 
-	private LinkedList<AtlasRegion> regions;
-	private int bindingBoxHeight;
-	private int bindingBoxWidth;
-	private boolean hasFourChannels;
-    
-    public TextureAtlas(){
-    	regions = new LinkedList<AtlasRegion>();
-    }
-    
-    public boolean hasFourChannels() {
-		return hasFourChannels;
-	}
+public class TextureAtlas {
+    private LinkedList<AtlasRegion> regions;
+    private int bindingBoxHeight;
+    private int bindingBoxWidth;
+    private boolean hasFourChannels;
 
-	public void setFourChannels(boolean hasFourChannels) {
-		this.hasFourChannels = hasFourChannels;
-	}      
+    public TextureAtlas() {
+        regions = new LinkedList<AtlasRegion>();
+    }
+
+    public boolean hasFourChannels() {
+        return hasFourChannels;
+    }
+
+    public void setFourChannels(boolean hasFourChannels) {
+        this.hasFourChannels = hasFourChannels;
+    }
 
     public void setBindingBox(int w, int h) {
-    	bindingBoxHeight = h;
-    	bindingBoxWidth = w;
+        bindingBoxHeight = h;
+        bindingBoxWidth = w;
     }
-    
+
     public void setBindingBoxWidth(int w) {
-    	bindingBoxWidth = w;
+        bindingBoxWidth = w;
     }
-    
+
     public void setBindingBoxHeight(int h) {
-    	bindingBoxHeight = h;
+        bindingBoxHeight = h;
     }
 
     public int getBindingBoxHeight() {
-    	return bindingBoxHeight;
+        return bindingBoxHeight;
     }
-    
+
     public int getBindingBoxWidth() {
-    	return bindingBoxWidth;
+        return bindingBoxWidth;
     }
 
     public void addRegion(AtlasRegion region) {
-    	regions.add(region);
+        regions.add(region);
     }
-    
+
     public void setRegions(LinkedList<AtlasRegion> regions) {
-    	this.regions = regions;
+        this.regions = regions;
     }
-    
+
     public LinkedList<AtlasRegion> getRegions() {
-    	return regions;
+        return regions;
     }
-    
+
 }

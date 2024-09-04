@@ -27,6 +27,11 @@
  */
 package org.citydb.textureAtlas.image;
 
+import org.citydb.textureAtlas.model.TextureImage;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,81 +39,75 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReadParam;
-import javax.imageio.stream.ImageInputStream;
-
-import org.citydb.textureAtlas.model.TextureImage;
-
 public class ImageReader {
-	private boolean isSupportRGB;
+    private boolean isSupportRGB;
 
-	public ImageReader() {
-		// just to thwart instantiation
-	}
+    public ImageReader() {
+        // just to thwart instantiation
+    }
 
-	public boolean isSupportRGB() {
-		return isSupportRGB;
-	}
+    public boolean isSupportRGB() {
+        return isSupportRGB;
+    }
 
-	public void setSupportRGB(boolean supportRGB) {
-		this.isSupportRGB = supportRGB;
-	}
+    public void setSupportRGB(boolean supportRGB) {
+        this.isSupportRGB = supportRGB;
+    }
 
-	public TextureImage read(File file) throws IOException {
-		if (!file.isFile() || !file.exists() || !file.canRead())
-			return null;
+    public TextureImage read(File file) throws IOException {
+        if (!file.isFile() || !file.exists() || !file.canRead())
+            return null;
 
-		return read(new FileInputStream(file));
-	}
+        return read(new FileInputStream(file));
+    }
 
-	public TextureImage read(InputStream is) throws IOException {
-		BufferedImage b = null;
+    public TextureImage read(InputStream is) throws IOException {
+        BufferedImage b = null;
 
-		ImageInputStream imageIS = ImageIO.createImageInputStream(is);
-		if (imageIS == null)
-			return null;
+        ImageInputStream imageIS = ImageIO.createImageInputStream(is);
+        if (imageIS == null)
+            return null;
 
-		Iterator<javax.imageio.ImageReader> iter = ImageIO.getImageReaders(imageIS);
-		if (!iter.hasNext())
-			return null;
+        Iterator<javax.imageio.ImageReader> iter = ImageIO.getImageReaders(imageIS);
+        if (!iter.hasNext())
+            return null;
 
-		javax.imageio.ImageReader imageReader = iter.next();
-		ImageReadParam param = imageReader.getDefaultReadParam();
-		imageReader.setInput(imageIS, true, true);
+        javax.imageio.ImageReader imageReader = iter.next();
+        ImageReadParam param = imageReader.getDefaultReadParam();
+        imageReader.setInput(imageIS, true, true);
 
-		try {
-			b = imageReader.read(0, param);
-			if (b == null && isSupportRGB) {
-				imageIS.reset();
-				b = RGBEncoder.getInstance().readRGB(imageIS);
-			}
-		} finally {
-			imageReader.dispose();
-			imageIS.close();
-		}
+        try {
+            b = imageReader.read(0, param);
+            if (b == null && isSupportRGB) {
+                imageIS.reset();
+                b = RGBEncoder.getInstance().readRGB(imageIS);
+            }
+        } finally {
+            imageReader.dispose();
+            imageIS.close();
+        }
 
-		return b != null ? new TextureImage(b) : null;
-	}
+        return b != null ? new TextureImage(b) : null;
+    }
 
-	public boolean isSupportedMIMEType(String mimeType) {
-		if (mimeType == null)
-			return false;
+    public boolean isSupportedMIMEType(String mimeType) {
+        if (mimeType == null)
+            return false;
 
-		if (ImageIO.getImageReadersByMIMEType(mimeType).hasNext())
-			return true;
-		else
-			return isSupportRGB ? RGBEncoder.getInstance().isSupportedMIMEType(mimeType) : false;
-	}
+        if (ImageIO.getImageReadersByMIMEType(mimeType).hasNext())
+            return true;
+        else
+            return isSupportRGB ? RGBEncoder.getInstance().isSupportedMIMEType(mimeType) : false;
+    }
 
-	public boolean isSupportedFileSuffix(String suffix) {
-		if (suffix == null)
-			return false;
+    public boolean isSupportedFileSuffix(String suffix) {
+        if (suffix == null)
+            return false;
 
-		if (ImageIO.getImageReadersBySuffix(suffix).hasNext())
-			return true;
-		else
-			return isSupportRGB ? RGBEncoder.getInstance().isSupportedFileSuffix(suffix) : false;
-	}
+        if (ImageIO.getImageReadersBySuffix(suffix).hasNext())
+            return true;
+        else
+            return isSupportRGB ? RGBEncoder.getInstance().isSupportedFileSuffix(suffix) : false;
+    }
 
 }

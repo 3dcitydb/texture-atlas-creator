@@ -31,83 +31,83 @@ import org.citydb.textureAtlas.model.TextureImagesInfo;
 import org.citydb.textureAtlas.packer.Modifier;
 
 public class TextureAtlasCreator {
-	public static final int BASIC = 1;
-	public static final int TPIM = 2;
-	public static final int TPIM_WO_ROTATION = 3;
+    public static final int BASIC = 1;
+    public static final int TPIM = 2;
+    public static final int TPIM_WO_ROTATION = 3;
 
-	private int packingAlgorithm;
-	private int atlasMaxWidth;
-	private int atlasMaxHeight;
+    private int packingAlgorithm;
+    private int atlasMaxWidth;
+    private int atlasMaxHeight;
 
-	private boolean usePOTS = false;
-	private double scaleFactor = 1;
+    private boolean usePOTS = false;
+    private double scaleFactor = 1;
 
-	public TextureAtlasCreator() {
-		this(BASIC, 1024, 1024);
-	}
+    public TextureAtlasCreator() {
+        this(BASIC, 1024, 1024);
+    }
 
-	public TextureAtlasCreator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight) {
-		this(packingAlgorithm, atlasMaxWidth, atlasMaxHeight, false);
-	}
+    public TextureAtlasCreator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight) {
+        this(packingAlgorithm, atlasMaxWidth, atlasMaxHeight, false);
+    }
 
-	public TextureAtlasCreator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS) {
-		this.atlasMaxHeight = atlasMaxHeight;
-		this.atlasMaxWidth= atlasMaxWidth;
-		this.usePOTS = usePOTS;
-		setPackingAlgorithm(packingAlgorithm);
-		scaleFactor = 1;				
-	}
+    public TextureAtlasCreator(int packingAlgorithm, int atlasMaxWidth, int atlasMaxHeight, boolean usePOTS) {
+        this.atlasMaxHeight = atlasMaxHeight;
+        this.atlasMaxWidth = atlasMaxWidth;
+        this.usePOTS = usePOTS;
+        setPackingAlgorithm(packingAlgorithm);
+        scaleFactor = 1;
+    }
 
-	public double getScaleFactor() {
-		return scaleFactor;
-	}
+    public double getScaleFactor() {
+        return scaleFactor;
+    }
 
-	public void setScaleFactor(double scaleFactor) {
-		this.scaleFactor = scaleFactor;
-	}
+    public void setScaleFactor(double scaleFactor) {
+        this.scaleFactor = scaleFactor;
+    }
 
-	public int getPackingAlgorithm() {
-		return packingAlgorithm;
-	}
+    public int getPackingAlgorithm() {
+        return packingAlgorithm;
+    }
 
-	public void setPackingAlgorithm(int packingAlgorithm) {
-		if (packingAlgorithm < 1 || packingAlgorithm > 3)
-			packingAlgorithm = BASIC;
-		
-		this.packingAlgorithm = packingAlgorithm;
-	}
+    public void setPackingAlgorithm(int packingAlgorithm) {
+        if (packingAlgorithm < 1 || packingAlgorithm > 3)
+            packingAlgorithm = BASIC;
 
-	public int getAtlasMaxWidth() {
-		return atlasMaxWidth;
-	}
+        this.packingAlgorithm = packingAlgorithm;
+    }
 
-	public void setAtlasMaxWidth(int atlasMaxWidth) {
-		this.atlasMaxWidth = atlasMaxWidth;
-	}
+    public int getAtlasMaxWidth() {
+        return atlasMaxWidth;
+    }
 
-	public int getAtlasMaxHeight() {
-		return atlasMaxHeight;
-	}
+    public void setAtlasMaxWidth(int atlasMaxWidth) {
+        this.atlasMaxWidth = atlasMaxWidth;
+    }
 
-	public void setAtlasMaxHeight(int atlasMaxHeight) {
-		this.atlasMaxHeight = atlasMaxHeight;
-	}
+    public int getAtlasMaxHeight() {
+        return atlasMaxHeight;
+    }
 
-	public void setUsePOTS(boolean usePOTS) {
-		this.usePOTS = usePOTS;
-	}
+    public void setAtlasMaxHeight(int atlasMaxHeight) {
+        this.atlasMaxHeight = atlasMaxHeight;
+    }
 
-	public boolean isUsePOTS() {
-		return usePOTS;
-	}
+    public void setUsePOTS(boolean usePOTS) {
+        this.usePOTS = usePOTS;
+    }
 
-	public void convert(TextureImagesInfo tii) {	
-		convert(tii, packingAlgorithm);
-	}
+    public boolean isUsePOTS() {
+        return usePOTS;
+    }
 
-	public void convert(TextureImagesInfo tii, int packingAlgorithm) {
-		setPackingAlgorithm(packingAlgorithm);
-		Modifier modifier = new Modifier(this.packingAlgorithm, atlasMaxWidth, atlasMaxHeight, usePOTS, scaleFactor);
-		modifier.run(tii);
-	}
+    public void convert(TextureImagesInfo tii) {
+        convert(tii, packingAlgorithm);
+    }
+
+    public void convert(TextureImagesInfo tii, int packingAlgorithm) {
+        setPackingAlgorithm(packingAlgorithm);
+        Modifier modifier = new Modifier(this.packingAlgorithm, atlasMaxWidth, atlasMaxHeight, usePOTS, scaleFactor);
+        modifier.run(tii);
+    }
 }

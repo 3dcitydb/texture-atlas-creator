@@ -27,41 +27,44 @@
  */
 package org.citydb.textureAtlas.algorithm;
 
-import java.util.Comparator;
-
 import org.citydb.textureAtlas.model.AtlasRegion;
 
+import java.util.Comparator;
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class MultiComparator.
  */
 public class MultiComparator implements Comparator<AtlasRegion> {
-	
-	/** The comparators. */
-	private Comparator<AtlasRegion>[] comparators;
-	
-	/**
-	 * Instantiates a new multi comparator.
-	 *
-	 * @param comparators the comparators
-	 */
-	@SuppressWarnings("unchecked")
-	protected MultiComparator(Comparator<AtlasRegion>... comparators) {
-		this.comparators = comparators;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public int compare(AtlasRegion o1, AtlasRegion o2) {
-		for (Comparator<AtlasRegion> comparator : comparators) {
+
+    /**
+     * The comparators.
+     */
+    private Comparator<AtlasRegion>[] comparators;
+
+    /**
+     * Instantiates a new multi comparator.
+     *
+     * @param comparators the comparators
+     */
+    @SuppressWarnings("unchecked")
+    protected MultiComparator(Comparator<AtlasRegion>... comparators) {
+        this.comparators = comparators;
+    }
+
+    /* (non-Javadoc)
+     * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+     */
+    @Override
+    public int compare(AtlasRegion o1, AtlasRegion o2) {
+        for (Comparator<AtlasRegion> comparator : comparators) {
             int result = comparator.compare(o1, o2);
-            if (result != 0) 
-            	return result;
+            if (result != 0)
+                return result;
         }
-		
+
         return 0;
-	}
+    }
 
 }

@@ -27,79 +27,77 @@
  */
 package org.citydb.textureAtlas.image;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Transparency;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 public class ImageProcessor {
 
-	public static BufferedImage rescale(BufferedImage source, int maxW, int maxH) {
-		if (source == null)
-			return null;
-		
-		int newW, newH;
-		
-		if (source.getWidth() > source.getHeight()) {
-			newW = maxW;
-			newH = newW * source.getHeight() / source.getWidth();
-			if (newH == 0)
-				newH = 1;
-		} else {
-			newH = maxH;
-			newW = newH * source.getWidth() / source.getHeight();
-			if (newW == 0)
-				newW = 1;
-		}
+    public static BufferedImage rescale(BufferedImage source, int maxW, int maxH) {
+        if (source == null)
+            return null;
 
-		int type = (source.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
-		BufferedImage target = new BufferedImage(newW, newH, type);
-		
-		return rescale(source, target);
-	}
-	
-	public static BufferedImage rescale(BufferedImage source, double scaleFactor) {	
-		if (source == null) 
-			return null;
-		
-		int type = (source.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
-		BufferedImage target = new BufferedImage(
-				(int)Math.floor(source.getWidth() * scaleFactor) + 1, 
-				(int)Math.floor(source.getHeight() * scaleFactor) + 1, type);
-		
-		return rescale(source, target);
-	}
-	
-	private static BufferedImage rescale(BufferedImage source, BufferedImage target) {
-		double scaleX = (double) target.getWidth() / source.getWidth();
-		double scaleY = (double) target.getHeight() / source.getHeight();
-		AffineTransform transform = AffineTransform.getScaleInstance(scaleX, scaleY);
-		
-		Graphics2D graphics = target.createGraphics();
-		graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-		graphics.drawRenderedImage(source, transform);
-		graphics.dispose();
+        int newW, newH;
 
-		return target;
-	}
-	
-	public static BufferedImage rotate(BufferedImage source) {
-		if (source == null) 
-			return null;
-		
-		int type = source.getTransparency() == Transparency.OPAQUE ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
-		int width = source.getWidth();
-		int height = source.getHeight();
-		
-		BufferedImage target = new BufferedImage(source.getHeight(), source.getWidth(), type);
+        if (source.getWidth() > source.getHeight()) {
+            newW = maxW;
+            newH = newW * source.getHeight() / source.getWidth();
+            if (newH == 0)
+                newH = 1;
+        } else {
+            newH = maxH;
+            newW = newH * source.getWidth() / source.getHeight();
+            if (newW == 0)
+                newW = 1;
+        }
 
-		// swap pixels
-		for (int i = 0; i < width; i++)
-			for (int j = 0; j < height; j++)
-				target.setRGB(j, width-i-1, source.getRGB(i, j));
-		
-		return target;
-	}
+        int type = (source.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+        BufferedImage target = new BufferedImage(newW, newH, type);
+
+        return rescale(source, target);
+    }
+
+    public static BufferedImage rescale(BufferedImage source, double scaleFactor) {
+        if (source == null)
+            return null;
+
+        int type = (source.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+        BufferedImage target = new BufferedImage(
+                (int) Math.floor(source.getWidth() * scaleFactor) + 1,
+                (int) Math.floor(source.getHeight() * scaleFactor) + 1, type);
+
+        return rescale(source, target);
+    }
+
+    private static BufferedImage rescale(BufferedImage source, BufferedImage target) {
+        double scaleX = (double) target.getWidth() / source.getWidth();
+        double scaleY = (double) target.getHeight() / source.getHeight();
+        AffineTransform transform = AffineTransform.getScaleInstance(scaleX, scaleY);
+
+        Graphics2D graphics = target.createGraphics();
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        graphics.drawRenderedImage(source, transform);
+        graphics.dispose();
+
+        return target;
+    }
+
+    public static BufferedImage rotate(BufferedImage source) {
+        if (source == null)
+            return null;
+
+        int type = source.getTransparency() == Transparency.OPAQUE ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+        int width = source.getWidth();
+        int height = source.getHeight();
+
+        BufferedImage target = new BufferedImage(source.getHeight(), source.getWidth(), type);
+
+        // swap pixels
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++)
+                target.setRGB(j, width - i - 1, source.getRGB(i, j));
+
+        return target;
+    }
 
 }

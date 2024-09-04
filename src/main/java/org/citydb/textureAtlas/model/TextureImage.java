@@ -27,34 +27,34 @@
  */
 package org.citydb.textureAtlas.model;
 
-import java.awt.Transparency;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class TextureImage {
-	private BufferedImage image;
+    private BufferedImage image;
 
-	public TextureImage(BufferedImage image) {
-		this.image = image;
-	}
-	
-	public BufferedImage getBufferedImage(){
-		return image;
-	}
-	
-	public void setImage(BufferedImage image) {
-		this.image = image;
-	}
-	
-	public int getWidth() {
-		return image.getWidth();
-	}
-	
-	public int getHeight() {
-		return image.getHeight();
-	}
-	
-	public int getChannels(){
-		return image.getTransparency() == Transparency.OPAQUE ? 3 : 4;
-	}
-	
+    public TextureImage(BufferedImage image) {
+        this.image = image;
+    }
+
+    public BufferedImage getBufferedImage() {
+        return image;
+    }
+
+    public void setImage(BufferedImage image) {
+        this.image = image;
+    }
+
+    public int getWidth() {
+        return image.getWidth();
+    }
+
+    public int getHeight() {
+        return image.getHeight();
+    }
+
+    public int getChannels() {
+        return image.getTransparency() == Transparency.OPAQUE ? 3 : 4;
+    }
+
 }

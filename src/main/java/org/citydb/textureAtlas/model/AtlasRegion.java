@@ -31,72 +31,71 @@ package org.citydb.textureAtlas.model;
  * For packing algorithms each texture will be represented as an object of this class.
  * As a result of packing process these variables should be set: x,y, level, and rotated.
  * Because of optimization SET/GET methods are neglected and variables defined in public domain.
- *
  */
 public class AtlasRegion {
-	// must be equal to the name of the texture image
-	public String texImageName;
-	public int width;
-	public int height;
-	public int area; 
-	public int x;
-	public int y;
-	public boolean isRotated;
-	public int score = Integer.MIN_VALUE;
-	public int level;
+    // must be equal to the name of the texture image
+    public String texImageName;
+    public int width;
+    public int height;
+    public int area;
+    public int x;
+    public int y;
+    public boolean isRotated;
+    public int score = Integer.MIN_VALUE;
+    public int level;
 
-	public AtlasRegion(String texImageName, int width, int height) {
-		this.texImageName = texImageName;
-		this.width = width;
-		this.height = height;
-		this.area = width * height;
-	}
-	
-	public AtlasRegion(String texImageName, int x, int y, int width, int height) {
-		this(texImageName, width, height);
-		this.x = x;
-		this.y = y;
-	}
+    public AtlasRegion(String texImageName, int width, int height) {
+        this.texImageName = texImageName;
+        this.width = width;
+        this.height = height;
+        this.area = width * height;
+    }
 
-	public AtlasRegion(AtlasRegion r) {
-		this.x = r.x;
-		this.y = r.y;
-		this.texImageName = r.texImageName;
-		this.width = r.width;
-		this.height = r.height;
-		this.score = r.score;
-		this.isRotated = r.isRotated;
-	}
+    public AtlasRegion(String texImageName, int x, int y, int width, int height) {
+        this(texImageName, width, height);
+        this.x = x;
+        this.y = y;
+    }
 
-	public void rotate() {
-		int tmp = width;
-		width = height;
-		height = tmp;
-		isRotated = !isRotated;
-	}
+    public AtlasRegion(AtlasRegion r) {
+        this.x = r.x;
+        this.y = r.y;
+        this.texImageName = r.texImageName;
+        this.width = r.width;
+        this.height = r.height;
+        this.score = r.score;
+        this.isRotated = r.isRotated;
+    }
 
-	public void setPosition(int x, int y, short level) {
-		this.x = x;
-		this.y = y;
-		this.level = level;
-	}
+    public void rotate() {
+        int tmp = width;
+        width = height;
+        height = tmp;
+        isRotated = !isRotated;
+    }
 
-	public String getTexImageName(){
-		return texImageName;
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof AtlasRegion) {
-			if (((AtlasRegion)obj).getTexImageName() != null && ((AtlasRegion)obj).getTexImageName().equalsIgnoreCase(this.texImageName))
-				return true;
-		}
-		
-		return false;
-	}
+    public void setPosition(int x, int y, short level) {
+        this.x = x;
+        this.y = y;
+        this.level = level;
+    }
 
-	public void clear() {
-		texImageName = null;
-	}
+    public String getTexImageName() {
+        return texImageName;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof AtlasRegion) {
+            if (((AtlasRegion) obj).getTexImageName() != null && ((AtlasRegion) obj).getTexImageName().equalsIgnoreCase(this.texImageName))
+                return true;
+        }
+
+        return false;
+    }
+
+    public void clear() {
+        texImageName = null;
+    }
 
 }
