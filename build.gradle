@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'org.citydb'
-version '1.4.0'
+version '1.5.0'
 description 'Library for creating texture atlases for the 3D City Database'
 
 java {
